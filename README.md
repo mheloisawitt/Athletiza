@@ -47,8 +47,9 @@ br.com.athletiza
 ## Convenção de branches e commits
 
 - `main`: versão estável, sempre compilando
-- Uma branch por chamado, criada a partir da `main`: `CH-XX-descricao-curta`
-  (ex.: `CH-12-tela-login`, `CH-25-consulta-atletas`)
+- Branches nomeadas apenas pela numeração sequencial com 4 dígitos, criadas a partir da `main`:
+  `0001`, `0002`, `0003`...
+- Antes de criar uma branch, verificar a última numeração usada e pegar a próxima
 - Mensagens de commit começando pelo chamado: `CH-12: valida campos obrigatórios do login`
 - Ao concluir o chamado, abrir um Pull Request para a `main` e pedir revisão de outro integrante
 - Antes de começar a trabalhar, sempre atualizar: `Team > Remote > Pull`
