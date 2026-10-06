@@ -1,6 +1,6 @@
 # Athletiza
 
-Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
+Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC + PostgreSQL) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
 
 O sistema reúne em um só lugar o calendário, as gestões, os atletas, os treinos, as competições e os eventos da atlética.
 
@@ -12,11 +12,24 @@ Em [`docs/requisitos`](docs/requisitos):
 - `Chamados_Sistema_Gerenciamento_Atletica.pdf`: plano de construção com 51 chamados (CH-01 a CH-51) em 11 épicos
 - `prototipo_telas.webp`: protótipo das telas
 
+Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras de integridade.
+
 ## Pré-requisitos
 
 - JDK 17 ou superior
 - Apache NetBeans (versão recente, já vem com Maven embutido)
 - Git
+- PostgreSQL 14 ou superior (com pgAdmin, que já vem no instalador)
+
+## Configurar o banco de dados
+
+1. No pgAdmin, abra o **Query Tool** no banco `postgres` e execute
+   [`src/main/resources/sql/00_criar_banco.sql`](src/main/resources/sql/00_criar_banco.sql)
+2. Abra o **Query Tool** no novo banco `athletiza` e execute, nesta ordem:
+   - [`01_estrutura.sql`](src/main/resources/sql/01_estrutura.sql): cria as tabelas (pode ser executado de novo para zerar o banco)
+   - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
+3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do seu PostgreSQL.
+   Esse arquivo não vai para o Git (cada integrante tem o seu).
 
 ## Como abrir no NetBeans
 
@@ -31,18 +44,51 @@ mvn package
 java -jar target/Athletiza-1.0-SNAPSHOT.jar
 ```
 
+## Testes
+
+No NetBeans: botão direito no projeto > **Test** (ou Alt+F6). Pela linha de comando: `mvn test`.
+
+Os testes usam um banco H2 em memória, então rodam sem PostgreSQL instalado.
+Para testar contra um PostgreSQL real (use um banco separado, pois os testes apagam os dados):
+
+```bash
+mvn test -Dteste.db.url=jdbc:postgresql://localhost:5432/athletiza_teste -Dteste.db.usuario=postgres -Dteste.db.senha=SUA_SENHA
+```
+
 ## Estrutura de pacotes
 
 ```
 br.com.athletiza
 ├── Athletiza.java   classe principal
-├── model            entidades do domínio (Pessoa, Atleta, Gestao, Treino...)
+├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
 ├── view             telas Swing
 ├── controller       ligação entre telas e regras de negócio
-├── dao              acesso ao banco de dados (padrão DAO)
-├── util             utilitários (conexão, cores, validação, mensagens)
-└── exception        exceções personalizadas
+├── dao              acesso ao banco de dados (GenericDAO, AbstractDAO e um DAO por entidade)
+├── util             utilitários (ConnectionFactory, Validador, Cores)
+└── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
+
+Principais classes do modelo:
+
+- `Pessoa` (abstrata) → `Membro`, `Atleta`, `Usuario`
+- `Atividade` (abstrata, tudo que aparece no calendário) → `Treino` → `Amistoso`; `Competicao`; `Evento`; `Compromisso`
+- `Gestao`, `Cargo`, `MembroCargo`, `Modalidade`, `Resultado`, `Tarefa`, `Registro`
+
+## Andamento dos chamados
+
+| Chamado | Descrição | Situação |
+|---|---|---|
+| CH-02 | Projeto Java, repositório e pacotes | Concluído |
+| CH-04 | DER e scripts SQL | Concluído |
+| CH-05 | Conexão com o banco (JDBC) | Concluído |
+| CH-06 | GenericDAO, AbstractDAO e DAO de exemplo (`ModalidadeDAO`) | Concluído |
+| CH-07 | Hierarquia de pessoas | Concluído |
+| CH-08 | Hierarquia de atividades do calendário | Concluído |
+| CH-09 | Demais entidades com List, Map e Set | Concluído (diagrama de classes pendente) |
+| CH-10 | Exceções personalizadas e Validador | Concluído |
+| CH-11 | Comparable e Comparators | Concluído |
+| CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
+| CH-03 | Componentes Swing reutilizáveis | Próximo |
 
 ## Convenção de branches e commits
 
