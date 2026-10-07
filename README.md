@@ -66,7 +66,8 @@ br.com.athletiza
 ├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
-│   └── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
+│   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
+│   └── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
@@ -105,7 +106,13 @@ Principais classes do modelo:
 | CH-25 | Consulta de atletas com filtros e ordenação por Comparator | Concluído |
 | CH-26 | Cadastro de atleta com várias modalidades e situação em cada uma | Concluído |
 | CH-27 | Consulta e cadastro de modalidades (exclusão bloqueada se houver vínculos) | Concluído |
-| CH-18 | Módulo Gestão (backend) | Próximo |
+| CH-18 | GestaoDAO, CargoDAO, MembroDAO e controllers (sem períodos sobrepostos) | Concluído |
+| CH-19 | Consulta de gestões ordenada por período | Concluído |
+| CH-20 | Cadastro de gestão | Concluído |
+| CH-21 | Gerenciar gestão: adicionar, trocar e remover membros dos cargos | Concluído |
+| CH-22 | Consulta e cadastro de membros (e de cargos) | Concluído |
+| CH-23 | Organograma da gestão desenhado com Graphics2D | Concluído |
+| CH-28 | Módulo Competições (backend) | Próximo |
 
 ## Como criar uma tela nova
 

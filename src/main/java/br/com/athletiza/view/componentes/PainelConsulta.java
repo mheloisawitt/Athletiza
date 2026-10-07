@@ -9,8 +9,10 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -52,6 +54,7 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     private final JPanel barraBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     private final JPanel barraFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     private final JPanel linhaTitulo = new JPanel(new BorderLayout());
+    private final Map<Acao, JButton> botoesPadrao = new EnumMap<>(Acao.class);
     private final JLabel rotuloTitulo = new JLabel();
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo, Set<Acao> acoes) {
@@ -128,6 +131,19 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         linhaTitulo.add(titulo, BorderLayout.WEST);
     }
 
+    /** Troca o texto de um botão padrão (ex.: "Excluir" vira "Remover"). */
+    protected void renomearBotao(Acao acao, String texto) {
+        JButton botao = botoesPadrao.get(acao);
+        if (botao != null) {
+            botao.setText(texto);
+        }
+    }
+
+    /** Pergunta feita antes de excluir. Pode ser trocada pela subclasse. */
+    protected String getPerguntaExclusao(T selecionado) {
+        return "Deseja realmente excluir \"" + selecionado + "\"?";
+    }
+
     /** Desfaz a ordenação feita pelo clique no cabeçalho, mantendo a ordem em que os dados vieram. */
     protected void limparOrdenacaoDaTabela() {
         ordenador.setSortKeys(null);
@@ -144,16 +160,16 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
         boolean podeAlterar = Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
         if (acoes.contains(Acao.EXCLUIR)) {
-            adicionarBotao(Botoes.contornoVermelho("Excluir", e -> comSelecionado(this::confirmarExclusao)), podeAlterar);
+            adicionarBotao(Acao.EXCLUIR, Botoes.contornoVermelho("Excluir", e -> comSelecionado(this::confirmarExclusao)), podeAlterar);
         }
         if (acoes.contains(Acao.EDITAR)) {
-            adicionarBotao(Botoes.contorno("Editar", e -> comSelecionado(this::editar)), podeAlterar);
+            adicionarBotao(Acao.EDITAR, Botoes.contorno("Editar", e -> comSelecionado(this::editar)), podeAlterar);
         }
         if (acoes.contains(Acao.GERENCIAR)) {
-            adicionarBotao(Botoes.contornoVerde("Gerenciar", e -> comSelecionado(this::gerenciar)), true);
+            adicionarBotao(Acao.GERENCIAR, Botoes.contornoVerde("Gerenciar", e -> comSelecionado(this::gerenciar)), true);
         }
         if (acoes.contains(Acao.INCLUIR)) {
-            adicionarBotao(Botoes.destaque("+ Incluir", e -> incluir()), podeAlterar);
+            adicionarBotao(Acao.INCLUIR, Botoes.destaque("+ Incluir", e -> incluir()), podeAlterar);
         }
 
         linhaTitulo.setOpaque(false);
@@ -216,7 +232,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         return rolagem;
     }
 
-    private void adicionarBotao(JButton botao, boolean habilitado) {
+    private void adicionarBotao(Acao acao, JButton botao, boolean habilitado) {
+        botoesPadrao.put(acao, botao);
         botao.setEnabled(habilitado);
         if (!habilitado) {
             botao.setToolTipText("Seu perfil não permite esta ação.");
@@ -229,7 +246,7 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     }
 
     private void confirmarExclusao(T selecionado) {
-        if (Mensagens.confirmar(this, "Deseja realmente excluir \"" + selecionado + "\"?")) {
+        if (Mensagens.confirmar(this, getPerguntaExclusao(selecionado))) {
             excluir(selecionado);
         }
     }
