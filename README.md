@@ -67,7 +67,8 @@ br.com.athletiza
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
 │   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
-│   └── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
+│   ├── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
+│   └── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
@@ -112,7 +113,12 @@ Principais classes do modelo:
 | CH-21 | Gerenciar gestão: adicionar, trocar e remover membros dos cargos | Concluído |
 | CH-22 | Consulta e cadastro de membros (e de cargos) | Concluído |
 | CH-23 | Organograma da gestão desenhado com Graphics2D | Concluído |
-| CH-28 | Módulo Competições (backend) | Próximo |
+| CH-28 | CompeticaoDAO (inscrições em transação) e CompeticaoController | Concluído |
+| CH-29 | Consulta de competições com filtros de situação e período | Concluído |
+| CH-30 | Cadastro de competição (aparece no calendário) | Concluído |
+| CH-31 | Gerenciar competição: modalidades e atletas inscritos | Concluído |
+| CH-32 | Lançamento de resultados (equipe ou atleta) | Concluído |
+| CH-33 | Módulo Treinos (backend) | Próximo |
 
 ## Como criar uma tela nova
 
