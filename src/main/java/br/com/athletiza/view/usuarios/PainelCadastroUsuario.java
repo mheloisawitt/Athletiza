@@ -49,7 +49,8 @@ public class PainelCadastroUsuario extends PainelFormulario {
         adicionarCampo("Confirmação da senha", confirmacao, usuario.isNova());
 
         JLabel ajuda = new JLabel("<html>Administrador: acesso total, inclusive usuários. Diretoria: inclui, edita e exclui"
-                + " registros. Consulta: apenas visualiza.</html>");
+                + " registros. Consulta: apenas visualiza.<br>A senha definida aqui para outra pessoa é provisória:"
+                + " ela deverá trocá-la no primeiro acesso.</html>");
         ajuda.setForeground(Cores.TEXTO_SECUNDARIO);
         adicionarLinha(ajuda);
 

@@ -2,10 +2,11 @@
 -- Execute depois do 01_estrutura.sql. Os relacionamentos usam subconsultas
 -- (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
 
--- Usuário administrador inicial: login "admin", senha "admin123" (TROQUE após o primeiro acesso).
+-- Usuário administrador inicial: login "admin", senha "admin123".
+-- A senha é provisória: o sistema exige a troca no primeiro acesso.
 -- O hash foi gerado com: java -cp target/classes br.com.athletiza.util.Senha admin123
-INSERT INTO usuario (nome, login, senha_hash, perfil) VALUES
-    ('Administrador', 'admin', 'pbkdf2$120000$Ldd7cZo0DiIlLjcaDg7IQA==$5P2ymAUQH3VcPGeVFtv9FO2dlfMmNCUjABieDm9OjSY=', 'ADMINISTRADOR');
+INSERT INTO usuario (nome, login, senha_hash, perfil, deve_trocar_senha) VALUES
+    ('Administrador', 'admin', 'pbkdf2$120000$Ldd7cZo0DiIlLjcaDg7IQA==$5P2ymAUQH3VcPGeVFtv9FO2dlfMmNCUjABieDm9OjSY=', 'ADMINISTRADOR', TRUE);
 
 -- Modalidades
 INSERT INTO modalidade (nome, genero) VALUES

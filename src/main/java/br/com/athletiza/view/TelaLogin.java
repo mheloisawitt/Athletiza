@@ -5,6 +5,7 @@ import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Mensagens;
+import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -127,6 +128,12 @@ public class TelaLogin extends JFrame {
                 botaoEntrar.setText("Entrar");
                 try {
                     Usuario usuario = get();
+                    if (usuario.isDeveTrocarSenha() && !DialogoAlterarSenha.abrirObrigatorio(TelaLogin.this, usuario)) {
+                        controller.sair();
+                        campoSenha.setText("");
+                        Mensagens.aviso(TelaLogin.this, "É preciso definir uma nova senha para entrar no sistema.");
+                        return;
+                    }
                     lembrarLogin(login);
                     new TelaPrincipal(usuario).setVisible(true);
                     dispose();

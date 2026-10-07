@@ -38,7 +38,9 @@ CREATE TABLE usuario (
     login       VARCHAR(50)  NOT NULL UNIQUE,
     senha_hash  VARCHAR(255) NOT NULL,
     perfil      VARCHAR(20)  NOT NULL CHECK (perfil IN ('ADMINISTRADOR', 'DIRETORIA', 'CONSULTA')),
-    ativo       BOOLEAN      NOT NULL DEFAULT TRUE
+    ativo       BOOLEAN      NOT NULL DEFAULT TRUE,
+    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
+    deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE membro (

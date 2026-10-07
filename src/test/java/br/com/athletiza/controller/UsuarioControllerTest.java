@@ -1,6 +1,8 @@
 package br.com.athletiza.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import br.com.athletiza.BancoDeTeste;
@@ -82,6 +84,31 @@ class UsuarioControllerTest {
         assertThrows(RegraNegocioException.class, () -> controller.excluir(outroAdmin));
         controller.excluir(controller.listar().stream().filter(u -> u.getLogin().equals("admin")).findFirst().orElseThrow());
         assertEquals(1, controller.listar().size());
+    }
+
+    @Test
+    void senhaDoAdministradorInicialEhProvisoriaAteSerTrocada() throws Exception {
+        Usuario admin = login.autenticar("admin", "admin123".toCharArray());
+        assertTrue(admin.isDeveTrocarSenha());
+
+        controller.alterarSenha(admin, "admin123".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray());
+
+        assertFalse(admin.isDeveTrocarSenha());
+        assertFalse(login.autenticar("admin", "novaSenha".toCharArray()).isDeveTrocarSenha());
+    }
+
+    @Test
+    void senhaDefinidaPeloAdministradorParaOutraPessoaEhProvisoria() throws Exception {
+        Sessao.iniciar(login.autenticar("admin", "admin123".toCharArray()));
+        Usuario diretora = new Usuario("Juliana Martins", "juliana", Perfil.DIRETORIA);
+
+        controller.salvar(diretora, "segredo1".toCharArray(), "segredo1".toCharArray());
+        assertTrue(login.autenticar("juliana", "segredo1".toCharArray()).isDeveTrocarSenha());
+
+        Usuario admin = controller.listar().stream().filter(u -> u.getLogin().equals("admin")).findFirst().orElseThrow();
+        Sessao.iniciar(admin);
+        controller.salvar(admin, "outraSenha".toCharArray(), "outraSenha".toCharArray());
+        assertFalse(login.autenticar("admin", "outraSenha".toCharArray()).isDeveTrocarSenha());
     }
 
     @Test

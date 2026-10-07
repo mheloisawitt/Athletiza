@@ -29,19 +29,20 @@ public class UsuarioDAO extends AbstractDAO<Usuario> {
 
     @Override
     public void inserir(Usuario usuario) throws PersistenciaException {
-        int id = executarInsercao("INSERT INTO usuario (nome, matricula, contato, login, senha_hash, perfil, ativo)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?)",
+        int id = executarInsercao("INSERT INTO usuario (nome, matricula, contato, login, senha_hash, perfil, ativo,"
+                + " deve_trocar_senha) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 usuario.getNome(), usuario.getMatricula(), usuario.getContato(), usuario.getLogin(),
-                usuario.getSenhaHash(), usuario.getPerfil(), usuario.isAtivo());
+                usuario.getSenhaHash(), usuario.getPerfil(), usuario.isAtivo(), usuario.isDeveTrocarSenha());
         usuario.setId(id);
     }
 
     @Override
     public void atualizar(Usuario usuario) throws PersistenciaException {
         executarAtualizacao("UPDATE usuario SET nome = ?, matricula = ?, contato = ?, login = ?, senha_hash = ?,"
-                + " perfil = ?, ativo = ? WHERE id = ?",
+                + " perfil = ?, ativo = ?, deve_trocar_senha = ? WHERE id = ?",
                 usuario.getNome(), usuario.getMatricula(), usuario.getContato(), usuario.getLogin(),
-                usuario.getSenhaHash(), usuario.getPerfil(), usuario.isAtivo(), usuario.getId());
+                usuario.getSenhaHash(), usuario.getPerfil(), usuario.isAtivo(), usuario.isDeveTrocarSenha(),
+                usuario.getId());
     }
 
     /** Busca pelo login, sem diferenciar maiúsculas de minúsculas. */
@@ -70,6 +71,7 @@ public class UsuarioDAO extends AbstractDAO<Usuario> {
         usuario.setContato(rs.getString("contato"));
         usuario.setSenhaHash(rs.getString("senha_hash"));
         usuario.setAtivo(rs.getBoolean("ativo"));
+        usuario.setDeveTrocarSenha(rs.getBoolean("deve_trocar_senha"));
         return usuario;
     }
 }

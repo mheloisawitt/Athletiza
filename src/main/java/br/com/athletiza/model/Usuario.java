@@ -12,6 +12,7 @@ public class Usuario extends Pessoa {
     private String senhaHash;
     private Perfil perfil = Perfil.CONSULTA;
     private boolean ativo = true;
+    private boolean deveTrocarSenha;
 
     public Usuario() {
     }
@@ -52,6 +53,15 @@ public class Usuario extends Pessoa {
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
+    }
+
+    /** Senha provisória: o usuário precisa trocá-la no próximo acesso. */
+    public boolean isDeveTrocarSenha() {
+        return deveTrocarSenha;
+    }
+
+    public void setDeveTrocarSenha(boolean deveTrocarSenha) {
+        this.deveTrocarSenha = deveTrocarSenha;
     }
 
     /** Usuários são identificados pelo login, não pela matrícula. */

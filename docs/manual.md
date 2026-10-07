@@ -3,6 +3,7 @@
 ## Entrar no sistema
 
 1. Informe **usuário** e **senha** e pressione Enter. No primeiro acesso: `admin` / `admin123`.
+   Senhas provisórias (a inicial e as definidas por um administrador) precisam ser trocadas ao entrar.
 2. Marque **Lembrar de mim** para o sistema guardar o seu usuário neste computador.
 3. Para trocar a sua senha, clique no seu nome, no rodapé do menu.
 
@@ -76,3 +77,9 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 - Crie usuários com login, perfil e senha (mínimo de 6 caracteres).
 - Na edição, deixe a senha em branco para mantê-la.
 - O sistema sempre mantém pelo menos um administrador ativo.
+- A senha que o administrador define para outra pessoa é provisória: ela troca no primeiro acesso.
+
+## Em caso de erro
+
+Se aparecer "Ocorreu um erro inesperado", envie ao responsável pelo sistema o arquivo indicado na mensagem
+(`Documentos/Athletiza-logs/athletiza-0.log`), que contém os detalhes técnicos.

@@ -40,13 +40,16 @@ Para a apresentação:
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
 **Já tem dados no banco?** Em vez de recriar tudo, rode as migrações de
-[`src/main/resources/sql/migracoes`](src/main/resources/sql/migracoes) em ordem (ex.: `0011_registros.sql`).
+[`src/main/resources/sql/migracoes`](src/main/resources/sql/migracoes) em ordem (ex.: `0011_registros.sql`, `0012_senha_provisoria.sql`).
+
+**Log de erros:** detalhes técnicos de erros inesperados ficam em `Documentos/Athletiza-logs/athletiza-0.log`
+(até 5 arquivos de 1 MB). Para usar outra pasta: `-Dathletiza.logs=CAMINHO`.
 
 **Fotos e vídeos (Registros):** ficam em `Documentos/Athletiza-midias`, fora do projeto e do Git. Para usar outra
 pasta, execute com `-Dathletiza.midias=CAMINHO` (no NetBeans: Properties > Run > VM Options).
 
-**Primeiro acesso:** usuário `admin`, senha `admin123` (criado pelos dados de exemplo).
-Troque a senha clicando no seu nome, no rodapé do menu. Novos usuários são criados no menu **Usuários** (só para administradores).
+**Primeiro acesso:** usuário `admin`, senha `admin123` (criado pelos dados de exemplo). Essa senha é provisória:
+o sistema exige a troca logo no primeiro acesso. Depois, troque quando quiser clicando no seu nome, no rodapé do menu. Novos usuários são criados no menu **Usuários** (só para administradores).
 
 ## Como abrir no NetBeans
 
@@ -90,7 +93,7 @@ br.com.athletiza
 │   └── registros    galeria de fotos e vídeos em pastas
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
-├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores, ArmazenamentoMidia)
+├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores, ArmazenamentoMidia, Log)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
 
@@ -117,7 +120,7 @@ Principais classes do modelo:
 | CH-12 | Tela de login com senha em hash (PBKDF2) | Concluído |
 | CH-13 | Perfis de acesso (Usuários só para administradores; Consulta só visualiza) | Concluído |
 | CH-14 | Tela principal com menu lateral (CardLayout) | Concluído |
-| CH-46 | Mensagens padronizadas e tratamento global de erros | Concluído |
+| CH-46 | Mensagens padronizadas, tratamento global de erros e log em arquivo | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
 | CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |
 | CH-16 | Incluir, editar e excluir compromissos pelo calendário | Concluído |
@@ -147,6 +150,7 @@ Principais classes do modelo:
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
 | RF01 | Cadastro de usuários e troca da própria senha | Concluído |
+| RN19 | Senha provisória com troca obrigatória no primeiro acesso | Concluído |
 | CH-48 | Diagramas de sequência (12 fluxos, em Mermaid e PNG) | Concluído |
 | CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
 | CH-51 | Matriz de requisitos técnicos para a apresentação | Concluído (slides a cargo do grupo) |

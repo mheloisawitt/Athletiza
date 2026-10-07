@@ -1,6 +1,7 @@
 package br.com.athletiza.view.componentes;
 
 import br.com.athletiza.exception.AthletizaException;
+import br.com.athletiza.util.Log;
 import java.awt.Component;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +24,8 @@ public final class Mensagens {
         } else {
             LOG.log(Level.SEVERE, "Erro inesperado", erro);
             JOptionPane.showMessageDialog(pai, "Ocorreu um erro inesperado. Tente novamente.\n"
-                    + "Se o problema continuar, informe o responsável pelo sistema.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    + "Se o problema continuar, informe o responsável pelo sistema e envie o arquivo:\n"
+                    + Log.getArquivoAtual(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -15,7 +15,8 @@ import java.util.regex.Pattern;
 
 /**
  * Cadastro de usuários do sistema e troca de senha (RF01, CH-13).
- * O sistema nunca fica sem um administrador ativo.
+ * O sistema nunca fica sem um administrador ativo. Senhas definidas por um
+ * administrador para outra pessoa são provisórias (troca obrigatória no próximo acesso).
  */
 public class UsuarioController {
 
@@ -57,6 +58,8 @@ public class UsuarioController {
         }
         if (informouSenha) {
             usuario.setSenhaHash(Senha.gerarHash(senha));
+            // Senha definida para outra pessoa é provisória: ela troca no primeiro acesso
+            usuario.setDeveTrocarSenha(!usuario.equals(Sessao.getUsuarioLogado()));
         }
         if (usuario.isNova()) {
             dao.inserir(usuario);
@@ -82,8 +85,10 @@ public class UsuarioController {
             throw new RegraNegocioException("A nova senha deve ser diferente da atual.");
         }
         gravado.setSenhaHash(Senha.gerarHash(nova));
+        gravado.setDeveTrocarSenha(false);
         dao.atualizar(gravado);
         usuario.setSenhaHash(gravado.getSenhaHash());
+        usuario.setDeveTrocarSenha(false);
     }
 
     /** Exclui um usuário; não é possível excluir a si mesmo nem o último administrador. */
