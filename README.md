@@ -22,6 +22,7 @@ Para a apresentação:
 - [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
 - [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e sugestão de divisão entre os integrantes
+- [`docs/prototipo/prototipo-telas.html`](docs/prototipo/prototipo-telas.html): protótipo navegável das 31 telas (abrir no navegador), com uma imagem de cada tela em [`docs/prototipo/telas`](docs/prototipo/telas)
 - [`docs/roteiro-testes.md`](docs/roteiro-testes.md): roteiro de testes manuais por módulo, para preencher
 
 ## Pré-requisitos

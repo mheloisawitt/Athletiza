@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Protótipo Athletiza v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@1,700&display=swap" rel="stylesheet">
+<style>
+/* Mesmo visual do protótipo v2 (tema escuro do sistema). Faixa superior = registro da tela (#, nome, classe Java). */
+:root{--bg:#121413;--side:#0B0D0C;--panel:#1E1E1E;--p2:#262826;--line:#3A3A3A;--tx:#ECEFEC;--mut:#9AA39D;--g:#00FF6A;--gd:#0A3D22;--p:#8A2BE2;--pl:#B77CFF;--am:#E8B923;--rd:#FF5C6C;--bl:#4DA3FF;--pk:#FF5FCB;--li:#C08BFF;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:14.5px/1.4 Barlow,system-ui,sans-serif;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--pl);outline-offset:2px}
+.hide{display:none!important}.mut{color:var(--mut)}
+.wm{font:italic 700 34px 'Barlow Condensed',Impact,sans-serif;letter-spacing:1px}
+/* faixa de registro */
+#reg{display:flex;gap:10px;align-items:center;padding:7px 14px;background:#1a0d2c;border-bottom:1px solid var(--p);font-size:13px;flex:none;flex-wrap:wrap}
+#reg b{color:var(--pl);font-variant-numeric:tabular-nums}#reg code{font:12px ui-monospace,Consolas,monospace;color:var(--mut)}
+#reg .sp{margin-left:auto;display:flex;gap:6px}
+#reg button{background:none;border:1px solid var(--line);border-radius:5px;padding:3px 10px;color:var(--tx)}
+#reg button:hover{border-color:var(--pl)}
+#stage{flex:1;min-height:0;position:relative}
+/* login */
+#login{height:100%;display:grid;grid-template-columns:1fr 1fr}
+.hero{display:grid;place-items:center;text-align:center;padding:30px;background:linear-gradient(115deg,#2a0f4d 0,transparent 35%),linear-gradient(295deg,#0c3a20 0,transparent 30%),var(--side);border-right:1px solid var(--line)}
+.hero svg{width:150px;height:150px}.hero .wm{font-size:64px;line-height:1;margin-top:8px}
+.lf{display:grid;place-items:center;padding:24px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:26px;width:min(360px,100%)}
+.card h1{font-size:20px;margin-bottom:4px}
+.fld{margin-top:12px;min-width:0}.fld label{display:block;color:var(--mut);font-size:13px;margin-bottom:4px}.fld label.req{color:var(--tx);font-weight:600}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+input:focus,select:focus,textarea:focus{border-color:var(--g);outline:0}
+.bad{border-color:var(--rd)!important}
+textarea{min-height:90px;resize:vertical}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--mut)}input[type=checkbox]{width:auto;accent-color:var(--g)}
+.pw{position:relative}.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--mut);font-size:12px}
+/* botões */
+.btn{border:1px solid var(--line);background:transparent;border-radius:6px;padding:7px 14px;font-weight:500;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--mut)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.b-p{background:var(--p);border-color:var(--p);color:#fff}.b-p:hover:not(:disabled){background:#9d4df0;border-color:#9d4df0}
+.b-po{border-color:var(--p);color:var(--pl)}.b-go{border-color:var(--g);color:var(--g)}.b-ro{border-color:var(--rd);color:var(--rd)}
+.b-g{background:var(--g);border-color:var(--g);color:#04170B;font-weight:600}.b-g:hover:not(:disabled){background:#5dffa0}
+.on-t{background:var(--gd);border-color:var(--g);color:var(--g)}
+.full{width:100%;margin-top:18px;padding:10px}
+/* app */
+#app{display:grid;grid-template-columns:210px minmax(0,1fr);height:100%}
+aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px;min-height:0}
+.brand{padding:2px 6px 18px}.brand .wm{font-size:28px;color:var(--g);line-height:1}
+nav{display:flex;flex-direction:column;gap:4px}
+nav button{background:none;border:1px solid transparent;text-align:left;padding:9px 12px;border-radius:7px;color:var(--mut);display:flex;gap:10px;align-items:center}
+nav button:hover{color:var(--tx);background:var(--panel)}
+nav button.on{color:var(--g);border-color:var(--g);background:var(--gd)}
+nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
+.user{margin-top:auto;display:flex;gap:9px;align-items:center;padding:10px 4px 0;border-top:1px solid var(--line);font-size:13px}
+.user .nm{background:none;border:0;text-align:left;padding:0}.user .nm:hover b{color:var(--pl)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--p);display:grid;place-items:center;font-weight:600;flex:none}
+.user small{display:block;color:var(--mut);font-size:11px}.user .out{margin-left:auto;background:none;border:0;color:var(--mut);font-size:12px}
+main{overflow:auto;padding:20px 24px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.top h1{font-size:22px;font-weight:600}.top .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+/* calendário */
+.home{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+.cal{overflow:hidden}.cal .hd{display:flex;gap:8px;align-items:center;padding:12px 14px;flex-wrap:wrap}
+.cal .hd b{font-size:17px;margin-right:auto}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.dow div{padding:7px;text-align:center;color:var(--mut);font-size:12.5px}
+.day{min-height:78px;padding:5px;border:1px solid var(--line);border-width:1px 1px 0 0;font-size:12.5px;overflow:hidden;cursor:pointer;min-width:0}
+.day:nth-child(7n){border-right:0}.day.out .n{opacity:.35}.day:hover{background:#242624}.day.sel{background:#2a2c2a;box-shadow:inset 0 0 0 1px var(--pl)}
+.day .n{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:11px;font-weight:600}
+.day.today .n{background:var(--g);color:#04170B}
+.ev{display:block;margin-top:2px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;background:currentColor;vertical-align:middle}
+.k-treino{color:var(--p)}.k-amistoso{color:var(--li)}.k-comp{color:var(--g)}.k-evento{color:var(--pk)}.k-compromisso{color:var(--bl)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line)}
+.week .col{border-right:1px solid var(--line);min-height:340px;padding:6px;min-width:0}.week .col:last-child{border-right:0}
+.week .col h4{font-size:12.5px;color:var(--mut);font-weight:500;text-align:center;margin-bottom:6px}.week .col.today h4{color:var(--g)}
+.wi{border-left:3px solid currentColor;background:var(--p2);border-radius:0 5px 5px 0;padding:4px 6px;margin-bottom:6px;font-size:11.5px;cursor:pointer}
+.wi span{display:block;color:var(--tx)}
+.side{padding:14px;display:flex;flex-direction:column;gap:12px}
+.side h2{font-size:15px}
+.al{border-left:3px solid currentColor;padding:2px 8px;font-size:12.5px}.al.r{color:var(--rd)}.al.y{color:var(--am)}.al.gr{color:var(--g)}
+.it{border-left:3px solid currentColor;padding:6px 10px;font-size:12.5px;background:var(--p2);border-radius:0 6px 6px 0}
+.it b{display:block;color:var(--tx);font-size:13.5px}.it small{display:block;color:var(--mut)}
+.it a{display:block;text-align:right;color:var(--mut);font-size:12px;cursor:pointer}.it a:hover{color:var(--tx)}
+/* consulta */
+.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.bar input{flex:1 1 220px;width:auto}.bar select{width:auto}
+.tbl{overflow:auto}table{width:100%;border-collapse:collapse;min-width:520px}
+th{background:var(--p2);text-align:left;padding:10px 14px;font-weight:600;font-size:13px;color:var(--mut);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}tbody tr:hover{background:#242624}
+tbody tr.sel{background:#2b1b44;box-shadow:inset 3px 0 var(--p)}
+.tag{padding:2px 10px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid;white-space:nowrap}
+.ok{background:#0A3D22;color:var(--g);border-color:#0f6a39}.off{background:#2e2e2e;color:#c9cdca;border-color:var(--line)}.pl{background:#3a3010;color:var(--am);border-color:#6b5a16}.no{background:#3d1018;color:var(--rd);border-color:#7a2230}
+.late{color:var(--rd)}
+.ft{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;flex-wrap:wrap}
+.empty{padding:26px;text-align:center;color:var(--mut)}
+.meter{display:flex;gap:8px;align-items:center}.meter i{display:block;height:8px;border-radius:4px;background:var(--p2);flex:1;min-width:60px;overflow:hidden}.meter i b{display:block;height:100%}
+/* formulário */
+.form{padding:22px;max-width:820px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.fg .w{grid-column:1/3}
+.acts{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.note{margin-top:14px;padding:10px 12px;border:1px dashed var(--line);border-radius:8px;color:var(--mut);font-size:13px}
+/* layout com lista à esquerda */
+.split{display:grid;grid-template-columns:200px minmax(0,1fr);overflow:hidden}
+.mods{border-right:1px solid var(--line)}.mods h3,.pane h3{font-size:13px;color:var(--mut);padding:10px 14px;background:var(--p2);font-weight:600}
+.mods button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 14px}
+.mods button:hover{background:#242624}.mods button.on{background:var(--gd);color:var(--g);font-weight:600}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px}
+/* registros */
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:14px}
+.thb{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg);text-align:left;padding:0}
+.thb:hover{border-color:var(--pl)}
+.thb i{display:grid;place-items:center;height:92px}.thb i svg{width:34px;height:34px;fill:#fff;opacity:.9}
+.thb span{display:block;padding:7px 9px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* abas */
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}.tabs button{background:none;border:1px solid var(--line);padding:7px 14px;border-radius:6px;color:var(--mut)}
+.tabs button.on{border-color:var(--g);color:var(--g);background:var(--gd)}
+.ck{display:flex;gap:9px;align-items:center;padding:7px 10px;border-radius:5px;cursor:pointer}
+.ck.cur{background:var(--p2);box-shadow:inset 3px 0 var(--p)}
+/* organograma */
+.org{overflow:auto;padding:16px}.org svg{display:block;min-width:760px;width:100%}
+/* modal */
+.ov{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:16px;z-index:5}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;width:min(520px,100%);position:relative;max-height:100%;overflow:auto}
+.modal h2{font-size:18px}.x{position:absolute;right:14px;top:12px;background:none;border:0;font-size:16px;color:var(--mut)}
+/* mapa de telas */
+#mapa{position:fixed;inset:0;background:#000b;z-index:8;display:flex;justify-content:flex-end}
+#mapa .dr{background:var(--panel);border-left:1px solid var(--line);width:min(440px,100%);height:100%;overflow:auto;padding:18px}
+#mapa h2{font-size:18px;margin-bottom:4px}#mapa h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--pl);margin:16px 0 6px}
+#mapa button.s{display:grid;grid-template-columns:30px 1fr;gap:2px 8px;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:6px 8px}
+#mapa button.s:hover{background:var(--p2)}#mapa button.s.on{background:var(--gd)}
+#mapa button.s b{color:var(--pl);font-variant-numeric:tabular-nums;grid-row:1/3}#mapa button.s code{font:11.5px ui-monospace,Consolas,monospace;color:var(--mut)}
+.toast{position:fixed;right:18px;bottom:18px;background:var(--p2);border:1px solid var(--g);padding:10px 16px;border-radius:8px;z-index:9}
+@media (prefers-reduced-motion:no-preference){.modal,#mapa .dr{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+@media(max-width:860px){#login{grid-template-columns:1fr}.hero{display:none}
+#app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}aside{flex-direction:row;overflow-x:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line)}.brand,.user{display:none}nav{flex-direction:row}nav button{white-space:nowrap}
+main{padding:16px}.home,.split,.two,.fg{grid-template-columns:1fr}.fg .w{grid-column:auto}.mods{border-right:0;border-bottom:1px solid var(--line)}.day{min-height:54px}.ev{font-size:10px}.week{grid-template-columns:1fr}.week .col{min-height:0;border-right:0;border-bottom:1px solid var(--line)}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs><symbol id="wolf" viewBox="0 0 48 48"><path d="M5 5l13 9h12l13-9-2 21-9 14-5 4-5-4-9-14z" fill="#8A2BE2"/><path d="M13 20l11-3 11 3-4 14-7 4-7-4z" fill="#00FF6A"/><path d="M17 23l5 1-1 3zM31 23l-5 1 1 3z" fill="#0B0D0C"/><path d="M22 33h4l-2 3z" fill="#0B0D0C"/></symbol></defs></svg>
+
+<div id="reg"><span>Protótipo v3</span><b id="rn">Tela 1</b><span id="rt"></span><code id="rc"></code>
+<div class="sp"><button id="ant" aria-label="Tela anterior">&lsaquo;</button><button id="prx" aria-label="Próxima tela">&rsaquo;</button><button id="map">Mapa de telas</button></div></div>
+
+<div id="stage">
+<section id="login"><div class="hero"><div><svg><use href="#wolf"/></svg><div class="wm">ATLÉTICA</div><p class="mut">Sistema de Gerenciamento</p></div></div>
+<div class="lf"><form class="card" id="f"><h1>Acesse sua conta</h1><p class="mut">Entre com suas credenciais para continuar.</p>
+<div class="fld"><label for="u">Usuário</label><input id="u" value="admin" autocomplete="username"></div>
+<div class="fld"><label for="s">Senha</label><div class="pw"><input id="s" type="password" value="admin123" autocomplete="current-password"><button type="button" id="ver">Mostrar</button></div></div>
+<label class="chk"><input type="checkbox" id="lem"> Lembrar de mim</label>
+<button class="btn b-g full" type="submit">Entrar</button>
+<p class="mut" style="font-size:12px;margin-top:12px">Primeiro acesso: admin / admin123 (senha provisória, troca obrigatória).</p></form></div></section>
+
+<div id="app" class="hide"><aside><div class="brand"><div class="wm">ATLÉTICA</div></div>
+<nav id="nav"></nav><div class="user"><div class="av">A</div><button class="nm" id="nm" title="Alterar senha"><b>Administrador</b><small>Administrador</small></button><button class="out" id="out">Sair</button></div></aside>
+<main id="main"></main></div>
+</div>
+
+<script>
+/* ---------- dados de exemplo (mesmos do 02_dados_exemplo.sql, hoje = 07/10/2026) ---------- */
+const HOJE=new Date(2026,9,7);
+const MODS=['Atletismo (F)','Atletismo (M)','Basquete (F)','Basquete (M)','Futsal (F)','Futsal (M)','Handebol (F)','Handebol (M)','Vôlei (F)','Vôlei (M)'];
+const ATL=[['Ana Souza','202001','ana.souza@email.com','Futsal (F)','Ativo'],['Beatriz Lima','202034','(47) 98888-2001','Futsal (F), Vôlei (F)','Ativo'],['Carla Oliveira','202190','carla.oliveira@email.com','Futsal (F)','Ativo'],['Carlos Mendes','202067','carlos.mendes@email.com','Atletismo (M)','Ativo'],['Daniela Costa','202102','(47) 98888-2002','Futsal (F)','Ativo'],['Eduardo Silva','202145','eduardo.silva@email.com','Handebol (M)','Ativo'],['Fernanda Alves','202178','(47) 98888-2003','Vôlei (F)','Ativo']];
+const GES=[['Gestão 2025-2026','03/2025 a 12/2026','01/03/2025','31/12/2026','Em andamento','5','5'],['Gestão 2023-2024','03/2023 a 02/2024','01/03/2023','29/02/2024','Encerrada','0','0'],['Gestão 2022-2023','03/2022 a 02/2023','01/03/2022','28/02/2023','Encerrada','0','0'],['Gestão 2020-2021','03/2020 a 02/2021','01/03/2020','28/02/2021','Encerrada','0','0']];
+const CARGOS=[['Presidente',1,'—'],['Vice-presidente',2,'Presidente'],['Diretor de Esportes',3,'Vice-presidente'],['Diretor de Eventos',3,'Vice-presidente'],['Secretário',3,'Vice-presidente'],['Tesoureiro',3,'Vice-presidente'],['Coordenador de Modalidade',4,'Diretor de Esportes']];
+const MEMB=[['Mariana Rocha','201801','mariana.rocha@email.com','Ativo'],['Lucas Pereira','201845','(47) 99999-1001','Ativo'],['Juliana Martins','201902','juliana.martins@email.com','Ativo'],['Rafael Teixeira','201933','(47) 99999-1002','Ativo'],['Paula Ribeiro','202010','paula.ribeiro@email.com','Ativo']];
+const OCUP={'Presidente':0,'Vice-presidente':1,'Diretor de Esportes':2,'Diretor de Eventos':3,'Tesoureiro':4};
+const TREINOS=[['01/10/2026','19:00','Treino','Treino Futsal (F)','Quadra 1','Juliana Martins','3 de 4'],['03/10/2026','19:00','Treino','Treino Futsal (F)','Quadra 1','Juliana Martins','Pendente'],['06/10/2026','19:00','Treino','Treino Futsal (F)','Quadra 1','Juliana Martins','Pendente'],['08/10/2026','20:00','Amistoso','Amistoso Futsal (F) x Atlética Furiosa','Quadra 1','Juliana Martins','—'],['10/10/2026','19:00','Treino','Treino Futsal (F)','Quadra 1','Juliana Martins','—']];
+const COMP=[['JIUDESC 2026','30/10/2026','02/11/2026','Blumenau','Confirmada','—','Sem tarefas'],['Campeonato Regional','15/11/2026','—','Rio do Sul','Confirmada','—','Sem tarefas'],['Copa Alto Vale','05/12/2026','—','Ibirama','Planejada','—','Sem tarefas'],['Torneio Interno','20/12/2026','—','Ibirama','Planejada','—','Sem tarefas']];
+const EVT=[['Festa Atlética','Festa','12/10/2026','20:00','Ibirama','Confirmado','1 de 3 concluídas · 1 atrasada'],['Ação Social','Ação social','21/10/2026','19:00','Ibirama','Confirmado','Sem tarefas'],['Desafio das Atléticas','Competição','30/10/2026','—','Blumenau','Confirmado','Sem tarefas'],['Workshop','Outro','15/11/2026','14:00','Ibirama','Planejado','Sem tarefas']];
+const TAREFAS=[['Reservar o espaço','Rafael Teixeira','30/09/2026','Concluída'],['Contratar DJ','Rafael Teixeira','05/10/2026','Em andamento'],['Vender ingressos','Paula Ribeiro','11/10/2026','Pendente']];
+/* atividades do calendário: [dia, mês(0-11), tipo, título, horário, local, tela que abre] */
+const ATV=[[1,9,'treino','Treino Futsal (F)','19:00','Quadra 1',21],[3,9,'treino','Treino Futsal (F)','19:00','Quadra 1',21],[6,9,'treino','Treino Futsal (F)','19:00','Quadra 1',21],
+[8,9,'compromisso','Reunião Gestão','14:00','Sala da atlética',3],[8,9,'amistoso','Amistoso Futsal (F) x Atlética Furiosa','20:00','Quadra 1',21],[10,9,'treino','Treino Futsal (F)','19:00','Quadra 1',21],
+[12,9,'evento','Festa Atlética','20:00','Ibirama',26],[21,9,'evento','Ação Social','19:00','Ibirama',26],[30,9,'comp','JIUDESC 2026','','Blumenau',17],[30,9,'evento','Desafio das Atléticas','','Blumenau',26],
+[31,9,'comp','JIUDESC 2026','','Blumenau',17],[1,10,'comp','JIUDESC 2026','','Blumenau',17],[2,10,'comp','JIUDESC 2026','','Blumenau',17],[15,10,'comp','Campeonato Regional','','Rio do Sul',17],[15,10,'evento','Workshop','14:00','Ibirama',26],
+[5,11,'comp','Copa Alto Vale','','Ibirama',17],[20,11,'comp','Torneio Interno','','Ibirama',17]];
+const NOMETIPO={treino:'Treino',amistoso:'Amistoso',comp:'Competição',evento:'Evento',compromisso:'Compromisso'};
+
+/* ---------- registro das 31 telas (docs/telas-e-distribuicao.md) ---------- */
+const PAC=['1. Acesso e calendário','2. Gestão','3. Atletas','4. Competições','5. Treinos','6. Eventos, registros e usuários'];
+const T=[null,
+ [0,'Login','TelaLogin',null],[0,'Início (calendário)','calendario.PainelCalendario','inicio'],[0,'Compromisso','calendario.DialogoCompromisso','inicio'],
+ [1,'Consulta de gestões','gestao.PainelConsultaGestoes','gestao'],[1,'Cadastro de gestão','gestao.PainelCadastroGestao','gestao'],[1,'Gerenciar gestão','gestao.PainelGerenciarGestao','gestao'],[1,'Organograma','gestao.PainelOrganograma','gestao'],
+ [1,'Consulta de cargos','gestao.PainelConsultaCargos','gestao'],[1,'Cadastro de cargo','gestao.PainelCadastroCargo','gestao'],[1,'Consulta de membros','gestao.PainelConsultaMembros','gestao'],[1,'Cadastro de membro','gestao.PainelCadastroMembro','gestao'],
+ [2,'Consulta de atletas','atletas.PainelConsultaAtletas','atletas'],[2,'Cadastro de atleta','atletas.PainelCadastroAtleta','atletas'],[2,'Consulta de modalidades','atletas.PainelConsultaModalidades','atletas'],[2,'Cadastro de modalidade','atletas.PainelCadastroModalidade','atletas'],
+ [3,'Consulta de competições','competicoes.PainelConsultaCompeticoes','competicoes'],[3,'Cadastro de competição','competicoes.PainelCadastroCompeticao','competicoes'],[3,'Gerenciar competição','competicoes.PainelGerenciarCompeticao','competicoes'],[3,'Resultados','competicoes.PainelResultados','competicoes'],
+ [4,'Treinos','treinos.PainelTreinos','treinos'],[4,'Cadastro de treino/amistoso','treinos.PainelCadastroTreino','treinos'],[4,'Lista de presença','treinos.PainelPresenca','treinos'],[4,'Frequência','treinos.PainelFrequencia','treinos'],[4,'Histórico do atleta','treinos.PainelHistoricoAtleta','treinos'],
+ [5,'Consulta de eventos','eventos.PainelConsultaEventos','eventos'],[5,'Cadastro de evento','eventos.PainelCadastroEvento','eventos'],[5,'Responsáveis e tarefas','eventos.PainelGerenciarEvento','eventos'],[5,'Registros (galeria)','registros.PainelRegistros','registros'],
+ [5,'Consulta de usuários','usuarios.PainelConsultaUsuarios','usuarios'],[5,'Cadastro de usuário','usuarios.PainelCadastroUsuario','usuarios'],[5,'Alterar senha','usuarios.DialogoAlterarSenha','usuarios']];
+
+const IC={inicio:'<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>',gestao:'<circle cx="12" cy="7" r="3"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="M12 10v3M5 14.5V13h14v1.5"/>',atletas:'<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3.5 3.5 0 010 6M18 14c2 .7 3 2.5 3 6"/>',competicoes:'<path d="M7 4h10v5a5 5 0 01-10 0zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3M12 14v4M8 21h8"/>',treinos:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>',eventos:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',registros:'<path d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',usuarios:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'};
+const MENU=[['inicio','Início',2],['gestao','Gestão',4],['atletas','Atletas',12],['competicoes','Competições',16],['treinos','Treinos',20],['eventos','Eventos',25],['registros','Registros',28],['usuarios','Usuários',29]];
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+function pill(v){const c=/^(Ativo|Em andamento|Confirmad[ao]|Concluída|Presente|Administrador)$/.test(v)?'ok':/^(Planejad[ao]|Pendente|Lesionado|Afastado|Diretoria)$/.test(v)?'pl':/^(Ausente|Cancelad[ao]|Atrasada)$/.test(v)?'no':'off';return `<span class="tag ${c}">${esc(v)}</span>`}
+
+/* ---------- navegação ---------- */
+let atual=1,pilha=[];
+function registro(n){const t=T[n];$('#rn').textContent='Tela '+n+' de 31';$('#rt').textContent=t[1];$('#rc').textContent=t[2];try{history.replaceState(null,'','#t'+n)}catch(e){}}
+function ir(n,empilhar=true){fechar();if(n===1){pilha=[];atual=1;registro(1);$('#app').classList.add('hide');$('#login').classList.remove('hide');return}
+ if(empilhar&&atual!==n&&atual!==1)pilha.push(atual);
+ $('#login').classList.add('hide');$('#app').classList.remove('hide');
+ const t=T[n];menu(t[3]);const m=$('#main');m.scrollTop=0;
+ const base={3:2,19:18,31:29}[n];
+ if(base){if(atual!==base&&atual!==n){TELAS[base](m)}else if(atual===n)TELAS[base](m);atual=n;registro(n);TELAS[n](m);return}
+ atual=n;registro(n);TELAS[n](m)}
+const PAI={3:2,5:4,6:4,7:6,8:4,9:8,10:4,11:10,13:12,14:12,15:14,17:16,18:16,19:18,21:20,22:20,23:20,24:23,26:25,27:25,30:29,31:29};
+function voltar(){const n=pilha.pop()||PAI[atual];if(n)ir(n,false)}
+function menu(on){$('#nav').innerHTML=MENU.map(([k,n,t])=>`<button data-t="${t}" class="${k===on?'on':''}"><svg viewBox="0 0 24 24">${IC[k]}</svg>${n}</button>`).join('');
+ $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>{pilha=[];ir(+b.dataset.t,false)})}
+function topo(t,btns='',volta=false){return `<div class="top"><h1>${t}</h1><div class="r">${volta?'<button class="btn" data-volta>&lsaquo; Voltar</button>':''}${btns}</div></div>`}
+function ligar(m){m.querySelectorAll('[data-volta]').forEach(b=>b.onclick=voltar);m.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ir(+b.dataset.ir));m.querySelectorAll('[data-toast]').forEach(b=>b.onclick=()=>toast(b.dataset.toast))}
+
+/* ---------- modal ---------- */
+function fechar(){document.querySelectorAll('.ov').forEach(o=>o.remove())}
+function modal(titulo,corpo,{salvar='Salvar',aoSalvar,aoFechar,sub=''}={}){fechar();const ov=document.createElement('div');ov.className='ov';
+ ov.innerHTML=`<div class="modal" role="dialog" aria-label="${esc(titulo)}"><button class="x" aria-label="Fechar">&#10005;</button><h2>${titulo}</h2>${sub?`<p class="mut">${sub}</p>`:''}${corpo}<div class="acts"><button class="btn" data-c>Cancelar</button><button class="btn b-g" data-s>${salvar}</button></div></div>`;
+ document.body.appendChild(ov);const fim=()=>{ov.remove();if(aoFechar)aoFechar()};
+ ov.querySelector('.x').onclick=fim;ov.querySelector('[data-c]').onclick=fim;ov.onclick=e=>{if(e.target===ov)fim()};
+ ov.querySelector('[data-s]').onclick=()=>{if(validar(ov)){ov.remove();(aoSalvar||(()=>toast('Salvo com sucesso')))()}};return ov}
+function validar(el){let ok=true;el.querySelectorAll('[data-req]').forEach(c=>{const b=!c.value.trim();c.classList.toggle('bad',b);if(b)ok=false});if(!ok)toast('Preencha os campos obrigatórios (*)');return ok}
+
+/* ---------- campos ---------- */
+let cid=0;
+function campo([l,t='text',v='',o,w,r]){const id='c'+(++cid),lab=`<label for="${id}" class="${r?'req':''}">${l}${r?' *':' (opcional)'}</label>`,rq=r?' data-req':'';
+ let c;if(t==='area')c=`<textarea id="${id}"${rq}>${esc(v)}</textarea>`;
+ else if(t==='sel')c=`<select id="${id}"${rq}>${(o||[]).map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}</select>`;
+ else c=`<input id="${id}" type="${t==='pass'?'password':t==='num'?'number':'text'}" value="${esc(v)}"${t==='date'?' placeholder="dd/mm/aaaa"':t==='time'?' placeholder="hh:mm"':''}${rq}>`;
+ return `<div class="fld ${w?'w':''}">${lab}${c}</div>`}
+function formulario(m,titulo,campos,extra='',nota=''){m.innerHTML=topo(titulo)+`<div class="panel form"><div class="fg">${campos.map(campo).join('')}</div>${extra}${nota?`<p class="note">${nota}</p>`:''}<div class="acts"><button class="btn" data-cn>Cancelar</button><button class="btn b-g" data-sv>Salvar</button></div></div>`;
+ m.querySelector('[data-cn]').onclick=()=>modal('Cancelar','<p class="mut" style="margin-top:8px">Descartar as alterações deste cadastro?</p>',{salvar:'Descartar',aoSalvar:voltar});
+ m.querySelector('[data-sv]').onclick=()=>{if(validar(m)){toast('Salvo com sucesso');voltar()}}}
+
+/* ---------- consulta padrão (PainelConsulta) ---------- */
+function consulta(m,{t,cols,rows,sit=[],btns=[],filtros=[],volta=false,editar,gerenciar,excluir=true,incluir,cel,rodape}){
+ let sel=-1,q='';
+ const fx=filtros.map((f,i)=>`<select id="f${i}" aria-label="${esc(f[0])}">${f[1].map(o=>`<option>${esc(o)}</option>`).join('')}</select>`).join('');
+ const bt=[excluir?'<button class="btn b-ro" data-sel>Excluir</button>':'',editar?'<button class="btn" data-sel data-ed>Editar</button>':'',gerenciar?`<button class="btn b-go" data-sel data-ge>${gerenciar[0]}</button>`:'',...btns,incluir?`<button class="btn b-p" data-in>${incluir[0]||'+ Incluir'}</button>`:''].join('');
+ m.innerHTML=topo(t,bt,volta)+`<div class="bar"><input id="q" placeholder="Buscar" aria-label="Buscar">${fx}</div><div class="panel"><div class="tbl"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody></tbody></table></div><div class="ft"><span id="cnt"></span><span>${rodape||'Clique no título da coluna para ordenar · clique duplo para editar'}</span></div></div>`;
+ const tb=m.querySelector('tbody');
+ function draw(){const r=rows.map((x,i)=>({x,i})).filter(o=>o.x.join(' ').toLowerCase().includes(q));
+  tb.innerHTML=r.length?r.map(o=>`<tr data-i="${o.i}" class="${o.i===sel?'sel':''}">${o.x.map((c,j)=>`<td>${cel?cel(c,j,o.x):sit.includes(j)?pill(c):esc(c)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${cols.length}" class="empty">Nenhum registro encontrado.</td></tr>`;
+  m.querySelector('#cnt').textContent=r.length+' registro(s)';m.querySelectorAll('[data-sel]').forEach(b=>b.disabled=sel<0)}
+ tb.onclick=e=>{const tr=e.target.closest('tr[data-i]');if(tr){sel=+tr.dataset.i;draw()}};
+ tb.ondblclick=e=>{const tr=e.target.closest('tr[data-i]');if(tr&&editar)editar(rows[+tr.dataset.i])};
+ m.querySelector('#q').oninput=e=>{q=e.target.value.toLowerCase();draw()};
+ const ed=m.querySelector('[data-ed]');if(ed)ed.onclick=()=>editar(rows[sel]);
+ const ge=m.querySelector('[data-ge]');if(ge)ge.onclick=()=>gerenciar[1](rows[sel]);
+ const inc=m.querySelector('[data-in]');if(inc)inc.onclick=incluir[1];
+ const ex=m.querySelector('.b-ro[data-sel]');if(ex)ex.onclick=()=>modal('Excluir',`<p class="mut" style="margin-top:8px">Deseja excluir "${esc(rows[sel][0])}"? Esta ação não pode ser desfeita.</p>`,{salvar:'Excluir',aoSalvar:()=>toast('Registro excluído')});
+ ligar(m);draw()}
+
+/* ---------- telas ---------- */
+let modo='mes',ref=new Date(2026,9,1),diaSel=null,periodo='7';
+const iso=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+const dm=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+const doDia=d=>ATV.filter(a=>a[0]===d.getDate()&&a[1]===d.getMonth()&&d.getFullYear()===2026);
+function segunda(d){const x=new Date(d);x.setDate(x.getDate()-(x.getDay()+6)%7);return x}
+function item(a,d,abrir=true){return `<div class="it k-${a[2]}"><small>${dm(d)}${a[4]?' - '+a[4]:''}</small><b>${esc(a[3])}</b><small class="k-${a[2]}">${NOMETIPO[a[2]]} · ${esc(a[5])}</small>${abrir?`<a data-ir="${a[6]}">Abrir</a>`:''}</div>`}
+const TELAS={
+1(){},
+2(m){
+ const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+ let corpo,tit;
+ if(modo==='mes'){const a=ref.getFullYear(),ms=ref.getMonth(),ini=new Date(a,ms,1-(new Date(a,ms,1).getDay()+6)%7);tit=MESES[ms]+' '+a;
+  let c='';for(let i=0;i<42;i++){const d=new Date(ini);d.setDate(ini.getDate()+i);const at=doDia(d);
+   c+=`<div class="day${d.getMonth()!==ms?' out':''}${iso(d)===iso(HOJE)?' today':''}${diaSel&&iso(d)===iso(diaSel)?' sel':''}" data-d="${d.getTime()}"><span class="n">${d.getDate()}</span>${at.slice(0,2).map(x=>`<span class="ev k-${x[2]}">${esc(x[3])}</span>`).join('')}${at.length>2?`<span class="ev mut">+${at.length-2}</span>`:''}</div>`}
+  corpo=`<div class="dow">${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>`<div>${d}</div>`).join('')}</div><div class="grid">${c}</div>`}
+ else{const s=segunda(ref),f=new Date(s);f.setDate(s.getDate()+6);tit=dm(s)+' a '+dm(f)+'/'+f.getFullYear();
+  corpo=`<div class="week">${[0,1,2,3,4,5,6].map(i=>{const d=new Date(s);d.setDate(s.getDate()+i);const at=doDia(d);
+   return `<div class="col${iso(d)===iso(HOJE)?' today':''}"><h4>${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][i]} ${dm(d)}</h4>${at.map(x=>`<div class="wi k-${x[2]}" data-ir="${x[6]}" title="Clique duplo para abrir">${x[4]||'Dia todo'}<span>${esc(x[3])}</span></div>`).join('')||'<p class="mut" style="text-align:center">—</p>'}</div>`}).join('')}</div>`}
+ let lat;
+ if(diaSel){const at=doDia(diaSel);lat=`<div style="display:flex;justify-content:space-between;align-items:center"><h2>Atividades de ${dm(diaSel)}</h2><button class="btn" id="vp" style="padding:4px 10px">Ver próximos</button></div>${at.map(a=>item(a,diaSel)).join('')||'<p class="mut">Nenhuma atividade.</p>'}`}
+ else{const lim=new Date(HOJE);lim.setDate(lim.getDate()+ +periodo);const prox=[];for(let d=new Date(HOJE);d<=lim;d.setDate(d.getDate()+1))doDia(d).forEach(a=>prox.push([a,new Date(d)]));
+  lat=`<h2>Próximos eventos</h2><select id="per" aria-label="Período">${['7','15','30'].map(p=>`<option value="${p}"${p===periodo?' selected':''}>Próximos ${p} dias</option>`).join('')}</select>${prox.map(([a,d])=>item(a,d)).join('')||'<p class="mut">Nenhuma atividade no período.</p>'}`}
+ m.innerHTML=topo('Calendário','<button class="btn b-p" id="nc">+ Compromisso</button>')+`<div class="home"><div class="panel cal"><div class="hd"><b>${tit}</b>
+  <button class="btn ${modo==='mes'?'on-t':''}" data-m="mes">Mês</button><button class="btn ${modo==='sem'?'on-t':''}" data-m="sem">Semana</button><span style="width:8px"></span>
+  <button class="btn" data-a="-1" aria-label="Anterior">&lt;</button><button class="btn" data-a="1" aria-label="Próximo">&gt;</button><button class="btn" id="hj">Hoje</button></div>${corpo}</div>
+  <div class="panel side"><h2>Alertas (3)</h2><div class="al r">Tarefa atrasada: Contratar DJ (Festa Atlética, venceu em 05/10/2026)</div><div class="al y">Presença não registrada: Treino Futsal (F) de 03/10/2026</div><div class="al y">Presença não registrada: Treino Futsal (F) de 06/10/2026</div>${lat}</div></div>`;
+ m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{modo=b.dataset.m;if(modo==='sem')ref=new Date(diaSel||HOJE);else ref=new Date(ref.getFullYear(),ref.getMonth(),1);TELAS[2](m)});
+ m.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=+b.dataset.a;ref=modo==='mes'?new Date(ref.getFullYear(),ref.getMonth()+k,1):new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()+7*k);TELAS[2](m)});
+ m.querySelector('#hj').onclick=()=>{ref=modo==='mes'?new Date(2026,9,1):new Date(HOJE);diaSel=null;TELAS[2](m)};
+ m.querySelectorAll('.day').forEach(d=>{d.onclick=()=>{diaSel=new Date(+d.dataset.d);TELAS[2](m)};d.ondblclick=()=>{diaSel=new Date(+d.dataset.d);ir(3)}});
+ m.querySelectorAll('.wi').forEach(w=>{w.onclick=null;w.ondblclick=()=>ir(+w.dataset.ir)});
+ const vp=m.querySelector('#vp');if(vp)vp.onclick=()=>{diaSel=null;TELAS[2](m)};
+ const per=m.querySelector('#per');if(per)per.onchange=()=>{periodo=per.value;TELAS[2](m)};
+ m.querySelector('#nc').onclick=()=>ir(3);
+ m.querySelectorAll('.it [data-ir]').forEach(b=>b.onclick=()=>ir(+b.dataset.ir))},
+3(){modal('Novo compromisso',`<div class="fg">${[['Título','text','',null,1,1],['Data','date',diaSel?dm(diaSel)+'/2026':'07/10/2026',null,0,1],['Horário','time','14:00'],['Local','text','',null,1],['Observações','area','',null,1]].map(campo).join('')}</div>`,{aoSalvar:()=>{toast('Compromisso salvo');voltar()},aoFechar:voltar})},
+4(m){consulta(m,{t:'Gestões',cols:['Gestão','Período','Início','Fim','Situação','Cargos','Membros'],rows:GES,sit:[4],btns:['<button class="btn" data-ir="8">Cargos</button>','<button class="btn" data-ir="10">Membros</button>'],editar:()=>ir(5),gerenciar:['Gerenciar',()=>ir(6)],incluir:['+ Incluir',()=>ir(5)],rodape:'Ordenada pelo período, da mais recente para a mais antiga'})},
+5(m){formulario(m,'Nova Gestão',[['Nome da gestão','text','',null,1,1],['Data de início','date','',null,0,1],['Data de fim','date','',null,0,1],['Situação','sel','Em andamento',['Em andamento','Encerrada'],0,1],['Descrição','area','',null,1]],'','O período não pode se sobrepor ao de outra gestão.')},
+6(m){const rows=CARGOS.map(([c,n])=>{const i=OCUP[c];return i===undefined?[c,n,'—','',''] :[c,n,MEMB[i][0],MEMB[i][1],MEMB[i][2]]});
+ consulta(m,{t:'Gerenciar Gestão · Gestão 2025-2026',volta:true,cols:['Cargo','Nível','Membro','Matrícula','Contato'],rows,btns:['<button class="btn b-go" data-ir="7">Organograma</button>'],
+  editar:r=>modal('Trocar membro',campo(['Novo ocupante do cargo '+r[0],'sel',MEMB[0][0],MEMB.map(x=>x[0]),1,1])),incluir:['+ Adicionar membro',()=>modal('Adicionar membro',campo(['Cargo','sel','Secretário',CARGOS.map(c=>c[0]),1,1])+campo(['Membro','sel',MEMB[0][0],MEMB.map(x=>x[0]),1,1]))],rodape:'Um membro não pode ocupar o mesmo cargo duas vezes na gestão'});
+ m.querySelector('[data-ed]').textContent='Trocar membro';m.querySelector('.b-ro').textContent='Remover'},
+7(m){const W=900,lv={1:[],2:[],3:[],4:[]};CARGOS.forEach(c=>lv[c[1]].push(c));const pos={};let s='';
+ Object.keys(lv).forEach(k=>{const L=lv[k];L.forEach((c,i)=>{pos[c[0]]=[(W/(L.length))*(i+.5),30+(k-1)*110]})});
+ CARGOS.forEach(c=>{if(pos[c[2]]){const[a,b]=pos[c[2]],[x,y]=pos[c[0]];s+=`<path d="M${a} ${b+56}V${(b+56+y)/2}H${x}V${y}" fill="none" stroke="#3A3A3A" stroke-width="2"/>`}});
+ CARGOS.forEach(c=>{const[x,y]=pos[c[0]],i=OCUP[c[0]],v=i===undefined;s+=`<rect x="${x-90}" y="${y}" width="180" height="56" rx="8" fill="${v?'#1E1E1E':'#262826'}" stroke="${c[1]===1?'#00FF6A':v?'#3A3A3A':'#8A2BE2'}" stroke-width="1.5" ${v?'stroke-dasharray="5 4"':''}/><text x="${x}" y="${y+23}" text-anchor="middle" fill="#ECEFEC" font-size="14" font-weight="600">${c[0]}</text><text x="${x}" y="${y+42}" text-anchor="middle" fill="${v?'#9AA39D':'#B77CFF'}" font-size="13">${v?'(vago)':MEMB[i][0]}</text>`});
+ m.innerHTML=topo('Organograma · Gestão 2025-2026','',true)+`<div class="panel org"><svg viewBox="0 0 ${W} 440" role="img" aria-label="Organograma da gestão">${s}</svg></div><p class="note">Desenhado com Graphics2D a partir do nível e do cargo superior de cada cargo.</p>`;ligar(m)},
+8(m){consulta(m,{t:'Cargos',volta:true,cols:['Cargo','Nível','Subordinado a'],rows:CARGOS.map(c=>[c[0],String(c[1]),c[2]]),editar:()=>ir(9),incluir:['+ Incluir',()=>ir(9)]})},
+9(m){formulario(m,'Novo Cargo',[['Nome','text','',null,1,1],['Nível (1 = topo)','num','3',null,0,1],['Subordinado a','sel','Vice-presidente',['—',...CARGOS.map(c=>c[0])]]],'','O cargo superior precisa ter nível menor que o deste cargo.')},
+10(m){consulta(m,{t:'Membros',volta:true,cols:['Nome','Matrícula','Contato','Situação'],rows:MEMB,sit:[3],editar:()=>ir(11),incluir:['+ Incluir',()=>ir(11)]})},
+11(m){formulario(m,'Novo Membro',[['Nome','text','',null,1,1],['Matrícula','text','',null,0,1],['Situação','sel','Ativo',['Ativo','Inativo'],0,1],['Contato','text','',null,1]])},
+12(m){consulta(m,{t:'Atletas',cols:['Nome','Matrícula','Modalidades','Contato','Situação'],rows:ATL.map(a=>[a[0],a[1],a[3],a[2],a[4]]),sit:[4],
+ filtros:[['Modalidade',['Todas as modalidades',...MODS]],['Situação',['Todas as situações','Ativo','Lesionado','Afastado','Inativo']],['Ordem',['Ordenar por nome','Ordenar por matrícula','Ordenar por modalidade','Ordenar por situação']]],
+ btns:['<button class="btn b-go" data-ir="14">Modalidades</button>'],editar:()=>ir(13),incluir:['+ Incluir',()=>ir(13)]})},
+13(m){const tab=`<div class="fld w" style="grid-column:1/-1"><label class="req">Modalidades (marque e informe a situação em cada uma) *</label><div class="panel tbl" style="max-height:230px"><table style="min-width:380px"><thead><tr><th style="width:40px"></th><th>Modalidade</th><th>Situação na modalidade</th></tr></thead><tbody>${MODS.map(n=>{const on=/Futsal \(F\)|Vôlei \(F\)/.test(n);return `<tr><td><input type="checkbox" aria-label="${n}" ${on?'checked':''}></td><td>${n}</td><td>${on?`<select aria-label="Situação em ${n}" style="width:auto;padding:4px 8px">${['Ativo','Lesionado','Afastado','Inativo'].map(x=>`<option${n==='Vôlei (F)'&&x==='Lesionado'?' selected':''}>${x}</option>`).join('')}</select>`:''}</td></tr>`}).join('')}</tbody></table></div></div>`;
+ formulario(m,'Editar Atleta',[['Nome','text','Beatriz Lima',null,0,1],['Matrícula','text','202034',null,0,1],['Data de nascimento','date','03/11/2002'],['Situação','sel','Ativo',['Ativo','Inativo'],0,1],['Contato','text','(47) 98888-2001',null,1]],
+ `<div class="fg">${tab}${campo(['Observações','area','',null,1])}</div>`,'Atleta e modalidades são gravados na mesma transação.')},
+14(m){consulta(m,{t:'Modalidades',volta:true,cols:['Modalidade','Gênero'],rows:MODS.map(x=>{const[a,b]=x.split(' (');return[a,b==='F)'?'Feminino':'Masculino']}),editar:()=>ir(15),incluir:['+ Incluir',()=>ir(15)],rodape:'Não é possível excluir modalidade com atletas, treinos ou competições'})},
+15(m){formulario(m,'Nova Modalidade',[['Nome','text','',null,0,1],['Gênero','sel','Feminino',['Feminino','Masculino','Misto'],0,1]])},
+16(m){consulta(m,{t:'Competições',cols:['Competição','Início','Fim','Local','Situação','Melhor resultado','Tarefas'],rows:COMP,sit:[4],filtros:[['Situação',['Todas as situações','Planejada','Confirmada','Realizada','Cancelada']],['Período',['Todos os períodos','Próximas','Realizadas']]],editar:()=>ir(17),gerenciar:['Gerenciar',()=>ir(18)],incluir:['+ Incluir',()=>ir(17)]})},
+17(m){formulario(m,'Nova Competição',[['Nome','text','',null,1,1],['Local','text','',null,1,1],['Data de início','date','',null,0,1],['Data de fim','date'],['Horário','time'],['Situação','sel','Planejada',['Planejada','Confirmada','Realizada','Cancelada'],0,1],['Observações','area','',null,1]],'','Aparece no calendário em verde, em todos os dias do período.')},
+18(m,aba=0){const MD=['Futsal (F)','Futsal (M)','Vôlei (F)','Vôlei (M)','Atletismo (F)','Atletismo (M)','Handebol (M)'],AT={'Futsal (F)':['Ana Souza','Beatriz Lima','Carla Oliveira','Daniela Costa'],'Vôlei (F)':['Beatriz Lima','Fernanda Alves'],'Atletismo (M)':['Carlos Mendes'],'Handebol (M)':['Eduardo Silva']};
+ let cur=0;const corpo=()=>{if(aba===0)return `<div class="two"><div class="panel"><h3 style="font-size:13px;color:var(--mut);padding:10px 14px;background:var(--p2)">Modalidades da competição</h3>${MD.map((n,i)=>`<label class="ck${i===cur?' cur':''}" data-i="${i}"><input type="checkbox" checked>${n}</label>`).join('')}</div>
+  <div class="panel"><h3 style="font-size:13px;color:var(--mut);padding:10px 14px;background:var(--p2)">Atletas inscritos · ${MD[cur]}</h3>${(AT[MD[cur]]||[]).map(a=>`<label class="ck"><input type="checkbox" checked>${a}</label>`).join('')||'<p class="empty">Nenhum atleta ativo nesta modalidade.</p>'}</div></div><div class="acts"><button class="btn b-g" data-toast="Inscrições salvas">Salvar inscrições</button></div>`;
+  if(aba===1)return `<div class="top"><span class="mut">Resultado da equipe ou de um atleta inscrito</span><div class="r"><button class="btn b-ro" disabled>Excluir</button><button class="btn" disabled>Editar</button><button class="btn b-p" id="nr">+ Incluir</button></div></div><div class="panel tbl"><table><thead><tr><th>Modalidade</th><th>Equipe / atleta</th><th>Colocação</th><th>Placar</th><th>Observação</th></tr></thead><tbody><tr><td>Futsal (F)</td><td>Equipe</td><td>1º lugar</td><td>3 x 1</td><td>Final</td></tr><tr><td>Atletismo (M)</td><td>Carlos Mendes</td><td>2º lugar</td><td>—</td><td>100 m rasos</td></tr></tbody></table></div>`;
+  return tarefas([['Inscrição no JIUDESC','Juliana Martins','01/10/2026','Concluída'],['Reservar ônibus','Rafael Teixeira','05/10/2026','Pendente'],['Uniformes','Paula Ribeiro','20/10/2026','Em andamento']])};
+ const draw=()=>{m.innerHTML=topo('Gerenciar Competição · JIUDESC 2026','',true)+`<div class="tabs">${['Modalidades e atletas','Resultados','Tarefas'].map((t,i)=>`<button data-tab="${i}" class="${i===aba?'on':''}">${t}</button>`).join('')}</div>${corpo()}`;
+  ligar(m);m.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{aba=+b.dataset.tab;draw()});m.querySelectorAll('.ck[data-i]').forEach(c=>c.onclick=e=>{if(e.target.tagName!=='INPUT'){cur=+c.dataset.i;draw()}});
+  const nr=m.querySelector('#nr');if(nr)nr.onclick=()=>ir(19);ligarTarefas(m)};draw()},
+19(m){TELAS[18](m,1);modal('Lançar resultado',`<div class="fg">${[['Modalidade','sel','Futsal (F)',['Futsal (F)','Vôlei (F)','Atletismo (M)','Handebol (M)'],0,1],['Equipe ou atleta','sel','Equipe',['Equipe','Ana Souza','Beatriz Lima','Carla Oliveira','Daniela Costa']],['Colocação (1, 2, 3...)','num','1'],['Placar','text','3 x 1'],['Observação','area','',null,1]].map(campo).join('')}</div><p class="note">Informe a colocação, o placar ou os dois. O atleta precisa estar inscrito na modalidade.</p>`,{sub:'JIUDESC 2026',aoSalvar:()=>{toast('Resultado salvo');voltar()},aoFechar:voltar})},
+20(m){m.innerHTML=topo('Treinos','<button class="btn b-ro" disabled>Excluir</button><button class="btn" disabled>Editar</button><button class="btn b-go" data-ir="22">Presença</button><button class="btn" data-ir="23">Frequência</button><button class="btn b-po" id="am">+ Amistoso</button><button class="btn b-p" data-ir="21">+ Treino</button>')+
+ `<div class="panel split"><div class="mods"><h3>Modalidades</h3>${MODS.map(n=>`<button class="${n==='Futsal (F)'?'on':''}">${n}</button>`).join('')}</div><div style="min-width:0"><div class="bar" style="padding:12px 14px 0"><input placeholder="Buscar" aria-label="Buscar treino"><select aria-label="Tipo"><option>Treinos e amistosos</option><option>Só treinos</option><option>Só amistosos</option></select><select aria-label="Período"><option>Todos</option><option>Próximos</option><option>Realizados</option></select></div>
+ <div class="tbl"><table><thead><tr><th>Data</th><th>Horário</th><th>Tipo</th><th>Título</th><th>Local</th><th>Responsável</th><th>Presença</th></tr></thead><tbody>${TREINOS.map(r=>`<tr>${r.map((c,j)=>`<td>${j===2?`<span class="${c==='Amistoso'?'k-amistoso':'k-treino'}">${c}</span>`:j===6&&c==='Pendente'?pill('Pendente'):esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="ft"><span>5 registro(s)</span><span>Presença média: 75% (1 lista registrada)</span></div></div></div>`;
+ ligar(m);m.querySelector('#am').onclick=()=>{amistoso=true;ir(21)};m.querySelectorAll('tbody tr').forEach(tr=>tr.ondblclick=()=>ir(21))},
+21(m){const am=amistoso;amistoso=false;formulario(m,am?'Novo Amistoso':'Novo Treino',[['Título','text',am?'Amistoso Futsal (F) x ':'Treino Futsal (F)',null,1,1],['Modalidade','sel','Futsal (F)',MODS,0,1],['Responsável','sel','Juliana Martins',MEMB.map(x=>x[0])],['Data','date','',null,0,1],['Horário','time','19:00',null,0,1],['Local','text','Quadra 1',null,1,1],...(am?[['Adversário','text','',null,0,1],['Resultado','text','']]:[]),['Observações','area','',null,1]],'','O sistema recusa outro treino no mesmo local com menos de 1 hora de diferença.')},
+22(m){const L=[['Ana Souza','202001',true],['Beatriz Lima','202034',true],['Carla Oliveira','202190',false],['Daniela Costa','202102',true]];
+ const draw=()=>{m.innerHTML=topo('Lista de presença','<button class="btn" id="mt">Marcar todos</button><button class="btn" id="dt">Desmarcar todos</button>',true)+`<p class="mut" style="margin:-6px 0 12px">Treino Futsal (F) · 01/10/2026 19:00 · Quadra 1</p><div class="panel"><div class="tbl"><table><thead><tr><th style="width:90px">Presente</th><th>Atleta</th><th>Matrícula</th></tr></thead><tbody>${L.map((a,i)=>`<tr><td><input type="checkbox" data-i="${i}" aria-label="${a[0]}" ${a[2]?'checked':''}></td><td>${a[0]}</td><td>${a[1]}</td></tr>`).join('')}</tbody></table></div><div class="ft"><span>${L.filter(a=>a[2]).length} de ${L.length} presentes</span><span>Só para treinos que já aconteceram</span></div></div><div class="acts"><button class="btn" data-volta>Cancelar</button><button class="btn b-g" id="sv">Salvar</button></div>`;
+  ligar(m);m.querySelector('#mt').onclick=()=>{L.forEach(a=>a[2]=true);draw()};m.querySelector('#dt').onclick=()=>{L.forEach(a=>a[2]=false);draw()};m.querySelectorAll('[data-i]').forEach(c=>c.onchange=()=>{L[+c.dataset.i][2]=c.checked;draw()});m.querySelector('#sv').onclick=()=>{toast('Presença salva');voltar()}};draw()},
+23(m){const F=[['Ana Souza','1','1','0',100],['Beatriz Lima','1','1','0',100],['Daniela Costa','1','1','0',100],['Carla Oliveira','1','0','1',0]];
+ consulta(m,{t:'Frequência nos treinos',volta:true,excluir:false,cols:['Atleta','Treinos','Presenças','Faltas','Frequência'],rows:F.map(f=>[...f.slice(0,4),f[4]+'%']),filtros:[['Modalidade',MODS.map(x=>x).sort((a,b)=>a==='Futsal (F)'?-1:b==='Futsal (F)'?1:0)],['Período',['Últimos 30 dias','Últimos 90 dias','Todo o período']]],
+  btns:['<button class="btn b-go" data-sel data-ir="24">Ver treinos do atleta</button>'],editar:()=>ir(24),rodape:'Clique duplo num atleta para ver os treinos dele',
+  cel:(c,j)=>j===4?`<span class="meter"><i><b style="width:${parseInt(c)}%;background:${parseInt(c)>=75?'var(--g)':parseInt(c)>=50?'var(--am)':'var(--rd)'}"></b></i>${c}</span>`:esc(c)});
+ m.querySelector('[data-ed]')?.remove()},
+24(m){m.innerHTML=topo('Treinos de Carla Oliveira','',true)+`<p class="mut" style="margin:-6px 0 12px">Futsal (F) · últimos 30 dias · 0 de 1 presença</p><div class="panel tbl"><table><thead><tr><th>Data</th><th>Horário</th><th>Treino</th><th>Tipo</th><th>Local</th><th>Presença</th></tr></thead><tbody><tr><td>01/10/2026</td><td>19:00</td><td>Treino Futsal (F)</td><td>Treino</td><td>Quadra 1</td><td>${pill('Ausente')}</td></tr></tbody></table></div>
+ <p class="note">Ana Souza, no mesmo período: 01/10/2026 ${pill('Presente')}. Só entram os treinos com lista de presença registrada.</p>`;ligar(m)},
+25(m){consulta(m,{t:'Eventos',cols:['Evento','Tipo','Data','Horário','Local','Situação','Tarefas'],rows:EVT,sit:[5],filtros:[['Tipo',['Todos os tipos','Festa','Ação social','Ação ambiental','Competição','Outro']],['Período',['Todos os períodos','Próximos','Realizados']]],
+ cel:(c,j)=>j===5?pill(c):j===6&&/atrasada/.test(c)?`<span class="late">${esc(c)}</span>`:esc(c),editar:()=>ir(26),gerenciar:['Responsáveis e tarefas',()=>ir(27)],incluir:['+ Incluir',()=>ir(26)]})},
+26(m){formulario(m,'Novo Evento',[['Nome','text','',null,1,1],['Tipo','sel','Festa',['Festa','Ação social','Ação ambiental','Competição','Outro'],0,1],['Situação','sel','Planejado',['Planejado','Confirmado','Realizado','Cancelado'],0,1],['Data','date','',null,0,1],['Horário','time'],['Local','text','',null,1,1],['Descrição','area','',null,1]])},
+27(m){m.innerHTML=topo('Responsáveis e tarefas · Festa Atlética','',true)+`<div class="two"><div class="panel"><div class="top" style="padding:10px 14px 0"><h2 style="font-size:16px">Responsáveis</h2><div class="r"><button class="btn b-ro" disabled>Remover</button><button class="btn b-p" id="ar">+ Adicionar</button></div></div><div class="tbl"><table style="min-width:300px"><thead><tr><th>Membro</th><th>Contato</th></tr></thead><tbody><tr><td>Rafael Teixeira</td><td>(47) 99999-1002</td></tr><tr><td>Paula Ribeiro</td><td>paula.ribeiro@email.com</td></tr></tbody></table></div></div>
+ <div>${tarefas(TAREFAS)}</div></div>`;ligar(m);ligarTarefas(m);m.querySelector('#ar').onclick=()=>modal('Adicionar responsável',campo(['Membro','sel',MEMB[0][0],MEMB.map(x=>x[0]),1,1]))},
+28(m){const H=[270,150,290,120,200,310],P={Festas:[['festa-atletica-2025.jpg'],['festa-atletica-2024.jpg'],['festa-2023.png'],['video-festa-2025.mp4',1],['video-festa-2024.mp4',1]],'Ações Sociais':[['agasalho-2025.jpg'],['doacao-sangue.jpg'],['video-acao.mp4',1]],'Competições':[['jiudesc-2025.jpg'],['interatleticas-2024.jpg'],['video-final.mp4',1]],Treinos:[['treino-futsal.jpg'],['treino-volei.jpg']],Outros:[]};
+ let cur='Festas';m.innerHTML=topo('Registros','<button class="btn b-po" id="np">+ Nova Pasta</button><button class="btn b-go" id="ad">+ Adicionar Arquivo</button>')+`<div class="panel split"><div class="mods"><h3>Pastas</h3>${Object.keys(P).map(n=>`<button data-n="${n}">${n} <span class="mut">(${P[n].length})</span></button>`).join('')}</div><div style="min-width:0"><div id="gr"></div><p class="mut" style="padding:0 14px 14px;font-size:12.5px">Arraste fotos e vídeos para cá · clique duplo abre · botão direito renomeia, move ou exclui</p></div></div>`;
+ const draw=()=>{m.querySelectorAll('.mods button').forEach(b=>b.classList.toggle('on',b.dataset.n===cur));
+  $('#gr').innerHTML=P[cur].length?`<div class="thumbs">${P[cur].map((f,i)=>`<button class="thb" title="${f[0]}"><i style="background:linear-gradient(135deg,hsl(${H[i%6]} 60% 22%),hsl(${H[(i+2)%6]} 70% 12%))">${f[1]?'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>':''}</i><span>${f[0]}</span></button>`).join('')}</div>`:'<p class="empty">Pasta vazia. Use "Adicionar Arquivo" ou arraste fotos e vídeos para cá.</p>';
+  m.querySelectorAll('.thb').forEach(b=>{b.ondblclick=()=>toast('Abre no programa padrão: '+b.title);b.oncontextmenu=e=>{e.preventDefault();toast('Menu: Renomear · Mover para... · Excluir')}})};
+ m.querySelectorAll('.mods button').forEach(b=>b.onclick=()=>{cur=b.dataset.n;draw()});
+ m.querySelector('#np').onclick=()=>modal('Nova pasta',campo(['Nome','text','',null,1,1])+campo(['Descrição','area','',null,1]));m.querySelector('#ad').onclick=()=>toast('Seletor de arquivos: jpg, png, gif, bmp, mp4, mov, avi, mkv, webm, wmv');draw()},
+29(m){consulta(m,{t:'Usuários',cols:['Nome','Login','Perfil','Situação'],rows:[['Administrador','admin','Administrador','Ativo'],['Juliana Martins','juliana','Diretoria','Ativo'],['Lucas Pereira','lucas','Consulta','Ativo']],sit:[2,3],editar:()=>ir(30),incluir:['+ Incluir',()=>ir(30)],rodape:'Visível só para administradores'})},
+30(m){formulario(m,'Novo Usuário',[['Nome','text','',null,1,1],['Login','text','',null,0,1],['Perfil','sel','Diretoria',['Administrador','Diretoria','Consulta'],0,1],['Situação','sel','Ativo',['Ativo','Inativo'],0,1],['Senha','pass','',null,0,1],['Confirmação da senha','pass','',null,0,1]],'','Mínimo de 6 caracteres. A senha definida aqui é provisória: a pessoa troca no primeiro acesso.')},
+31(){senha(false)}};
+let amistoso=false;
+function tarefas(L){return `<div class="panel"><div class="top" style="padding:10px 14px 0"><h2 style="font-size:16px">Tarefas</h2><div class="r"><button class="btn b-ro" disabled>Excluir</button><button class="btn b-go" data-toast="Tarefa concluída">Concluir</button><button class="btn b-p" data-nt>+ Incluir</button></div></div><div class="tbl"><table style="min-width:380px"><thead><tr><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr></thead><tbody>${L.map(t=>{const late=t[3]!=='Concluída'&&new Date(t[2].split('/').reverse().join('-'))<HOJE;return `<tr><td>${t[0]}</td><td>${t[1]}</td><td class="${late?'late':''}">${t[2]}${late?' (atrasada)':''}</td><td>${pill(t[3])}</td></tr>`}).join('')}</tbody></table></div><div class="ft"><span>${L.filter(t=>t[3]==='Concluída').length} de ${L.length} concluídas</span><span>Prazo vencido em vermelho</span></div></div>`}
+function ligarTarefas(m){m.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>modal('Nova tarefa',`<div class="fg">${[['Descrição','text','',null,1,1],['Responsável','sel',MEMB[0][0],MEMB.map(x=>x[0])],['Prazo','date'],['Situação','sel','Pendente',['Pendente','Em andamento','Concluída'],0,1]].map(campo).join('')}</div>`))}
+function senha(obrig){if(obrig)registro(31);const ov=modal(obrig?'Troque sua senha':'Alterar senha',`${obrig?'<p class="mut" style="margin-top:6px">Sua senha é provisória. Defina uma nova senha para continuar.</p>':''}${[['Senha atual','pass','',null,1,1],['Nova senha','pass','',null,1,1],['Confirmação da nova senha','pass','',null,1,1]].map(campo).join('')}`,
+ {aoSalvar:()=>{toast('Senha alterada');if(obrig)ir(2,false);else voltar()},aoFechar:()=>{if(obrig){toast('Troca obrigatória cancelada: entrada bloqueada');ir(1)}else voltar()}})}
+
+/* ---------- mapa de telas ---------- */
+function mapa(){const d=document.createElement('div');d.id='mapa';
+ d.innerHTML=`<div class="dr" role="dialog" aria-label="Mapa de telas"><button class="x" aria-label="Fechar">&#10005;</button><h2>Mapa de telas</h2><p class="mut">As 31 telas de docs/telas-e-distribuicao.md, nos pacotes sugeridos.</p>${PAC.map((p,k)=>`<h3>${p}</h3>${T.map((t,n)=>t&&t[0]===k?`<button class="s${n===atual?' on':''}" data-n="${n}"><b>${n}</b><span>${t[1]}</span><code>${t[2]}</code></button>`:'').join('')}`).join('')}</div>`;
+ document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('.x').onclick=()=>d.remove();
+ d.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{d.remove();pilha=[];const n=+b.dataset.n;ir(n,false)})}
+$('#map').onclick=mapa;
+$('#ant').onclick=()=>{pilha=[];ir(atual>1?atual-1:31,false)};$('#prx').onclick=()=>{pilha=[];ir(atual<31?atual+1:1,false)};
+$('#ver').onclick=()=>{const s=$('#s');s.type=s.type==='password'?'text':'password';$('#ver').textContent=s.type==='password'?'Mostrar':'Ocultar'};
+$('#f').onsubmit=e=>{e.preventDefault();if(!$('#u').value.trim()||!$('#s').value){toast('Usuário ou senha inválidos.');return}ir(2,false);atual=2;senha(true)};
+$('#out').onclick=()=>ir(1);$('#nm').onclick=()=>ir(31);
+const h=/^#t(\d+)$/.exec(location.hash);const ini=h?Math.min(31,Math.max(1,+h[1])):1;ir(ini,false);
+</script></body></html>
