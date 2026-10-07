@@ -21,6 +21,8 @@ Para a apresentação:
 - [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência (2 ou mais por integrante)
 - [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
+- [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e sugestão de divisão entre os integrantes
+- [`docs/roteiro-testes.md`](docs/roteiro-testes.md): roteiro de testes manuais por módulo, para preencher
 
 ## Pré-requisitos
 
@@ -155,7 +157,9 @@ Principais classes do modelo:
 | RF19 | Tarefas também nas competições (painel de tarefas compartilhado) | Concluído |
 | RF01 | Cadastro de usuários e troca da própria senha | Concluído |
 | RN19 | Senha provisória com troca obrigatória no primeiro acesso | Concluído |
-| CH-48 | Diagramas de sequência (12 fluxos, em Mermaid e PNG) | Concluído |
+| CH-47 | Lista de telas e distribuição entre os integrantes | Concluído (nomes a cargo do grupo) |
+| CH-48 | Diagramas de sequência (13 fluxos, em Mermaid e PNG) | Concluído |
+| CH-49 | Roteiro de testes por módulo | Concluído (execução a cargo do grupo) |
 | CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
 | CH-51 | Matriz de requisitos técnicos para a apresentação | Concluído (slides a cargo do grupo) |
 | CH-42 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
