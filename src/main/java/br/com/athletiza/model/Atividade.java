@@ -41,6 +41,11 @@ public abstract class Atividade extends Entidade implements Comparable<Atividade
         return getTipo().getDescricao() + " - " + titulo;
     }
 
+    /** Nome curto exibido dentro do quadrado do dia no calendário. */
+    public String getRotuloCurto() {
+        return titulo;
+    }
+
     public String getCorHex() {
         return getTipo().getCorHex();
     }

@@ -30,6 +30,12 @@ public class Treino extends Atividade {
         return TipoAtividade.TREINO;
     }
 
+    /** No calendário aparece apenas "Treino" ou "Amistoso"; o detalhe fica na lista do dia. */
+    @Override
+    public String getRotuloCurto() {
+        return getTipo().getDescricao();
+    }
+
     public Modalidade getModalidade() {
         return modalidade;
     }
