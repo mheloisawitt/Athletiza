@@ -38,7 +38,7 @@ import javax.swing.table.TableStringConverter;
  *
  * @param <T> tipo dos objetos listados
  */
-public abstract class PainelConsulta<T> extends JPanel {
+public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
     /** Botões que a tela de consulta exibe. */
     public enum Acao {
@@ -83,18 +83,13 @@ public abstract class PainelConsulta<T> extends JPanel {
     }
 
     /** Recarrega os dados da tabela. Chamado ao abrir a tela e após cada alteração. */
+    @Override
     public void carregar() {
         try {
             modelo.setLinhas(buscarDados());
         } catch (AthletizaException e) {
             Mensagens.erro(this, e);
         }
-    }
-
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        carregar();
     }
 
     /** Objeto da linha selecionada, considerando ordenação e filtro. */

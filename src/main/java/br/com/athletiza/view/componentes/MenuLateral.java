@@ -36,7 +36,13 @@ public class MenuLateral extends JPanel {
     private static final String ESTILO_ITEM = "background:" + Cores.hex(Cores.FUNDO_MENU)
             + "; selectedBackground:" + Cores.hex(Cores.VERDE_SELECAO)
             + "; selectedForeground:" + Cores.hex(Cores.VERDE)
-            + "; hoverBackground:#232323; foreground:#D0D0D0; borderWidth:0; focusWidth:0; arc:10; margin:9,14,9,14";
+            + "; hoverBackground:#232323; foreground:#D0D0D0; focusWidth:0; arc:10; margin:9,14,9,14"
+            + "; borderColor:" + Cores.hex(Cores.FUNDO_MENU) + "; focusedBorderColor:" + Cores.hex(Cores.FUNDO_MENU);
+
+    /** O item selecionado ganha contorno verde, como no protótipo. */
+    private static final String ESTILO_ITEM_SELECIONADO = ESTILO_ITEM
+            + "; borderColor:" + Cores.hex(Cores.VERDE) + "; focusedBorderColor:" + Cores.hex(Cores.VERDE)
+            + "; hoverBorderColor:" + Cores.hex(Cores.VERDE);
 
     private final ButtonGroup grupo = new ButtonGroup();
     private final Map<String, JToggleButton> itens = new LinkedHashMap<>();
@@ -67,6 +73,8 @@ public class MenuLateral extends JPanel {
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         item.addActionListener(e -> aoSelecionar.accept(nome));
+        item.addItemListener(e -> item.putClientProperty(FlatClientProperties.STYLE,
+                item.isSelected() ? ESTILO_ITEM_SELECIONADO : ESTILO_ITEM));
         grupo.add(item);
         itens.put(nome, item);
         painelItens.add(item);

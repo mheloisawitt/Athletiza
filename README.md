@@ -64,9 +64,10 @@ br.com.athletiza
 ├── Athletiza.java   classe principal
 ├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
 ├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
-│   └── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
-├── controller       ligação entre telas e regras de negócio (LoginController...)
-├── dao              acesso ao banco de dados (GenericDAO, AbstractDAO e um DAO por entidade)
+│   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
+│   └── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
+├── controller       ligação entre telas e regras de negócio (LoginController, CalendarioController...)
+├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
@@ -96,7 +97,10 @@ Principais classes do modelo:
 | CH-14 | Tela principal com menu lateral (CardLayout) | Concluído |
 | CH-46 | Mensagens padronizadas e tratamento global de erros | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
-| CH-15 | Calendário na tela inicial | Próximo |
+| CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |
+| CH-16 | Incluir, editar e excluir compromissos pelo calendário | Concluído |
+| CH-17 | Painel de próximos eventos (7, 15 ou 30 dias) | Concluído |
+| CH-24 | Módulo Atletas e Modalidades (backend) | Próximo |
 
 ## Como criar uma tela nova
 

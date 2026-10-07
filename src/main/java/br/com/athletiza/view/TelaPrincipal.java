@@ -5,8 +5,9 @@ import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.MenuLateral;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
-import br.com.athletiza.view.componentes.PainelConsulta;
 import br.com.athletiza.view.componentes.PainelEmConstrucao;
+import br.com.athletiza.view.componentes.Recarregavel;
+import br.com.athletiza.view.calendario.PainelCalendario;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -41,7 +42,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         super("Athletiza - Sistema de Gerenciamento");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        modulos.put("Início", () -> new PainelEmConstrucao("Calendário", "CH-15 a CH-17"));
+        modulos.put("Início", PainelCalendario::new);
         modulos.put("Gestão", () -> new PainelEmConstrucao("Gestões", "CH-18 a CH-23"));
         modulos.put("Atletas", () -> new PainelEmConstrucao("Atletas", "CH-24 a CH-27"));
         modulos.put("Competições", () -> new PainelEmConstrucao("Competições", "CH-28 a CH-32"));
@@ -70,6 +71,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         });
         moduloAtual = nome;
         cartoes.show(conteudo, nome);
+        recarregarModuloAtual();
     }
 
     @Override
@@ -78,15 +80,22 @@ public class TelaPrincipal extends JFrame implements Navegador {
         telaDetalhe = tela;
         conteudo.add(tela, DETALHE);
         cartoes.show(conteudo, DETALHE);
+        if (tela instanceof Recarregavel recarregavel) {
+            recarregavel.carregar();
+        }
     }
 
     @Override
     public void voltar() {
         fecharDetalhe();
         cartoes.show(conteudo, moduloAtual);
+        recarregarModuloAtual();
+    }
+
+    private void recarregarModuloAtual() {
         Component modulo = modulosCriados.get(moduloAtual);
-        if (modulo instanceof PainelConsulta<?> consulta) {
-            consulta.carregar();
+        if (modulo instanceof Recarregavel recarregavel) {
+            recarregavel.carregar();
         }
     }
 
