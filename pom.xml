@@ -27,6 +27,13 @@
             <version>42.7.13</version>
         </dependency>
 
+        <!-- Tema visual moderno para Swing (modo escuro do protótipo) -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+
         <!-- Testes: JUnit + banco H2 em memória (modo PostgreSQL), não vão para o sistema final -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
