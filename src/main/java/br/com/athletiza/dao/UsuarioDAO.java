@@ -49,6 +49,18 @@ public class UsuarioDAO extends AbstractDAO<Usuario> {
         return consultarUm("SELECT * FROM usuario WHERE LOWER(login) = LOWER(?)", login);
     }
 
+    /** Indica se outro usuário (diferente de idIgnorado) já usa o login. */
+    public boolean existeLogin(String login, Integer idIgnorado) throws PersistenciaException {
+        return existe("SELECT COUNT(*) FROM usuario WHERE LOWER(login) = LOWER(?) AND id <> ?",
+                login, idIgnorado == null ? -1 : idIgnorado);
+    }
+
+    /** Quantos administradores ativos existem, sem contar o usuário informado. */
+    public int contarOutrosAdministradoresAtivos(Integer idIgnorado) throws PersistenciaException {
+        return consultar("SELECT COUNT(*) FROM usuario WHERE perfil = 'ADMINISTRADOR' AND ativo AND id <> ?",
+                rs -> rs.getInt(1), idIgnorado == null ? -1 : idIgnorado).get(0);
+    }
+
     @Override
     protected Usuario mapear(ResultSet rs) throws SQLException {
         Usuario usuario = new Usuario(rs.getString("nome"), rs.getString("login"),
