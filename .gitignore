@@ -27,3 +27,7 @@ db.properties
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+# Fotos e vídeos da galeria de registros (ficam só no computador de cada um)
+midias/
+Athletiza-midias/

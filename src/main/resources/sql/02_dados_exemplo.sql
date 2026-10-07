@@ -125,3 +125,6 @@ INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
 -- Compromissos
 INSERT INTO compromisso (titulo, data, horario, local) VALUES
     ('Reunião Gestão', '2026-10-08', '14:00', 'Sala da atlética');
+
+-- Pastas da galeria de registros (os arquivos são adicionados pelo sistema)
+INSERT INTO pasta (nome) VALUES ('Festas'), ('Ações Sociais'), ('Competições'), ('Treinos'), ('Outros');
