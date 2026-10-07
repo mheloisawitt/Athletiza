@@ -8,10 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
 import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.model.Alerta;
 import br.com.athletiza.model.Amistoso;
 import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Compromisso;
+import br.com.athletiza.model.Treino;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
@@ -75,6 +77,39 @@ class CalendarioControllerTest {
 
         controller.excluirCompromisso(reuniao);
         assertFalse(controller.atividadesDoMes(OUTUBRO).containsKey(LocalDate.of(2026, 10, 20)));
+    }
+
+    @Test
+    void agrupaAtividadesDeUmaSemana() throws Exception {
+        Map<LocalDate, List<Atividade>> semana = controller.atividadesDoPeriodo(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 11));
+
+        assertEquals(List.of(LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 8), LocalDate.of(2026, 10, 10)),
+                List.copyOf(semana.keySet()));
+    }
+
+    @Test
+    void alertasMostramTarefasAtrasadasTreinosSemPresencaECompeticoesProximas() throws Exception {
+        List<Alerta> alertas = controller.alertas(LocalDate.of(2026, 10, 7));
+
+        assertEquals(List.of(Alerta.Tipo.TAREFA_ATRASADA, Alerta.Tipo.PRESENCA_PENDENTE, Alerta.Tipo.PRESENCA_PENDENTE),
+                alertas.stream().map(Alerta::tipo).toList());
+        assertTrue(alertas.get(0).texto().contains("Contratar DJ (Festa Atlética, venceu em 05/10/2026)"),
+                alertas.get(0).texto());
+        assertTrue(alertas.get(1).texto().contains("de 03/10/2026"), alertas.get(1).texto());
+
+        List<Alerta> semanaDaJiudesc = controller.alertas(LocalDate.of(2026, 10, 25));
+        assertTrue(semanaDaJiudesc.stream().anyMatch(a -> a.texto().equals("JIUDESC 2026 começa em 5 dias (30/10/2026)")),
+                semanaDaJiudesc.toString());
+    }
+
+    @Test
+    void carregaAtividadeCompletaParaEdicao() throws Exception {
+        Atividade resumo = controller.atividadesDoMes(OUTUBRO).get(LocalDate.of(2026, 10, 6)).get(0);
+
+        Atividade completa = controller.carregarCompleta(resumo);
+
+        assertInstanceOf(Treino.class, completa);
+        assertEquals("Juliana Martins", ((Treino) completa).getResponsavel().getNome());
     }
 
     @Test
