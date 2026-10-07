@@ -80,6 +80,24 @@ public abstract class PainelFormulario extends JPanel {
         posicionar(rotulo, campo, obrigatorio, 2);
     }
 
+    /** Adiciona um componente ocupando a linha inteira, sem rótulo (ex.: texto informativo, barra de botões). */
+    protected void adicionarLinha(JComponent componente) {
+        if (coluna != 0) {
+            linha++;
+            coluna = 0;
+        }
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = linha * 2;
+        c.gridwidth = 2;
+        c.gridheight = 2;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.insets = new Insets(0, 0, 14, 0);
+        campos.add(componente, c);
+        linha++;
+    }
+
     /** Área de texto com rolagem, para descrições e observações. */
     protected static JScrollPane areaTexto(JTextArea area) {
         area.setRows(4);

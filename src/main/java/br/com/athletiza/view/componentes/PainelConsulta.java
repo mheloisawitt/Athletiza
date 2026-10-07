@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -129,6 +130,13 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         titulo.add(voltar);
         titulo.add(rotuloTitulo);
         linhaTitulo.add(titulo, BorderLayout.WEST);
+    }
+
+    /** Coloca um painel à esquerda da tabela (ex.: lista de modalidades na tela de treinos). */
+    protected void adicionarPainelLateral(JComponent lateral) {
+        lateral.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(0, 0, 0, 16), lateral.getBorder()));
+        add(lateral, BorderLayout.WEST);
     }
 
     /** Troca o texto de um botão padrão (ex.: "Excluir" vira "Remover"). */
