@@ -46,14 +46,17 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
   (o amistoso pede o adversário e, depois do jogo, o resultado).
 - O sistema não aceita dois treinos no mesmo local com menos de 1 hora de diferença.
 - **Presença:** marque quem compareceu e salve. Só vale para treinos que já aconteceram.
-- **Frequência:** percentual de presença de cada atleta, por modalidade e período.
+- **Frequência:** percentual de presença de cada atleta, por modalidade e período. Clique duplo num atleta
+  (ou **Ver treinos do atleta**) mostra em quais treinos ele esteve presente ou ausente.
 
 ## Competições
 
 - **Gerenciar:** à esquerda, marque as modalidades da competição; à direita, os atletas inscritos na
   modalidade selecionada. Clique em **Salvar inscrições** ao terminar.
 - Aba **Resultados:** lance colocação e/ou placar da equipe ou de um atleta inscrito.
-- A consulta mostra o melhor resultado de cada competição.
+- Aba **Tarefas:** tarefas da organização (inscrição, transporte, uniformes...), com responsável, prazo e
+  situação. As atrasadas aparecem em vermelho.
+- A consulta mostra o melhor resultado e o resumo das tarefas de cada competição.
 
 ## Eventos
 

@@ -118,14 +118,14 @@ public final class Renderizadores {
 
         private static Color corDa(Enum<?> situacao) {
             String nome = situacao.name().toUpperCase(Locale.ROOT);
-            if (nome.equals("ATIVO") || nome.contains("ANDAMENTO") || nome.startsWith("CONFIRMAD")) {
+            if (nome.equals("ATIVO") || nome.contains("ANDAMENTO") || nome.startsWith("CONFIRMAD") || nome.equals("PRESENTE")) {
                 return Cores.VERDE;
             }
             if (nome.startsWith("PLANEJAD") || nome.equals("PENDENTE") || nome.equals("LESIONADO")
                     || nome.equals("AFASTADO")) {
                 return Cores.AMARELO;
             }
-            if (nome.startsWith("CANCELAD")) {
+            if (nome.startsWith("CANCELAD") || nome.equals("AUSENTE")) {
                 return Cores.VERMELHO;
             }
             return Cores.TEXTO_SECUNDARIO;

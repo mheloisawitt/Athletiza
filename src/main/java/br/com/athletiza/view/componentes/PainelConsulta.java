@@ -88,6 +88,13 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     protected void gerenciar(T selecionado) {
     }
 
+    /** Clique duplo numa linha: por padrão, edita (se o perfil permitir). */
+    protected void aoClicarDuasVezes(T selecionado) {
+        if (Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados()) {
+            editar(selecionado);
+        }
+    }
+
     /** Recarrega os dados da tabela. Chamado ao abrir a tela e após cada alteração. */
     @Override
     public void carregar() {
@@ -229,9 +236,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         tabela.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && tabela.getSelectedRow() >= 0
-                        && (Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados())) {
-                    getSelecionado().ifPresent(PainelConsulta.this::editar);
+                if (e.getClickCount() == 2 && tabela.getSelectedRow() >= 0) {
+                    getSelecionado().ifPresent(PainelConsulta.this::aoClicarDuasVezes);
                 }
             }
         });

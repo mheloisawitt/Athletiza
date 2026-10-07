@@ -144,11 +144,12 @@ Principais classes do modelo:
 | CH-34 | Consulta de treinos com modalidades à esquerda e filtros de tipo e período | Concluído |
 | CH-35 | Cadastro de treino e amistoso com verificação de conflito de horário | Concluído |
 | CH-36 | Lista de presença salva em lote | Concluído |
-| CH-37 | Frequência por atleta com percentual | Concluído |
+| CH-37 | Frequência por atleta com percentual e histórico de presença do atleta (RF13) | Concluído |
 | CH-38 | EventoDAO e EventoController (responsáveis e tarefas) | Concluído |
 | CH-39 | Consulta de eventos com filtros de tipo e período e resumo de tarefas | Concluído |
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
+| RF19 | Tarefas também nas competições (painel de tarefas compartilhado) | Concluído |
 | RF01 | Cadastro de usuários e troca da própria senha | Concluído |
 | RN19 | Senha provisória com troca obrigatória no primeiro acesso | Concluído |
 | CH-48 | Diagramas de sequência (12 fluxos, em Mermaid e PNG) | Concluído |

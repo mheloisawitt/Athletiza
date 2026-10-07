@@ -10,6 +10,7 @@ import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.util.Sessao;
 import br.com.athletiza.util.Validador;
@@ -17,6 +18,7 @@ import br.com.athletiza.view.Tema;
 import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.view.componentes.PainelTarefas;
 import br.com.athletiza.view.componentes.Recarregavel;
 import br.com.athletiza.view.componentes.Renderizadores;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -41,7 +43,8 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  * Gerenciar competição (CH-31): à esquerda, as modalidades inscritas; à direita,
- * os atletas da modalidade selecionada. Na outra aba, os resultados (CH-32).
+ * os atletas da modalidade selecionada. Nas outras abas, os resultados (CH-32)
+ * e as tarefas da organização (RF19).
  *
  * As inscrições são montadas em memória (Map modalidade -> Set de atletas, em
  * Competicao) e gravadas de uma vez em "Salvar inscrições".
@@ -61,6 +64,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
     private final JTable tabelaAtletas = new JTable(modeloAtletas);
     private final JLabel tituloAtletas = new JLabel();
     private final PainelResultados resultados;
+    private final PainelTarefas tarefas;
 
     public PainelGerenciarCompeticao(Competicao competicao, Navegador navegador) {
         super(new BorderLayout(0, 16));
@@ -68,18 +72,37 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         this.competicao = competicao;
         this.navegador = navegador;
         this.resultados = new PainelResultados(this::competicaoSalva);
+        this.tarefas = new PainelTarefas(new PainelTarefas.FonteTarefas() {
+            @Override
+            public List<Tarefa> listar() throws AthletizaException {
+                return controller.listarTarefas(original);
+            }
+
+            @Override
+            public void salvar(Tarefa tarefa) throws AthletizaException {
+                controller.salvarTarefa(original, tarefa);
+            }
+
+            @Override
+            public void excluir(Tarefa tarefa) throws AthletizaException {
+                controller.excluirTarefa(tarefa);
+            }
+        });
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         add(criarCabecalho(), BorderLayout.NORTH);
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("Modalidades e atletas", criarAbaInscricoes());
         abas.addTab("Resultados", resultados);
+        abas.addTab("Tarefas", tarefas);
         abas.addChangeListener(e -> {
             if (abas.getSelectedComponent() == resultados) {
                 if (alterado) {
                     Mensagens.aviso(this, "Há inscrições não salvas. Os resultados consideram apenas as inscrições salvas.");
                 }
                 resultados.carregar();
+            } else if (abas.getSelectedComponent() == tarefas) {
+                tarefas.carregar();
             }
         });
         add(abas, BorderLayout.CENTER);
@@ -98,6 +121,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
             }
             atualizarAtletas();
             resultados.carregar();
+            tarefas.carregar();
         } catch (AthletizaException e) {
             Mensagens.erro(this, e);
         }

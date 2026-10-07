@@ -9,7 +9,7 @@ Caminhos relativos a `src/main/java/br/com/athletiza/`.
 | **DAO** | `dao/GenericDAO`, `dao/AbstractDAO`, `dao/DAOBase` e um DAO por entidade | `GenericDAO` define o contrato; `AbstractDAO` implementa `excluir`, `buscarPorId` e `listarTodos` para todos; cada DAO só escreve o SQL específico (`ModalidadeDAO` é o exemplo mais curto) |
 | **Pacotes** | `model`, `view` (com subpacotes por módulo), `controller`, `dao`, `util`, `exception` | Estrutura no README e no NetBeans (aba Projects) |
 | **Modificadores de escopo e visibilidade** | Atributos `private` com getters/setters em todo o `model` | `protected abstract` em `AbstractDAO` (`getTabela`, `mapear`); classes de pacote `model/Textos` e `view/calendario/CelulaDia`; construtor `private` em `util/Cores`, `util/Senha`, `util/ConnectionFactory`; construtor de pacote em `LoginController` (para testes) |
-| **Interface** | `dao/GenericDAO`, `dao/MapeadorLinha`, `view/componentes/Navegador`, `view/componentes/Recarregavel` | `TelaPrincipal implements Navegador`; `PainelCalendario implements Recarregavel` |
+| **Interface** | `dao/GenericDAO`, `dao/MapeadorLinha`, `view/componentes/Navegador`, `view/componentes/Recarregavel`, `PainelTarefas.FonteTarefas` | `TelaPrincipal implements Navegador`; `PainelCalendario implements Recarregavel` |
 | **Classe abstrata** | `model/Entidade`, `model/Pessoa`, `model/Atividade`, `dao/DAOBase`, `dao/AbstractDAO`, `exception/AthletizaException`, `view/componentes/PainelConsulta`, `view/componentes/PainelFormulario` | `Atividade.getTipo()` é abstrato e cada subclasse responde |
 | **Herança** | `Pessoa` → `Membro`, `Atleta`, `Usuario`; `Atividade` → `Treino` → `Amistoso`, `Competicao`, `Evento`, `Compromisso` | Diagrama `docs/diagramas/classes.md` |
 | **Polimorfismo** | `Atividade.ocorreEm()` sobrescrito em `Competicao` (vários dias); `getTipo()`, `getRotuloCurto()` e `getDescricaoCalendario()` | O calendário (`CalendarioController.atividadesDoMes`) trata tudo como `Atividade`; `TreinoDAO.inserir` grava `Treino` ou `Amistoso` conforme o objeto; `Usuario.equals` sobrescreve `Pessoa.equals` |
@@ -37,9 +37,9 @@ Caminhos relativos a `src/main/java/br/com/athletiza/`.
 | RF06 | Gestão | CH-18 a CH-20 |
 | RF07, RF08 | Gestão > Cargos, Gerenciar, Organograma | CH-21, CH-23 |
 | RF09, RF10, RF24 | Início (calendário e próximos eventos) | CH-15 a CH-17 |
-| RF11 a RF13 | Treinos, Presença, Frequência | CH-33 a CH-37 |
+| RF11 a RF13 | Treinos, Presença, Frequência, Histórico do atleta | CH-33 a CH-37 |
 | RF14 a RF16 | Competições, Gerenciar, Resultados | CH-28 a CH-32 |
-| RF17 a RF19 | Eventos, Responsáveis e tarefas | CH-38 a CH-41 |
+| RF17 a RF19 | Eventos, Responsáveis e tarefas; Tarefas também em Gerenciar Competição | CH-38 a CH-41 |
 | RF20, RF21 | Busca, filtros e ordenação em todas as consultas | CH-44 |
 | RF22 | Confirmação e bloqueio de exclusões com vínculos | CH-45 |
 | — | Registros: galeria de fotos e vídeos em pastas (definido com a diretoria) | CH-42, CH-43 |

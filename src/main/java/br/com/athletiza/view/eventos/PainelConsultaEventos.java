@@ -4,13 +4,13 @@ import br.com.athletiza.controller.EventoController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.SituacaoEvento;
-import br.com.athletiza.model.SituacaoTarefa;
 import br.com.athletiza.model.TipoEvento;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
+import br.com.athletiza.view.componentes.PainelTarefas;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.EnumSet;
@@ -52,7 +52,7 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
                 .coluna("Horário", LocalTime.class, Evento::getHorario)
                 .coluna("Local", String.class, Evento::getLocal)
                 .coluna("Situação", SituacaoEvento.class, Evento::getSituacao)
-                .coluna("Tarefas", String.class, PainelConsultaEventos::resumirTarefas),
+                .coluna("Tarefas", String.class, e -> PainelTarefas.resumir(e.getTarefas())),
                 EnumSet.allOf(Acao.class));
         this.navegador = navegador;
         renomearBotao(Acao.GERENCIAR, "Responsáveis e tarefas");
@@ -63,17 +63,6 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
         adicionarFiltro(filtroPeriodo);
         filtroTipo.addActionListener(e -> carregar());
         filtroPeriodo.addActionListener(e -> carregar());
-    }
-
-    /** Ex.: "1 de 3 concluídas · 1 atrasada". */
-    private static String resumirTarefas(Evento evento) {
-        if (evento.getTarefas().isEmpty()) {
-            return "—";
-        }
-        long concluidas = evento.getTarefas().stream().filter(t -> t.getSituacao() == SituacaoTarefa.CONCLUIDA).count();
-        int atrasadas = evento.getTarefasAtrasadas(LocalDate.now()).size();
-        return concluidas + " de " + evento.getTarefas().size() + " concluídas"
-                + (atrasadas > 0 ? " · " + atrasadas + " atrasada(s)" : "");
     }
 
     @Override

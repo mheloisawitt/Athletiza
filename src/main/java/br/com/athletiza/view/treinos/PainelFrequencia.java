@@ -6,7 +6,9 @@ import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.util.Cores;
+import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Combos;
+import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
@@ -61,6 +63,8 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
     private final JComboBox<Periodo> filtroPeriodo = new JComboBox<>(Periodo.values());
     private boolean atualizandoFiltros;
 
+    private final Navegador navegador;
+
     public PainelFrequencia(Navegador navegador) {
         super("Frequência nos treinos", new ModeloTabela<Frequencia>()
                 .coluna("Atleta", String.class, f -> f.atleta().getNome())
@@ -69,7 +73,10 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
                 .coluna("Faltas", Integer.class, Frequencia::getFaltas)
                 .coluna("Frequência", Integer.class, Frequencia::getPercentual),
                 EnumSet.noneOf(Acao.class));
+        this.navegador = navegador;
         exibirVoltar(navegador::voltar);
+        adicionarBotao(Botoes.contornoVerde("Ver treinos do atleta", e -> getSelecionado().ifPresentOrElse(
+                this::aoClicarDuasVezes, () -> Mensagens.aviso(this, "Selecione um atleta na tabela."))));
         filtroPeriodo.setSelectedItem(Periodo.ESTE_ANO);
         adicionarFiltro(filtroModalidade);
         adicionarFiltro(filtroPeriodo);
@@ -95,6 +102,14 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
         Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
         return controller.frequencia((Modalidade) filtroModalidade.getSelectedItem(),
                 periodo.inicio(LocalDate.now()), null);
+    }
+
+    /** Clique duplo (ou "Ver treinos do atleta") abre em quais treinos o atleta esteve presente ou ausente. */
+    @Override
+    protected void aoClicarDuasVezes(Frequencia frequencia) {
+        Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
+        navegador.abrir(new PainelHistoricoAtleta(frequencia.atleta(), (Modalidade) filtroModalidade.getSelectedItem(),
+                periodo.inicio(LocalDate.now()), navegador));
     }
 
     /** Percentual exibido como barra: verde a partir de 75%, amarelo a partir de 50%, vermelho abaixo. */

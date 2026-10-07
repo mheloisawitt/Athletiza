@@ -9,6 +9,7 @@ import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
+import br.com.athletiza.view.componentes.PainelTarefas;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
@@ -49,10 +50,13 @@ public class PainelConsultaCompeticoes extends PainelConsulta<Competicao> {
                 .coluna("Fim", LocalDate.class, Competicao::getDataFim)
                 .coluna("Local", String.class, Competicao::getLocal)
                 .coluna("Situação", SituacaoCompeticao.class, Competicao::getSituacao)
-                .coluna("Melhor resultado", String.class, Competicao::getMelhorResultado),
+                .coluna("Melhor resultado", String.class, Competicao::getMelhorResultado)
+                .coluna("Tarefas", String.class, c -> PainelTarefas.resumir(c.getTarefas())),
                 EnumSet.allOf(Acao.class));
         this.navegador = navegador;
-        larguraColuna(0, 220);
+        larguraColuna(0, 170);
+        tabela.getColumnModel().getColumn(5).setMinWidth(140);
+        tabela.getColumnModel().getColumn(6).setMinWidth(215);
         adicionarFiltro(filtroSituacao);
         adicionarFiltro(filtroPeriodo);
         filtroSituacao.addActionListener(e -> carregar());
