@@ -23,6 +23,7 @@ public class Competicao extends Atividade {
     private SituacaoCompeticao situacao = SituacaoCompeticao.PLANEJADA;
     private final Map<Modalidade, Set<Atleta>> inscricoes = new LinkedHashMap<>();
     private final List<Resultado> resultados = new ArrayList<>();
+    private final List<Tarefa> tarefas = new ArrayList<>();
 
     public Competicao() {
     }
@@ -105,6 +106,19 @@ public class Competicao extends Atividade {
     /** Total de inscrições somando todas as modalidades. */
     public int getTotalInscricoes() {
         return inscricoes.values().stream().mapToInt(Set::size).sum();
+    }
+
+    /** Tarefas da organização da competição (RF19), como inscrições e transporte. */
+    public void adicionarTarefa(Tarefa tarefa) {
+        tarefas.add(tarefa);
+    }
+
+    public List<Tarefa> getTarefas() {
+        return Collections.unmodifiableList(tarefas);
+    }
+
+    public List<Tarefa> getTarefasAtrasadas(LocalDate hoje) {
+        return tarefas.stream().filter(t -> t.isAtrasada(hoje)).sorted().toList();
     }
 
     /** Melhor colocação obtida, para exibir na consulta (ex.: "1º - Futsal (F)"). */

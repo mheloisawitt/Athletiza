@@ -13,6 +13,8 @@ import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Pessoa;
+import br.com.athletiza.model.Presenca;
+import br.com.athletiza.model.PresencaEmTreino;
 import br.com.athletiza.model.TipoAtividade;
 import br.com.athletiza.model.Treino;
 import java.time.LocalDate;
@@ -119,6 +121,25 @@ class TreinoControllerTest {
         assertEquals(2, ana.treinos());
         assertEquals(50, ana.getPercentual());
         assertEquals(1, controller.frequencia(null, LocalDate.of(2026, 10, 2), null).get(0).treinos());
+    }
+
+    @Test
+    void mostraOHistoricoDePresencaDeUmAtleta() throws Exception {
+        Treino dia3 = treinoDoDia(3);
+        for (Atleta atleta : controller.atletasDaChamada(dia3)) {
+            dia3.registrarPresenca(atleta, !atleta.getNome().equals("Carla Oliveira"));
+        }
+        controller.salvarPresencas(dia3);
+        Atleta carla = controller.atletasDaChamada(dia3).stream()
+                .filter(a -> a.getNome().equals("Carla Oliveira")).findFirst().orElseThrow();
+
+        List<PresencaEmTreino> historico = controller.historicoDoAtleta(carla, null, null);
+
+        assertEquals(2, historico.size());
+        assertEquals(LocalDate.of(2026, 10, 3), historico.get(0).treino().getData(), "mais recente primeiro");
+        assertEquals(List.of(Presenca.AUSENTE, Presenca.AUSENTE), historico.stream().map(PresencaEmTreino::presenca).toList());
+        assertEquals(1, controller.historicoDoAtleta(carla, null, LocalDate.of(2026, 10, 2)).size());
+        assertTrue(controller.historicoDoAtleta(carla, modalidade("Vôlei", Genero.FEMININO), null).isEmpty());
     }
 
     @Test

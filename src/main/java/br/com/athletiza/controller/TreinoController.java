@@ -9,6 +9,7 @@ import br.com.athletiza.model.Amistoso;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.PresencaEmTreino;
 import br.com.athletiza.model.Situacao;
 import br.com.athletiza.model.TipoAtividade;
 import br.com.athletiza.model.Treino;
@@ -119,6 +120,12 @@ public class TreinoController {
             throw new RegraNegocioException("Só é possível registrar presença em treinos que já aconteceram.");
         }
         dao.salvarPresencas(treino);
+    }
+
+    /** Em quais treinos o atleta esteve presente ou ausente, do mais recente ao mais antigo (RF13). */
+    public List<PresencaEmTreino> historicoDoAtleta(Atleta atleta, Modalidade modalidade, LocalDate inicio)
+            throws PersistenciaException {
+        return dao.historicoDoAtleta(atleta, modalidade, inicio);
     }
 
     /** Frequência por atleta no período, maior percentual primeiro (CH-37). */

@@ -6,6 +6,8 @@ import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Presenca;
+import br.com.athletiza.model.PresencaEmTreino;
 import br.com.athletiza.model.Treino;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -161,6 +163,28 @@ public class TreinoDAO extends AbstractDAO<Treino> {
         Map<Integer, Atleta> atletas = atletasPorId();
         return consultar(sql.toString(), rs -> new Frequencia(atletas.get(rs.getInt("atleta_id")),
                 rs.getInt("treinos"), rs.getInt("presencas")), parametros.toArray());
+    }
+
+    /**
+     * Treinos em que o atleta teve presença registrada, do mais recente para o mais antigo (RF13).
+     * Filtros nulos são ignorados.
+     */
+    public List<PresencaEmTreino> historicoDoAtleta(Atleta atleta, Modalidade modalidade, LocalDate inicio)
+            throws PersistenciaException {
+        StringBuilder sql = new StringBuilder(SELECT.replace("SELECT t.*,", "SELECT t.*, p.presente,"))
+                .append(" JOIN presenca_treino p ON p.treino_id = t.id WHERE p.atleta_id = ?");
+        List<Object> parametros = new ArrayList<>(List.of(atleta.getId()));
+        if (modalidade != null) {
+            sql.append(" AND t.modalidade_id = ?");
+            parametros.add(modalidade.getId());
+        }
+        if (inicio != null) {
+            sql.append(" AND t.data >= ?");
+            parametros.add(inicio);
+        }
+        sql.append(" ORDER BY t.data DESC, t.horario DESC");
+        return consultar(sql.toString(), rs -> new PresencaEmTreino(mapear(rs), Presenca.de(rs.getBoolean("presente"))),
+                parametros.toArray());
     }
 
     private Map<Integer, Atleta> atletasPorId() throws PersistenciaException {

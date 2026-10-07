@@ -7,6 +7,7 @@ import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
+import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.util.Validador;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,7 +53,7 @@ public class CompeticaoController {
         }
     }
 
-    /** Exclui a competição junto com inscrições, resultados e tarefas. */
+    /** Exclui a competição junto com inscrições, resultados e tarefas (em cascata no banco). */
     public void excluir(Competicao competicao) throws PersistenciaException {
         dao.excluir(competicao.getId());
     }
@@ -96,6 +97,24 @@ public class CompeticaoController {
                     + resultado.getModalidade() + " nesta competição.");
         }
         dao.salvarResultado(competicao, resultado);
+    }
+
+    /** Tarefas da organização da competição, por prazo (RF19). */
+    public List<Tarefa> listarTarefas(Competicao competicao) throws PersistenciaException {
+        return dao.listarTarefas(competicao).stream().sorted().toList();
+    }
+
+    public void salvarTarefa(Competicao competicao, Tarefa tarefa) throws ValidacaoException, PersistenciaException {
+        new Validador()
+                .obrigatorio(tarefa.getDescricao(), "Descrição")
+                .tamanhoMaximo(tarefa.getDescricao(), 200, "Descrição")
+                .obrigatorio(tarefa.getSituacao(), "Situação")
+                .validar();
+        dao.salvarTarefa(competicao, tarefa);
+    }
+
+    public void excluirTarefa(Tarefa tarefa) throws PersistenciaException {
+        dao.excluirTarefa(tarefa);
     }
 
     public void excluirResultado(Resultado resultado) throws PersistenciaException {

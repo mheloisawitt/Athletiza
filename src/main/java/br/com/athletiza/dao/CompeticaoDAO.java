@@ -7,6 +7,7 @@ import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
+import br.com.athletiza.model.Tarefa;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,6 +29,7 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
             + " FROM resultado r JOIN modalidade m ON m.id = r.modalidade_id";
 
     private final AtletaDAO atletaDAO = new AtletaDAO();
+    private final TarefaDAO tarefaDAO = new TarefaDAO();
 
     @Override
     protected String getTabela() {
@@ -72,6 +74,8 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
             competicao.adicionarResultado(mapearResultado(rs, atletas));
             return null;
         });
+        Map<Integer, List<Tarefa>> tarefas = tarefaDAO.listarPorDono(TarefaDAO.Dono.COMPETICAO);
+        competicoes.forEach(c -> tarefas.getOrDefault(c.getId(), List.of()).forEach(c::adicionarTarefa));
         return competicoes;
     }
 
@@ -141,6 +145,18 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
                     + " observacao = ? WHERE id = ?", resultado.getModalidade().getId(), atletaId,
                     resultado.getColocacao(), resultado.getPlacar(), resultado.getObservacao(), resultado.getId());
         }
+    }
+
+    public List<Tarefa> listarTarefas(Competicao competicao) throws PersistenciaException {
+        return tarefaDAO.listar(TarefaDAO.Dono.COMPETICAO, competicao.getId());
+    }
+
+    public void salvarTarefa(Competicao competicao, Tarefa tarefa) throws PersistenciaException {
+        tarefaDAO.salvar(TarefaDAO.Dono.COMPETICAO, competicao.getId(), tarefa);
+    }
+
+    public void excluirTarefa(Tarefa tarefa) throws PersistenciaException {
+        tarefaDAO.excluir(tarefa);
     }
 
     public void excluirResultado(Resultado resultado) throws PersistenciaException {

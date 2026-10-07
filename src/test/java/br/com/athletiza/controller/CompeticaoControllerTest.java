@@ -14,6 +14,8 @@ import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Pessoa;
 import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
+import br.com.athletiza.model.SituacaoTarefa;
+import br.com.athletiza.model.Tarefa;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,6 +102,38 @@ class CompeticaoControllerTest {
         assertThrows(RegraNegocioException.class,
                 () -> controller.salvarResultado(jiudesc, new Resultado(futsalF, atleta("Carlos Mendes"), 1, null)));
         assertThrows(ValidacaoException.class, () -> controller.salvarResultado(jiudesc, new Resultado(futsalF, null, null, " ")));
+    }
+
+    @Test
+    void competicaoTemTarefasComAtrasoEExibeNaConsulta() throws Exception {
+        Competicao jiudesc = jiudesc();
+        Tarefa inscricao = new Tarefa("Enviar ficha de inscrição", null, LocalDate.of(2026, 10, 1));
+        Tarefa onibus = new Tarefa("Reservar ônibus", null, LocalDate.of(2026, 10, 20));
+
+        controller.salvarTarefa(jiudesc, inscricao);
+        controller.salvarTarefa(jiudesc, onibus);
+        assertThrows(ValidacaoException.class, () -> controller.salvarTarefa(jiudesc, new Tarefa(" ", null, null)));
+
+        assertEquals(List.of("Enviar ficha de inscrição", "Reservar ônibus"),
+                controller.listarTarefas(jiudesc).stream().map(Tarefa::getDescricao).toList());
+        Competicao naConsulta = controller.pesquisar(null, null, null).get(0);
+        assertEquals(List.of("Enviar ficha de inscrição"),
+                naConsulta.getTarefasAtrasadas(LocalDate.of(2026, 10, 7)).stream().map(Tarefa::getDescricao).toList());
+
+        inscricao.setSituacao(SituacaoTarefa.CONCLUIDA);
+        controller.salvarTarefa(jiudesc, inscricao);
+        controller.excluirTarefa(onibus);
+        assertEquals(1, controller.listarTarefas(jiudesc).size());
+        assertTrue(controller.pesquisar(null, null, null).get(0).getTarefasAtrasadas(LocalDate.of(2026, 10, 7)).isEmpty());
+    }
+
+    @Test
+    void tarefasDeCompeticaoNaoAparecemNosEventos() throws Exception {
+        controller.salvarTarefa(jiudesc(), new Tarefa("Reservar ônibus", null, LocalDate.of(2026, 10, 20)));
+
+        int tarefasNosEventos = new EventoController().pesquisar(null, null, null).stream()
+                .mapToInt(e -> e.getTarefas().size()).sum();
+        assertEquals(3, tarefasNosEventos);
     }
 
     @Test
