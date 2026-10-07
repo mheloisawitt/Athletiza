@@ -36,7 +36,7 @@ Caminhos relativos a `src/main/java/br/com/athletiza/`.
 | RF05 | Atletas > Modalidades | CH-27 |
 | RF06 | Gestão | CH-18 a CH-20 |
 | RF07, RF08 | Gestão > Cargos, Gerenciar, Organograma | CH-21, CH-23 |
-| RF09, RF10, RF24 | Início (calendário e próximos eventos) | CH-15 a CH-17 |
+| RF09, RF10, RF24 | Início: calendário por mês ou semana, abrir atividades, alertas e próximos eventos | CH-15 a CH-17 |
 | RF11 a RF13 | Treinos, Presença, Frequência, Histórico do atleta | CH-33 a CH-37 |
 | RF14 a RF16 | Competições, Gerenciar, Resultados | CH-28 a CH-32 |
 | RF17 a RF19 | Eventos, Responsáveis e tarefas; Tarefas também em Gerenciar Competição | CH-38 a CH-41 |

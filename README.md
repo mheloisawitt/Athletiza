@@ -125,6 +125,9 @@ Principais classes do modelo:
 | CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |
 | CH-16 | Incluir, editar e excluir compromissos pelo calendário | Concluído |
 | CH-17 | Painel de próximos eventos (7, 15 ou 30 dias) | Concluído |
+| RF09 | Abrir treinos, competições e eventos a partir do calendário | Concluído |
+| RF10 | Visão do calendário por semana | Concluído |
+| RF24 | Alertas na tela inicial (tarefas atrasadas, presença pendente, competições próximas) | Concluído |
 | CH-24 | AtletaDAO (com transação), AtletaController e ModalidadeController | Concluído |
 | CH-25 | Consulta de atletas com filtros e ordenação por Comparator | Concluído |
 | CH-26 | Cadastro de atleta com várias modalidades e situação em cada uma | Concluído |

@@ -23,9 +23,13 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 
 - Mostra o mês atual, com as atividades de cada dia em cores: treino (roxo), amistoso (lilás),
   competição (verde), evento (rosa) e compromisso (azul).
-- **<** e **>** trocam de mês; **Hoje** volta ao mês atual.
+- **Mês** e **Semana** alternam a visão. Na semana aparecem todas as atividades de cada dia, com horário.
+- **<** e **>** trocam de mês (ou de semana); **Hoje** volta para a data atual.
 - Clique num dia para ver as atividades dele na lateral; **clique duplo** cria um compromisso naquele dia.
 - Sem dia selecionado, a lateral mostra os **próximos eventos** (7, 15 ou 30 dias).
+- **Abrir** (na lista lateral) ou clique duplo na visão semanal leva à tela de edição do treino, competição ou evento.
+- **Alertas** (topo da lateral): tarefas atrasadas (vermelho), treinos dos últimos 30 dias sem lista de presença
+  (amarelo) e competições que começam nos próximos 7 dias (verde).
 
 ## Gestão
 

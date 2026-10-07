@@ -50,7 +50,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         super("Athletiza - Sistema de Gerenciamento");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        modulos.put("Início", PainelCalendario::new);
+        modulos.put("Início", () -> new PainelCalendario(this));
         modulos.put("Gestão", () -> new PainelConsultaGestoes(this));
         modulos.put("Atletas", () -> new PainelConsultaAtletas(this));
         modulos.put("Competições", () -> new PainelConsultaCompeticoes(this));

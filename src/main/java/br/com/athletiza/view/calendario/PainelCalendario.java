@@ -3,15 +3,23 @@ package br.com.athletiza.view.calendario;
 import br.com.athletiza.controller.CalendarioController;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Atividade;
+import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Compromisso;
+import br.com.athletiza.model.Evento;
+import br.com.athletiza.model.Treino;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.Tema;
 import br.com.athletiza.view.componentes.Botoes;
+import br.com.athletiza.view.competicoes.PainelCadastroCompeticao;
 import br.com.athletiza.view.componentes.Mensagens;
+import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.view.eventos.PainelCadastroEvento;
+import br.com.athletiza.view.treinos.PainelCadastroTreino;
 import br.com.athletiza.view.componentes.Recarregavel;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -27,25 +35,31 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
 /**
- * Tela inicial: calendário do mês com as atividades de cada dia (CH-15),
- * compromissos (CH-16) e a lista dos próximos eventos (CH-17).
+ * Tela inicial: calendário do mês ou da semana com as atividades de cada dia
+ * (CH-15, RF10), compromissos (CH-16), alertas (RF24) e a lista dos próximos eventos (CH-17).
  *
  * Abre sempre no mês atual. Clique em um dia mostra as atividades dele;
- * clique duplo cria um compromisso naquele dia.
+ * clique duplo cria um compromisso naquele dia. Treinos, competições e
+ * eventos podem ser abertos a partir da lista lateral (RF09).
  */
 public class PainelCalendario extends JPanel implements Recarregavel {
 
     private static final Locale PORTUGUES = Locale.forLanguageTag("pt-BR");
     private static final DateTimeFormatter FORMATO_MES = DateTimeFormatter.ofPattern("MMMM uuuu", PORTUGUES);
     private static final DateTimeFormatter FORMATO_DIA = DateTimeFormatter.ofPattern("dd/MM", PORTUGUES);
+    private static final DateTimeFormatter FORMATO_DIA_MES = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' uuuu", PORTUGUES);
+    private static final DateTimeFormatter FORMATO_DIA_MES_CURTO = DateTimeFormatter.ofPattern("d 'de' MMMM", PORTUGUES);
     private static final String[] DIAS_DA_SEMANA = {"Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"};
 
     /** Opções do período de "Próximos eventos". */
@@ -64,7 +78,19 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         }
     }
 
+    /** Visão do calendário (RF10). A lista do dia fica sempre na lateral. */
+    private enum Modo {
+        MES, SEMANA
+    }
+
     private final CalendarioController controller = new CalendarioController();
+    private final Navegador navegador;
+    private final CardLayout cartoesVisao = new CardLayout();
+    private final JPanel visoes = new JPanel(cartoesVisao);
+    private final PainelSemana painelSemana = new PainelSemana();
+    private final PainelAlertas alertas = new PainelAlertas();
+    private Modo modo = Modo.MES;
+    private LocalDate inicioSemana = segundaFeiraDe(LocalDate.now());
     private final CelulaDia[] celulas = new CelulaDia[42];
     private final JLabel rotuloMes = new JLabel();
     private final JLabel tituloLista = new JLabel();
@@ -74,10 +100,12 @@ public class PainelCalendario extends JPanel implements Recarregavel {
 
     private YearMonth mesAtual = YearMonth.now();
     private LocalDate diaSelecionado;
+    /** Atividades do mês ou da semana exibida, por dia. */
     private Map<LocalDate, List<Atividade>> atividadesDoMes = Map.of();
 
-    public PainelCalendario() {
+    public PainelCalendario(Navegador navegador) {
         super(new BorderLayout(0, 20));
+        this.navegador = navegador;
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         add(criarCabecalho(), BorderLayout.NORTH);
@@ -91,7 +119,9 @@ public class PainelCalendario extends JPanel implements Recarregavel {
     @Override
     public void carregar() {
         try {
-            atividadesDoMes = controller.atividadesDoMes(mesAtual);
+            atividadesDoMes = modo == Modo.MES ? controller.atividadesDoMes(mesAtual)
+                    : controller.atividadesDoPeriodo(inicioSemana, inicioSemana.plusDays(6));
+            alertas.mostrar(controller.alertas(LocalDate.now()));
         } catch (PersistenciaException e) {
             atividadesDoMes = Map.of();
             Mensagens.erro(this, e);
@@ -115,17 +145,28 @@ public class PainelCalendario extends JPanel implements Recarregavel {
 
     private JPanel criarMes() {
         rotuloMes.setFont(Tema.fonte(Font.BOLD, 16f));
-        JButton anterior = Botoes.contorno("<", e -> mudarMes(mesAtual.minusMonths(1)));
-        JButton proximo = Botoes.contorno(">", e -> mudarMes(mesAtual.plusMonths(1)));
+        JButton anterior = Botoes.contorno("<", e -> avancar(-1));
+        JButton proximo = Botoes.contorno(">", e -> avancar(1));
         JButton hoje = Botoes.contorno("Hoje", e -> {
-            mesAtual = YearMonth.now();
+            irPara(LocalDate.now());
             selecionarDia(LocalDate.now());
+            carregar();
         });
-        anterior.setToolTipText("Mês anterior");
-        proximo.setToolTipText("Próximo mês");
+        anterior.setToolTipText("Anterior");
+        proximo.setToolTipText("Próximo");
+
+        JToggleButton botaoMes = botaoModo("Mês", Modo.MES);
+        JToggleButton botaoSemana = botaoModo("Semana", Modo.SEMANA);
+        ButtonGroup grupoModo = new ButtonGroup();
+        grupoModo.add(botaoMes);
+        grupoModo.add(botaoSemana);
+        botaoMes.setSelected(true);
 
         JPanel navegacao = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         navegacao.setOpaque(false);
+        navegacao.add(botaoMes);
+        navegacao.add(botaoSemana);
+        navegacao.add(Box.createHorizontalStrut(10));
         navegacao.add(anterior);
         navegacao.add(proximo);
         navegacao.add(hoje);
@@ -180,11 +221,15 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         centro.add(semana, BorderLayout.NORTH);
         centro.add(grade, BorderLayout.CENTER);
 
+        visoes.setOpaque(false);
+        visoes.add(centro, Modo.MES.name());
+        visoes.add(painelSemana, Modo.SEMANA.name());
+
         JPanel cartao = new JPanel(new BorderLayout());
         cartao.putClientProperty(FlatClientProperties.STYLE, "arc:16; background:" + Cores.hex(Cores.FUNDO_CARTAO));
         cartao.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         cartao.add(topo, BorderLayout.NORTH);
-        cartao.add(centro, BorderLayout.CENTER);
+        cartao.add(visoes, BorderLayout.CENTER);
         return cartao;
     }
 
@@ -210,25 +255,63 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         rolagem.getViewport().setOpaque(false);
         rolagem.getVerticalScrollBar().setUnitIncrement(16);
 
+        JPanel acima = new JPanel(new BorderLayout());
+        acima.setOpaque(false);
+        acima.add(alertas, BorderLayout.NORTH);
+        acima.add(topo, BorderLayout.CENTER);
+
         JPanel lateral = new JPanel(new BorderLayout(0, 16));
         lateral.putClientProperty(FlatClientProperties.STYLE, "arc:16; background:" + Cores.hex(Cores.FUNDO_CARTAO));
         lateral.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 12));
         lateral.setPreferredSize(new Dimension(290, 0));
-        lateral.add(topo, BorderLayout.NORTH);
+        lateral.add(acima, BorderLayout.NORTH);
         lateral.add(rolagem, BorderLayout.CENTER);
         return lateral;
     }
 
-    private void mudarMes(YearMonth mes) {
-        mesAtual = mes;
+    private JToggleButton botaoModo(String texto, Modo novoModo) {
+        JToggleButton botao = new JToggleButton(texto);
+        botao.putClientProperty(FlatClientProperties.STYLE, "selectedBackground:" + Cores.hex(Cores.VERDE_SELECAO)
+                + "; selectedForeground:" + Cores.hex(Cores.VERDE) + "; focusWidth:0; margin:6,14,6,14");
+        botao.addActionListener(e -> {
+            modo = novoModo;
+            irPara(diaSelecionado == null ? LocalDate.now() : diaSelecionado);
+            cartoesVisao.show(visoes, modo.name());
+            carregar();
+        });
+        return botao;
+    }
+
+    /** Mês ou semana anterior (-1) ou seguinte (+1), conforme a visão atual. */
+    private void avancar(int sentido) {
+        if (modo == Modo.MES) {
+            mesAtual = mesAtual.plusMonths(sentido);
+        } else {
+            inicioSemana = inicioSemana.plusWeeks(sentido);
+        }
         diaSelecionado = null;
         carregar();
     }
 
+    /** Posiciona o mês e a semana exibidos no dia informado. */
+    private void irPara(LocalDate dia) {
+        mesAtual = YearMonth.from(dia);
+        inicioSemana = segundaFeiraDe(dia);
+    }
+
+    private static LocalDate segundaFeiraDe(LocalDate dia) {
+        return dia.minusDays(dia.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue());
+    }
+
+    private boolean estaVisivel(LocalDate dia) {
+        return modo == Modo.MES ? YearMonth.from(dia).equals(mesAtual)
+                : !dia.isBefore(inicioSemana) && !dia.isAfter(inicioSemana.plusDays(6));
+    }
+
     /** Seleciona um dia (mostrando suas atividades) ou, com null, volta para os próximos eventos. */
     private void selecionarDia(LocalDate dia) {
-        if (dia != null && !YearMonth.from(dia).equals(mesAtual)) {
-            mesAtual = YearMonth.from(dia);
+        if (dia != null && !estaVisivel(dia)) {
+            irPara(dia);
             diaSelecionado = dia;
             carregar();
             return;
@@ -239,6 +322,16 @@ public class PainelCalendario extends JPanel implements Recarregavel {
     }
 
     private void atualizarMes() {
+        if (modo == Modo.SEMANA) {
+            LocalDate fim = inicioSemana.plusDays(6);
+            String texto = inicioSemana.getMonth() == fim.getMonth()
+                    ? inicioSemana.getDayOfMonth() + " a " + fim.format(FORMATO_DIA_MES)
+                    : inicioSemana.format(FORMATO_DIA_MES_CURTO) + " a " + fim.format(FORMATO_DIA_MES);
+            rotuloMes.setText(texto);
+            painelSemana.atualizar(inicioSemana, atividadesDoMes, diaSelecionado, this::selecionarDia,
+                    atividade -> abrirOuEditar(atividade));
+            return;
+        }
         String nomeMes = mesAtual.format(FORMATO_MES);
         rotuloMes.setText(Character.toUpperCase(nomeMes.charAt(0)) + nomeMes.substring(1));
 
@@ -262,15 +355,16 @@ public class PainelCalendario extends JPanel implements Recarregavel {
             List<Atividade> doDia = new ArrayList<>(atividadesDoMes.getOrDefault(diaSelecionado, List.of()));
             boolean alteravel = podeAlterar();
             lista.mostrar(doDia, false, alteravel ? this::editarCompromisso : null,
-                    alteravel ? this::excluirCompromisso : null);
+                    alteravel ? this::excluirCompromisso : null, alteravel ? this::abrir : null);
             return;
         }
         tituloLista.setText("Próximos eventos");
         Periodo periodo = (Periodo) comboPeriodo.getSelectedItem();
         try {
-            lista.mostrar(controller.proximasAtividades(LocalDate.now(), periodo.dias), true, null, null);
+            lista.mostrar(controller.proximasAtividades(LocalDate.now(), periodo.dias), true, null, null,
+                    podeAlterar() ? this::abrir : null);
         } catch (PersistenciaException e) {
-            lista.mostrar(List.of(), true, null, null);
+            lista.mostrar(List.of(), true, null, null, null);
             Mensagens.erro(this, e);
         }
     }
@@ -280,7 +374,7 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         compromisso.setData(dia == null ? LocalDate.now() : dia);
         if (DialogoCompromisso.abrir(this, compromisso, controller)) {
             diaSelecionado = compromisso.getData();
-            mesAtual = YearMonth.from(diaSelecionado);
+            irPara(diaSelecionado);
             carregar();
         }
     }
@@ -288,7 +382,7 @@ public class PainelCalendario extends JPanel implements Recarregavel {
     private void editarCompromisso(Compromisso compromisso) {
         if (DialogoCompromisso.abrir(this, compromisso, controller)) {
             diaSelecionado = compromisso.getData();
-            mesAtual = YearMonth.from(diaSelecionado);
+            irPara(diaSelecionado);
         }
         carregar();
     }
@@ -301,6 +395,37 @@ public class PainelCalendario extends JPanel implements Recarregavel {
                 Mensagens.erro(this, e);
             }
             carregar();
+        }
+    }
+
+    /**
+     * Abre treino, competição ou evento na tela de edição do seu módulo (RF09).
+     * Ao salvar ou cancelar, o "Voltar" retorna ao calendário já atualizado.
+     */
+    private void abrir(Atividade atividade) {
+        try {
+            Atividade completa = controller.carregarCompleta(atividade);
+            if (completa instanceof Treino treino) {
+                navegador.abrir(new PainelCadastroTreino(treino, navegador));
+            } else if (completa instanceof Competicao competicao) {
+                navegador.abrir(new PainelCadastroCompeticao(competicao, navegador));
+            } else if (completa instanceof Evento evento) {
+                navegador.abrir(new PainelCadastroEvento(evento, navegador));
+            }
+        } catch (PersistenciaException e) {
+            Mensagens.erro(this, e);
+        }
+    }
+
+    /** Clique duplo na visão semanal: compromissos abrem o diálogo; o resto, a tela do módulo. */
+    private void abrirOuEditar(Atividade atividade) {
+        if (!podeAlterar()) {
+            return;
+        }
+        if (atividade instanceof Compromisso compromisso) {
+            editarCompromisso(compromisso);
+        } else {
+            abrir(atividade);
         }
     }
 

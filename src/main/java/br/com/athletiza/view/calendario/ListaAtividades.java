@@ -37,9 +37,10 @@ class ListaAtividades extends JPanel {
      * @param mostrarData exibe a data em cada cartão (desligado quando todos são do mesmo dia)
      * @param editar      ação de edição dos compromissos (null para não exibir os botões)
      * @param excluir     ação de exclusão dos compromissos (null para não exibir os botões)
+     * @param abrir       abre treinos, competições e eventos na tela de edição (null para não exibir)
      */
     void mostrar(List<Atividade> atividades, boolean mostrarData, Consumer<Compromisso> editar,
-            Consumer<Compromisso> excluir) {
+            Consumer<Compromisso> excluir, Consumer<Atividade> abrir) {
         removeAll();
         if (atividades.isEmpty()) {
             JLabel vazio = new JLabel("Nenhuma atividade.");
@@ -49,7 +50,7 @@ class ListaAtividades extends JPanel {
             add(vazio);
         }
         for (Atividade atividade : atividades) {
-            Component cartao = criarCartao(atividade, mostrarData, editar, excluir);
+            Component cartao = criarCartao(atividade, mostrarData, editar, excluir, abrir);
             add(cartao);
             add(Box.createVerticalStrut(10));
         }
@@ -58,7 +59,7 @@ class ListaAtividades extends JPanel {
     }
 
     private Component criarCartao(Atividade atividade, boolean mostrarData, Consumer<Compromisso> editar,
-            Consumer<Compromisso> excluir) {
+            Consumer<Compromisso> excluir, Consumer<Atividade> abrir) {
         Color cor = Color.decode(atividade.getCorHex());
 
         StringBuilder quando = new StringBuilder();
@@ -103,6 +104,11 @@ class ListaAtividades extends JPanel {
             acoes.setOpaque(false);
             acoes.add(link("Editar", Cores.TEXTO_SECUNDARIO, () -> editar.accept(compromisso)));
             acoes.add(link("Excluir", Cores.VERMELHO, () -> excluir.accept(compromisso)));
+            cartao.add(acoes, BorderLayout.SOUTH);
+        } else if (!(atividade instanceof Compromisso) && abrir != null) {
+            JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+            acoes.setOpaque(false);
+            acoes.add(link("Abrir", Cores.TEXTO_SECUNDARIO, () -> abrir.accept(atividade)));
             cartao.add(acoes, BorderLayout.SOUTH);
         }
         cartao.setAlignmentX(LEFT_ALIGNMENT);
