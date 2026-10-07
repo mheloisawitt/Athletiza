@@ -31,6 +31,8 @@ Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do seu PostgreSQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
+**Primeiro acesso:** usuário `admin`, senha `admin123` (criado pelos dados de exemplo).
+
 ## Como abrir no NetBeans
 
 1. `Team > Git > Clone...` e informe `https://github.com/mheloisawitt/athletiza.git`
@@ -61,10 +63,11 @@ mvn test -Dteste.db.url=jdbc:postgresql://localhost:5432/athletiza_teste -Dteste
 br.com.athletiza
 ├── Athletiza.java   classe principal
 ├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
-├── view             telas Swing
-├── controller       ligação entre telas e regras de negócio
+├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
+│   └── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
+├── controller       ligação entre telas e regras de negócio (LoginController...)
 ├── dao              acesso ao banco de dados (GenericDAO, AbstractDAO e um DAO por entidade)
-├── util             utilitários (ConnectionFactory, Validador, Cores)
+├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
 
@@ -87,8 +90,40 @@ Principais classes do modelo:
 | CH-09 | Demais entidades com List, Map e Set | Concluído (diagrama de classes pendente) |
 | CH-10 | Exceções personalizadas e Validador | Concluído |
 | CH-11 | Comparable e Comparators | Concluído |
+| CH-03 | Tema escuro, botões, PainelConsulta e PainelFormulario reutilizáveis | Concluído |
+| CH-12 | Tela de login com senha em hash (PBKDF2) | Concluído |
+| CH-13 | Perfis de acesso | Parcial (botões desabilitados para o perfil Consulta) |
+| CH-14 | Tela principal com menu lateral (CardLayout) | Concluído |
+| CH-46 | Mensagens padronizadas e tratamento global de erros | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
-| CH-03 | Componentes Swing reutilizáveis | Próximo |
+| CH-15 | Calendário na tela inicial | Próximo |
+
+## Como criar uma tela nova
+
+**Consulta** (lista com JTable): estenda `PainelConsulta<T>`, defina as colunas e implemente `buscarDados()`:
+
+```java
+public class PainelConsultaGestao extends PainelConsulta<Gestao> {
+
+    public PainelConsultaGestao() {
+        super("Gestões", new ModeloTabela<Gestao>()
+                .coluna("Gestão", String.class, Gestao::getNome)
+                .coluna("Período", String.class, Gestao::getPeriodo)
+                .coluna("Situação", SituacaoGestao.class, Gestao::getSituacao),
+                EnumSet.of(Acao.INCLUIR, Acao.GERENCIAR));
+    }
+
+    @Override
+    protected List<Gestao> buscarDados() throws AthletizaException {
+        return controller.listar();
+    }
+}
+```
+
+Busca, ordenação ao clicar no cabeçalho, etiquetas coloridas de situação e datas em dd/mm/aaaa já vêm prontas.
+
+**Cadastro** (formulário): estenda `PainelFormulario`, adicione os campos com `adicionarCampo(...)` e implemente `salvar()`.
+Os botões Salvar e Cancelar, as mensagens de erro e a volta para a consulta já vêm prontos.
 
 ## Convenção de branches e commits
 

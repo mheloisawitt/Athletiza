@@ -1,7 +1,11 @@
 -- Athletiza - dados de exemplo (baseados no protótipo das telas)
 -- Execute depois do 01_estrutura.sql. Os relacionamentos usam subconsultas
 -- (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
--- Usuários não são cadastrados aqui: a senha precisa do hash gerado pelo sistema (CH-12).
+
+-- Usuário administrador inicial: login "admin", senha "admin123" (TROQUE após o primeiro acesso).
+-- O hash foi gerado com: java -cp target/classes br.com.athletiza.util.Senha admin123
+INSERT INTO usuario (nome, login, senha_hash, perfil) VALUES
+    ('Administrador', 'admin', 'pbkdf2$120000$Ldd7cZo0DiIlLjcaDg7IQA==$5P2ymAUQH3VcPGeVFtv9FO2dlfMmNCUjABieDm9OjSY=', 'ADMINISTRADOR');
 
 -- Modalidades
 INSERT INTO modalidade (nome, genero) VALUES
