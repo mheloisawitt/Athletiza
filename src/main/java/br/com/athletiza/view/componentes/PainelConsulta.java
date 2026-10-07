@@ -224,6 +224,7 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         tabela.setFillsViewportHeight(true);
         tabela.getTableHeader().setReorderingAllowed(false);
         Renderizadores.aplicarPadroes(tabela);
+        garantirLarguraDeDatas();
 
         tabela.addMouseListener(new MouseAdapter() {
             @Override
@@ -238,6 +239,18 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         JScrollPane rolagem = new JScrollPane(tabela);
         rolagem.setBorder(BorderFactory.createLineBorder(Cores.CINZA_ESCURO));
         return rolagem;
+    }
+
+    /** Datas e horários nunca aparecem cortados, qualquer que seja o tamanho da janela. */
+    private void garantirLarguraDeDatas() {
+        for (int i = 0; i < modelo.getColumnCount(); i++) {
+            Class<?> tipo = modelo.getColumnClass(i);
+            if (tipo == java.time.LocalDate.class) {
+                tabela.getColumnModel().getColumn(i).setMinWidth(100);
+            } else if (tipo == java.time.LocalTime.class) {
+                tabela.getColumnModel().getColumn(i).setMinWidth(70);
+            }
+        }
     }
 
     private void adicionarBotao(Acao acao, JButton botao, boolean habilitado) {

@@ -10,6 +10,7 @@ import br.com.athletiza.view.componentes.Recarregavel;
 import br.com.athletiza.view.atletas.PainelConsultaAtletas;
 import br.com.athletiza.view.calendario.PainelCalendario;
 import br.com.athletiza.view.competicoes.PainelConsultaCompeticoes;
+import br.com.athletiza.view.eventos.PainelConsultaEventos;
 import br.com.athletiza.view.gestao.PainelConsultaGestoes;
 import br.com.athletiza.view.treinos.PainelTreinos;
 import java.awt.BorderLayout;
@@ -52,7 +53,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         modulos.put("Atletas", () -> new PainelConsultaAtletas(this));
         modulos.put("Competições", () -> new PainelConsultaCompeticoes(this));
         modulos.put("Treinos", () -> new PainelTreinos(this));
-        modulos.put("Eventos", () -> new PainelEmConstrucao("Eventos", "CH-38 a CH-41"));
+        modulos.put("Eventos", () -> new PainelConsultaEventos(this));
         modulos.put("Registros", () -> new PainelEmConstrucao("Registros", "CH-42 a CH-43"));
         modulos.keySet().forEach(menu::adicionarItem);
         menu.definirUsuario(usuario.getNome(), usuario.getPerfil().getDescricao(), this::sair);

@@ -69,7 +69,8 @@ br.com.athletiza
 │   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
 │   ├── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
 │   ├── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
-│   └── treinos      módulo Treinos (consulta, cadastro, presença e frequência)
+│   ├── treinos      módulo Treinos (consulta, cadastro, presença e frequência)
+│   └── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
@@ -124,7 +125,11 @@ Principais classes do modelo:
 | CH-35 | Cadastro de treino e amistoso com verificação de conflito de horário | Concluído |
 | CH-36 | Lista de presença salva em lote | Concluído |
 | CH-37 | Frequência por atleta com percentual | Concluído |
-| CH-38 | Módulo Eventos (backend) | Próximo |
+| CH-38 | EventoDAO e EventoController (responsáveis e tarefas) | Concluído |
+| CH-39 | Consulta de eventos com filtros de tipo e período e resumo de tarefas | Concluído |
+| CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
+| CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
+| CH-42 | Módulo Registros (definir conteúdo com a diretoria) | Próximo |
 
 ## Como criar uma tela nova
 
