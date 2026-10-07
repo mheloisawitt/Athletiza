@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 /**
  * Formas de exibir valores nas células das tabelas.
@@ -32,6 +33,21 @@ public final class Renderizadores {
         tabela.setDefaultRenderer(LocalDate.class, new Texto());
         tabela.setDefaultRenderer(LocalTime.class, new Texto());
         tabela.setDefaultRenderer(Enum.class, new Situacao());
+        alinharCabecalho(tabela);
+    }
+
+    /** Títulos alinhados como o conteúdo: à esquerda, e centralizados nas colunas de situação e marcação. */
+    private static void alinharCabecalho(JTable tabela) {
+        TableCellRenderer padrao = tabela.getTableHeader().getDefaultRenderer();
+        tabela.getTableHeader().setDefaultRenderer((tab, valor, selecionado, foco, linha, coluna) -> {
+            Component componente = padrao.getTableCellRendererComponent(tab, valor, selecionado, foco, linha, coluna);
+            if (componente instanceof JLabel rotulo) {
+                Class<?> tipo = tab.getColumnClass(coluna);
+                boolean centralizar = Enum.class.isAssignableFrom(tipo) || tipo == Boolean.class;
+                rotulo.setHorizontalAlignment(centralizar ? SwingConstants.CENTER : SwingConstants.LEFT);
+            }
+            return componente;
+        });
     }
 
     /** Texto com margem interna; datas em dd/mm/aaaa e horários em hh:mm. */

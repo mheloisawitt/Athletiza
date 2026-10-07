@@ -7,11 +7,14 @@ import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelEmConstrucao;
 import br.com.athletiza.view.componentes.Recarregavel;
+import br.com.athletiza.view.atletas.PainelConsultaAtletas;
 import br.com.athletiza.view.calendario.PainelCalendario;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,8 +29,6 @@ import javax.swing.JPanel;
  */
 public class TelaPrincipal extends JFrame implements Navegador {
 
-    private static final String DETALHE = "detalhe";
-
     /** Módulos do menu, na ordem de exibição. Cada um é criado só quando aberto pela primeira vez. */
     private final Map<String, Supplier<JComponent>> modulos = new LinkedHashMap<>();
     private final Map<String, JComponent> modulosCriados = new HashMap<>();
@@ -36,7 +37,8 @@ public class TelaPrincipal extends JFrame implements Navegador {
     private final JPanel conteudo = new JPanel(cartoes);
     private final MenuLateral menu = new MenuLateral(this::mostrarModulo);
     private String moduloAtual;
-    private JComponent telaDetalhe;
+    /** Telas abertas sobre o módulo atual (ex.: consulta -> cadastro). "Voltar" retorna à anterior. */
+    private final Deque<JComponent> telasAbertas = new ArrayDeque<>();
 
     public TelaPrincipal(Usuario usuario) {
         super("Athletiza - Sistema de Gerenciamento");
@@ -44,7 +46,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
 
         modulos.put("Início", PainelCalendario::new);
         modulos.put("Gestão", () -> new PainelEmConstrucao("Gestões", "CH-18 a CH-23"));
-        modulos.put("Atletas", () -> new PainelEmConstrucao("Atletas", "CH-24 a CH-27"));
+        modulos.put("Atletas", () -> new PainelConsultaAtletas(this));
         modulos.put("Competições", () -> new PainelEmConstrucao("Competições", "CH-28 a CH-32"));
         modulos.put("Treinos", () -> new PainelEmConstrucao("Treinos", "CH-33 a CH-37"));
         modulos.put("Eventos", () -> new PainelEmConstrucao("Eventos", "CH-38 a CH-41"));
@@ -63,7 +65,8 @@ public class TelaPrincipal extends JFrame implements Navegador {
     }
 
     private void mostrarModulo(String nome) {
-        fecharDetalhe();
+        telasAbertas.forEach(conteudo::remove);
+        telasAbertas.clear();
         modulosCriados.computeIfAbsent(nome, chave -> {
             JComponent painel = modulos.get(chave).get();
             conteudo.add(painel, chave);
@@ -76,10 +79,9 @@ public class TelaPrincipal extends JFrame implements Navegador {
 
     @Override
     public void abrir(JComponent tela) {
-        fecharDetalhe();
-        telaDetalhe = tela;
-        conteudo.add(tela, DETALHE);
-        cartoes.show(conteudo, DETALHE);
+        telasAbertas.push(tela);
+        conteudo.add(tela, nomeCartao(tela));
+        cartoes.show(conteudo, nomeCartao(tela));
         if (tela instanceof Recarregavel recarregavel) {
             recarregavel.carregar();
         }
@@ -87,22 +89,29 @@ public class TelaPrincipal extends JFrame implements Navegador {
 
     @Override
     public void voltar() {
-        fecharDetalhe();
-        cartoes.show(conteudo, moduloAtual);
-        recarregarModuloAtual();
+        if (!telasAbertas.isEmpty()) {
+            conteudo.remove(telasAbertas.pop());
+        }
+        JComponent anterior = telasAbertas.peek();
+        if (anterior == null) {
+            cartoes.show(conteudo, moduloAtual);
+            recarregarModuloAtual();
+        } else {
+            cartoes.show(conteudo, nomeCartao(anterior));
+            if (anterior instanceof Recarregavel recarregavel) {
+                recarregavel.carregar();
+            }
+        }
+    }
+
+    private static String nomeCartao(JComponent tela) {
+        return "tela-" + System.identityHashCode(tela);
     }
 
     private void recarregarModuloAtual() {
         Component modulo = modulosCriados.get(moduloAtual);
         if (modulo instanceof Recarregavel recarregavel) {
             recarregavel.carregar();
-        }
-    }
-
-    private void fecharDetalhe() {
-        if (telaDetalhe != null) {
-            conteudo.remove(telaDetalhe);
-            telaDetalhe = null;
         }
     }
 

@@ -65,8 +65,9 @@ br.com.athletiza
 ├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
 ├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
-│   └── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
-├── controller       ligação entre telas e regras de negócio (LoginController, CalendarioController...)
+│   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
+│   └── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
+├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
@@ -100,7 +101,11 @@ Principais classes do modelo:
 | CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |
 | CH-16 | Incluir, editar e excluir compromissos pelo calendário | Concluído |
 | CH-17 | Painel de próximos eventos (7, 15 ou 30 dias) | Concluído |
-| CH-24 | Módulo Atletas e Modalidades (backend) | Próximo |
+| CH-24 | AtletaDAO (com transação), AtletaController e ModalidadeController | Concluído |
+| CH-25 | Consulta de atletas com filtros e ordenação por Comparator | Concluído |
+| CH-26 | Cadastro de atleta com várias modalidades e situação em cada uma | Concluído |
+| CH-27 | Consulta e cadastro de modalidades (exclusão bloqueada se houver vínculos) | Concluído |
+| CH-18 | Módulo Gestão (backend) | Próximo |
 
 ## Como criar uma tela nova
 

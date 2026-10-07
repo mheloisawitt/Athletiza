@@ -51,6 +51,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     private final JTextField campoBusca = new JTextField(24);
     private final JPanel barraBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     private final JPanel barraFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    private final JPanel linhaTitulo = new JPanel(new BorderLayout());
+    private final JLabel rotuloTitulo = new JLabel();
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo, Set<Acao> acoes) {
         super(new BorderLayout(0, 16));
@@ -107,13 +109,37 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         barraFiltros.add(filtro);
     }
 
+    /** Adiciona um botão extra ao cabeçalho, à esquerda dos botões padrão. */
+    protected void adicionarBotao(JButton botao) {
+        barraBotoes.add(botao, 0);
+    }
+
+    /** Mostra "‹ Voltar" antes do título (para consultas abertas a partir de outra tela). */
+    protected void exibirVoltar(Runnable acao) {
+        JButton voltar = new JButton("‹ Voltar");
+        voltar.putClientProperty(FlatClientProperties.STYLE,
+                "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
+        voltar.addActionListener(e -> acao.run());
+        linhaTitulo.remove(rotuloTitulo);
+        JPanel titulo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        titulo.setOpaque(false);
+        titulo.add(voltar);
+        titulo.add(rotuloTitulo);
+        linhaTitulo.add(titulo, BorderLayout.WEST);
+    }
+
+    /** Desfaz a ordenação feita pelo clique no cabeçalho, mantendo a ordem em que os dados vieram. */
+    protected void limparOrdenacaoDaTabela() {
+        ordenador.setSortKeys(null);
+    }
+
     /** Ajusta a largura preferida de uma coluna. */
     protected void larguraColuna(int coluna, int largura) {
         tabela.getColumnModel().getColumn(coluna).setPreferredWidth(largura);
     }
 
     private JPanel criarCabecalho(String titulo, Set<Acao> acoes) {
-        JLabel rotuloTitulo = new JLabel(titulo);
+        rotuloTitulo.setText(titulo);
         rotuloTitulo.setFont(Tema.fonteTitulo());
 
         boolean podeAlterar = Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
@@ -130,7 +156,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
             adicionarBotao(Botoes.destaque("+ Incluir", e -> incluir()), podeAlterar);
         }
 
-        JPanel linhaTitulo = new JPanel(new BorderLayout());
         linhaTitulo.setOpaque(false);
         linhaTitulo.add(rotuloTitulo, BorderLayout.WEST);
         linhaTitulo.add(barraBotoes, BorderLayout.EAST);
@@ -174,7 +199,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabela.setFillsViewportHeight(true);
         tabela.getTableHeader().setReorderingAllowed(false);
-        alinharCabecalho();
         Renderizadores.aplicarPadroes(tabela);
 
         tabela.addMouseListener(new MouseAdapter() {
@@ -190,19 +214,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         JScrollPane rolagem = new JScrollPane(tabela);
         rolagem.setBorder(BorderFactory.createLineBorder(Cores.CINZA_ESCURO));
         return rolagem;
-    }
-
-    /** Títulos alinhados como o conteúdo: à esquerda, e centralizados nas colunas de situação. */
-    private void alinharCabecalho() {
-        javax.swing.table.TableCellRenderer padrao = tabela.getTableHeader().getDefaultRenderer();
-        tabela.getTableHeader().setDefaultRenderer((tab, valor, selecionado, foco, linha, coluna) -> {
-            java.awt.Component componente = padrao.getTableCellRendererComponent(tab, valor, selecionado, foco, linha, coluna);
-            if (componente instanceof JLabel rotulo) {
-                boolean situacao = Enum.class.isAssignableFrom(tab.getColumnClass(coluna));
-                rotulo.setHorizontalAlignment(situacao ? JLabel.CENTER : JLabel.LEFT);
-            }
-            return componente;
-        });
     }
 
     private void adicionarBotao(JButton botao, boolean habilitado) {
