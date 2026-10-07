@@ -36,10 +36,59 @@ public abstract class DAOBase {
     /** Nome do que o DAO grava, com artigo, usado nas mensagens (ex.: "a modalidade"). */
     protected abstract String getNomeEntidade();
 
+    /**
+     * Operação com vários comandos que precisam dar certo juntos.
+     * Interface funcional: normalmente implementada com lambda.
+     */
+    @FunctionalInterface
+    protected interface Transacao<R> {
+
+        R executar(Connection conexao) throws SQLException;
+    }
+
     /** Executa um INSERT e devolve o id gerado. */
     protected int executarInsercao(String sql, Object... parametros) throws PersistenciaException {
-        try (Connection con = ConnectionFactory.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"})) {
+        try (Connection con = ConnectionFactory.getConnection()) {
+            return inserir(con, sql, parametros);
+        } catch (SQLException e) {
+            throw traduzir(e, "incluir");
+        }
+    }
+
+    /** Executa UPDATE ou DELETE e devolve a quantidade de linhas afetadas. */
+    protected int executarAtualizacao(String sql, Object... parametros) throws PersistenciaException {
+        try (Connection con = ConnectionFactory.getConnection()) {
+            return atualizar(con, sql, parametros);
+        } catch (SQLException e) {
+            throw traduzir(e, sql.trim().toUpperCase().startsWith("DELETE") ? "excluir" : "salvar");
+        }
+    }
+
+    /**
+     * Executa vários comandos em uma única transação: ou todos são gravados,
+     * ou nenhum é (ex.: atleta e suas modalidades).
+     *
+     * @param operacao verbo usado na mensagem de erro (ex.: "salvar")
+     */
+    protected <R> R emTransacao(String operacao, Transacao<R> transacao) throws PersistenciaException {
+        try (Connection con = ConnectionFactory.getConnection()) {
+            con.setAutoCommit(false);
+            try {
+                R resultado = transacao.executar(con);
+                con.commit();
+                return resultado;
+            } catch (SQLException | RuntimeException e) {
+                con.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw traduzir(e, operacao);
+        }
+    }
+
+    /** INSERT usando uma conexão já aberta (dentro de uma transação). Devolve o id gerado. */
+    protected static int inserir(Connection con, String sql, Object... parametros) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"})) {
             preencherParametros(ps, parametros);
             ps.executeUpdate();
             try (ResultSet chaves = ps.getGeneratedKeys()) {
@@ -48,19 +97,14 @@ public abstract class DAOBase {
                 }
                 return chaves.getInt(1);
             }
-        } catch (SQLException e) {
-            throw traduzir(e, "incluir");
         }
     }
 
-    /** Executa UPDATE ou DELETE e devolve a quantidade de linhas afetadas. */
-    protected int executarAtualizacao(String sql, Object... parametros) throws PersistenciaException {
-        try (Connection con = ConnectionFactory.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+    /** UPDATE ou DELETE usando uma conexão já aberta (dentro de uma transação). */
+    protected static int atualizar(Connection con, String sql, Object... parametros) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
             preencherParametros(ps, parametros);
             return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw traduzir(e, sql.trim().toUpperCase().startsWith("DELETE") ? "excluir" : "salvar");
         }
     }
 
