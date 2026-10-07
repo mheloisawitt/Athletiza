@@ -18,7 +18,7 @@ Para a apresentação:
 
 - [`docs/manual.md`](docs/manual.md): manual de uso por módulo
 - [`docs/diagramas/classes.md`](docs/diagramas/classes.md): diagrama de classes (modelo, persistência e telas)
-- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 12 diagramas de sequência (2 ou mais por integrante)
+- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência (2 ou mais por integrante)
 - [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
 
@@ -38,6 +38,12 @@ Para a apresentação:
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do seu PostgreSQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
+
+**Já tem dados no banco?** Em vez de recriar tudo, rode as migrações de
+[`src/main/resources/sql/migracoes`](src/main/resources/sql/migracoes) em ordem (ex.: `0011_registros.sql`).
+
+**Fotos e vídeos (Registros):** ficam em `Documentos/Athletiza-midias`, fora do projeto e do Git. Para usar outra
+pasta, execute com `-Dathletiza.midias=CAMINHO` (no NetBeans: Properties > Run > VM Options).
 
 **Primeiro acesso:** usuário `admin`, senha `admin123` (criado pelos dados de exemplo).
 Troque a senha clicando no seu nome, no rodapé do menu. Novos usuários são criados no menu **Usuários** (só para administradores).
@@ -80,10 +86,11 @@ br.com.athletiza
 │   ├── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
 │   ├── treinos      módulo Treinos (consulta, cadastro, presença e frequência)
 │   ├── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
-│   └── usuarios     usuários do sistema e troca de senha
+│   ├── usuarios     usuários do sistema e troca de senha
+│   └── registros    galeria de fotos e vídeos em pastas
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
-├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
+├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores, ArmazenamentoMidia)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
 
@@ -91,7 +98,7 @@ Principais classes do modelo:
 
 - `Pessoa` (abstrata) → `Membro`, `Atleta`, `Usuario`
 - `Atividade` (abstrata, tudo que aparece no calendário) → `Treino` → `Amistoso`; `Competicao`; `Evento`; `Compromisso`
-- `Gestao`, `Cargo`, `MembroCargo`, `Modalidade`, `Resultado`, `Tarefa`, `Registro`
+- `Gestao`, `Cargo`, `MembroCargo`, `Modalidade`, `Resultado`, `Tarefa`, `Pasta`, `Arquivo`
 
 ## Andamento dos chamados
 
@@ -143,7 +150,9 @@ Principais classes do modelo:
 | CH-48 | Diagramas de sequência (12 fluxos, em Mermaid e PNG) | Concluído |
 | CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
 | CH-51 | Matriz de requisitos técnicos para a apresentação | Concluído (slides a cargo do grupo) |
-| CH-42 | Módulo Registros (definir conteúdo com a diretoria) | Aguardando decisão |
+| CH-42 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
+| CH-43 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
+| CH-01 | Validar requisitos com a diretoria | Registros definido como galeria de fotos e vídeos |
 
 ## Como criar uma tela nova
 

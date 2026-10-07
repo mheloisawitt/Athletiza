@@ -124,6 +124,21 @@ classDiagram
         -SituacaoTarefa situacao
         +isAtrasada(LocalDate) boolean
     }
+    class Pasta {
+        -String nome
+        -int quantidadeArquivos
+        +compareTo(Pasta) int
+    }
+    class Arquivo {
+        -Pasta pasta
+        -String nome
+        -String caminho
+        -TipoArquivo tipo
+        -long tamanho
+        -LocalDateTime enviadoEm
+        +isImagem() boolean
+        +compareTo(Arquivo) int
+    }
     class Frequencia {
         <<record>>
         Atleta atleta
@@ -147,6 +162,8 @@ classDiagram
     Entidade <|-- Modalidade
     Entidade <|-- Resultado
     Entidade <|-- Tarefa
+    Entidade <|-- Pasta
+    Entidade <|-- Arquivo
 
     Atleta "*" --> "*" Modalidade : pratica
     Treino --> Modalidade
@@ -160,10 +177,11 @@ classDiagram
     MembroCargo --> Cargo
     Cargo --> Cargo : superior
     Frequencia --> Atleta
+    Pasta "1" o-- "*" Arquivo : contém
 ```
 
 Enums do modelo: `Situacao`, `SituacaoAtleta`, `Genero`, `Perfil`, `TipoAtividade`, `TipoEvento`,
-`SituacaoGestao`, `SituacaoCompeticao`, `SituacaoEvento`, `SituacaoTarefa`, `AcaoRegistro`.
+`SituacaoGestao`, `SituacaoCompeticao`, `SituacaoEvento`, `SituacaoTarefa`, `TipoArquivo`.
 
 ## 2. Persistência (`br.com.athletiza.dao`) e exceções
 
@@ -219,6 +237,8 @@ classDiagram
     AbstractDAO <|-- EventoDAO
     AbstractDAO <|-- CompromissoDAO
     AbstractDAO <|-- UsuarioDAO
+    AbstractDAO <|-- PastaDAO
+    AbstractDAO <|-- ArquivoDAO
     DAOBase <|-- AtividadeDAO
 
     class AthletizaException {
@@ -232,7 +252,7 @@ classDiagram
 ```
 
 Cada controller (`AtletaController`, `GestaoController`, `CompeticaoController`, `TreinoController`,
-`EventoController`, `CalendarioController`, `LoginController`, `UsuarioController`, ...) usa um ou mais DAOs
+`EventoController`, `CalendarioController`, `LoginController`, `UsuarioController`, `GaleriaController`, ...) usa um ou mais DAOs
 e o `Validador`, e lança `ValidacaoException` ou `RegraNegocioException`.
 
 ## 3. Telas (`br.com.athletiza.view`)
@@ -299,4 +319,7 @@ classDiagram
     Recarregavel <|.. PainelCalendario
     Recarregavel <|.. PainelGerenciarCompeticao
     Recarregavel <|.. PainelOrganograma
+    Recarregavel <|.. PainelRegistros
+    JComponent <|-- CartaoArquivo
+    PainelRegistros --> CartaoArquivo
 ```

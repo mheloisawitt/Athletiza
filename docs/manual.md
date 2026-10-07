@@ -60,6 +60,17 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 - **Responsáveis e tarefas:** adicione os membros que organizam o evento e as tarefas, com responsável,
   prazo e situação. Tarefas atrasadas aparecem em vermelho; **Concluir** encerra a tarefa selecionada.
 
+## Registros (fotos e vídeos)
+
+- As fotos e vídeos ficam organizados em **pastas** (Festas, Ações Sociais, Competições, Treinos, Outros...).
+- **+ Nova Pasta** cria uma pasta; botão direito numa pasta permite renomear ou excluir (só pastas vazias).
+- **+ Adicionar Arquivo** envia fotos (jpg, png, gif, bmp) e vídeos (mp4, mov, avi, mkv, webm, wmv) para a
+  pasta selecionada. Também é possível **arrastar** arquivos do Explorador de Arquivos para a tela.
+- **Clique duplo** abre o arquivo no programa padrão do computador; **botão direito** permite renomear,
+  mover para outra pasta ou excluir.
+- Os arquivos são copiados para `Documentos/Athletiza-midias`. Cada computador tem a sua cópia: uma foto
+  adicionada em outro computador aparece na lista, mas só abre onde o arquivo existir.
+
 ## Usuários (administradores)
 
 - Crie usuários com login, perfil e senha (mínimo de 6 caracteres).

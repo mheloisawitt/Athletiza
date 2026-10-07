@@ -5,13 +5,13 @@ import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.MenuLateral;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
-import br.com.athletiza.view.componentes.PainelEmConstrucao;
 import br.com.athletiza.view.componentes.Recarregavel;
 import br.com.athletiza.view.atletas.PainelConsultaAtletas;
 import br.com.athletiza.view.calendario.PainelCalendario;
 import br.com.athletiza.view.competicoes.PainelConsultaCompeticoes;
 import br.com.athletiza.view.eventos.PainelConsultaEventos;
 import br.com.athletiza.view.gestao.PainelConsultaGestoes;
+import br.com.athletiza.view.registros.PainelRegistros;
 import br.com.athletiza.view.treinos.PainelTreinos;
 import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
 import br.com.athletiza.view.usuarios.PainelConsultaUsuarios;
@@ -56,7 +56,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         modulos.put("Competições", () -> new PainelConsultaCompeticoes(this));
         modulos.put("Treinos", () -> new PainelTreinos(this));
         modulos.put("Eventos", () -> new PainelConsultaEventos(this));
-        modulos.put("Registros", () -> new PainelEmConstrucao("Registros", "CH-42 a CH-43"));
+        modulos.put("Registros", PainelRegistros::new);
         if (Sessao.podeGerenciarUsuarios()) {
             modulos.put("Usuários", () -> new PainelConsultaUsuarios(this));
         }

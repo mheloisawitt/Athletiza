@@ -1,7 +1,7 @@
 # Diagramas de sequência (CH-48)
 
 Cada diagrama mostra **View → Controller → DAO → Banco**, com o fluxo principal e o fluxo de erro
-(bloco `alt`), como pede o CH-48. São 12 fluxos, para que cada integrante escolha pelo menos 2.
+(bloco `alt`), como pede o CH-48. São 13 fluxos, para que cada integrante escolha pelo menos 2.
 
 Para exportar como imagem para os slides: cole o código de um diagrama em <https://mermaid.live>
 e use **Actions > PNG** (ou SVG).
@@ -20,6 +20,7 @@ e use **Actions > PNG** (ou SVG).
 | 10 | Cadastrar treino (conflito de horário) | `PainelCadastroTreino`, `TreinoController`, `TreinoDAO` |
 | 11 | Registrar presença | `PainelPresenca`, `TreinoController`, `TreinoDAO` |
 | 12 | Concluir tarefa de evento | `PainelGerenciarEvento`, `EventoController`, `EventoDAO` |
+| 13 | Adicionar fotos e vídeos aos registros | `PainelRegistros`, `GaleriaController`, `ArquivoDAO` |
 
 ---
 
@@ -375,5 +376,39 @@ sequenceDiagram
         C->>D: salvarTarefa(evento, tarefa)
         D->>B: UPDATE tarefa SET situacao = 'CONCLUIDA' ...
         V->>V: carregar() (alerta de atraso some)
+    end
+```
+
+## 13. Adicionar fotos e vídeos aos registros
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant V as PainelRegistros
+    participant C as GaleriaController
+    participant A as ArmazenamentoMidia
+    participant D as ArquivoDAO
+    participant B as Banco
+
+    U->>V: "+ Adicionar Arquivo" (ou arrasta arquivos para a tela)
+    V->>V: SwingWorker (cópia em segundo plano)
+    V->>C: adicionarArquivos(pasta, arquivos)
+    C->>C: Validador (tipo pela extensão e limite de 500 MB)
+    alt algum arquivo não é foto nem vídeo
+        C-->>V: ValidacaoException (nada é copiado)
+        V-->>U: Mensagens.erro
+    else todos válidos
+        loop cada arquivo
+            C->>A: copiar(origem, pastaId)
+            A-->>C: caminho relativo (nome único, sem acentos)
+            C->>D: inserir(arquivo)
+            D->>B: INSERT INTO arquivo ...
+            alt falha no banco
+                C->>A: apagar(caminho) (não deixa arquivo órfão no disco)
+                C-->>V: PersistenciaException
+            end
+        end
+        V->>V: carregar() e gera as miniaturas em segundo plano
+        V-->>U: "N arquivo(s) adicionado(s) à pasta Festas."
     end
 ```

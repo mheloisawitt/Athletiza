@@ -38,6 +38,11 @@ public final class Botoes {
         return contorno(texto, Cores.VERDE, Cores.VERDE, acao);
     }
 
+    /** Ação secundária com destaque roxo (ex.: "+ Nova Pasta"). */
+    public static JButton contornoRoxo(String texto, ActionListener acao) {
+        return contorno(texto, new Color(0xB98AF0), Cores.ROXO, acao);
+    }
+
     /** Ação perigosa (Excluir): contorno vermelho. */
     public static JButton contornoVermelho(String texto, ActionListener acao) {
         return contorno(texto, Cores.VERMELHO, Cores.VERMELHO, acao);

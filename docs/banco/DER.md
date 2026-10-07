@@ -140,12 +140,21 @@ erDiagram
         time horario
     }
 
-    registro {
+    pasta {
         int id PK
-        varchar usuario_login
-        varchar acao
-        varchar modulo
-        timestamp data_hora
+        varchar nome UK
+        timestamp criada_em
+    }
+
+    arquivo {
+        int id PK
+        int pasta_id FK
+        varchar nome
+        varchar caminho UK "relativo à pasta de mídias"
+        varchar tipo "IMAGEM ou VIDEO"
+        bigint tamanho
+        timestamp enviado_em
+        varchar enviado_por
     }
 
     atleta ||--o{ atleta_modalidade : pratica
@@ -169,6 +178,7 @@ erDiagram
     evento |o--o{ tarefa : possui
     competicao |o--o{ tarefa : possui
     membro |o--o{ tarefa : executa
+    pasta ||--o{ arquivo : contem
 ```
 
 ## Regras de integridade (RN15, RN16)
@@ -184,6 +194,7 @@ erDiagram
 | Excluir evento | Apaga junto responsáveis e tarefas |
 | Excluir gestão | Apaga junto a composição (membro x cargo) |
 | Excluir cargo superior | O cargo subordinado fica sem superior |
+| Excluir pasta com arquivos | **Bloqueado**: o sistema pede para excluir os arquivos antes |
 
 O sistema deve pedir confirmação antes de qualquer exclusão em cascata (CH-45).
 
