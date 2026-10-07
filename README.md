@@ -122,7 +122,7 @@ Principais classes do modelo:
 | CH-03 | Tema escuro, botões, PainelConsulta e PainelFormulario reutilizáveis | Concluído |
 | CH-12 | Tela de login com senha em hash (PBKDF2) | Concluído |
 | CH-13 | Perfis de acesso (Usuários só para administradores; Consulta só visualiza) | Concluído |
-| CH-14 | Tela principal com menu lateral (CardLayout) | Concluído |
+| CH-14 | Tela principal com menu lateral (CardLayout) e ícone em cada item | Concluído |
 | CH-46 | Mensagens padronizadas, tratamento global de erros e log em arquivo | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
 | CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |

@@ -66,9 +66,10 @@ public class MenuLateral extends JPanel {
     }
 
     public void adicionarItem(String nome) {
-        JToggleButton item = new JToggleButton(nome);
+        JToggleButton item = new JToggleButton(nome, IconeMenu.doItem(nome));
         item.putClientProperty(FlatClientProperties.STYLE, ESTILO_ITEM);
         item.setHorizontalAlignment(SwingConstants.LEFT);
+        item.setIconTextGap(12);
         item.setAlignmentX(Component.LEFT_ALIGNMENT);
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
