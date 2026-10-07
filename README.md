@@ -32,6 +32,7 @@ Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
 **Primeiro acesso:** usuário `admin`, senha `admin123` (criado pelos dados de exemplo).
+Troque a senha clicando no seu nome, no rodapé do menu. Novos usuários são criados no menu **Usuários** (só para administradores).
 
 ## Como abrir no NetBeans
 
@@ -70,7 +71,8 @@ br.com.athletiza
 │   ├── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
 │   ├── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
 │   ├── treinos      módulo Treinos (consulta, cadastro, presença e frequência)
-│   └── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
+│   ├── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
+│   └── usuarios     usuários do sistema e troca de senha
 ├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
 ├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores)
@@ -98,7 +100,7 @@ Principais classes do modelo:
 | CH-11 | Comparable e Comparators | Concluído |
 | CH-03 | Tema escuro, botões, PainelConsulta e PainelFormulario reutilizáveis | Concluído |
 | CH-12 | Tela de login com senha em hash (PBKDF2) | Concluído |
-| CH-13 | Perfis de acesso | Parcial (botões desabilitados para o perfil Consulta) |
+| CH-13 | Perfis de acesso (Usuários só para administradores; Consulta só visualiza) | Concluído |
 | CH-14 | Tela principal com menu lateral (CardLayout) | Concluído |
 | CH-46 | Mensagens padronizadas e tratamento global de erros | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
@@ -129,7 +131,8 @@ Principais classes do modelo:
 | CH-39 | Consulta de eventos com filtros de tipo e período e resumo de tarefas | Concluído |
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
-| CH-42 | Módulo Registros (definir conteúdo com a diretoria) | Próximo |
+| RF01 | Cadastro de usuários e troca da própria senha | Concluído |
+| CH-42 | Módulo Registros (definir conteúdo com a diretoria) | Aguardando decisão |
 
 ## Como criar uma tela nova
 
@@ -164,6 +167,7 @@ Os botões Salvar e Cancelar, as mensagens de erro e a volta para a consulta já
 - Branches nomeadas apenas pela numeração sequencial com 4 dígitos, criadas a partir da `main`:
   `0001`, `0002`, `0003`...
 - Antes de criar uma branch, verificar a última numeração usada e pegar a próxima
+- Toda branch nova sai da `main` atualizada; ao finalizar, ela é levada para a `main` e a próxima começa
 - Mensagens de commit começando pelo chamado: `CH-12: valida campos obrigatórios do login`
 - Ao concluir o chamado, abrir um Pull Request para a `main` e pedir revisão de outro integrante
 - Antes de começar a trabalhar, sempre atualizar: `Team > Remote > Pull`

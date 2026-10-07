@@ -30,6 +30,11 @@ public final class Sessao {
         return usuarioLogado != null && usuarioLogado.getPerfil().podeAlterarDados();
     }
 
+    /** Indica se o usuário logado pode cadastrar outros usuários (somente administradores). */
+    public static boolean podeGerenciarUsuarios() {
+        return usuarioLogado != null && usuarioLogado.getPerfil().podeGerenciarUsuarios();
+    }
+
     public static Perfil getPerfil() {
         return usuarioLogado == null ? null : usuarioLogado.getPerfil();
     }

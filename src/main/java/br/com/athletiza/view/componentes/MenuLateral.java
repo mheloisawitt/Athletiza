@@ -91,7 +91,7 @@ public class MenuLateral extends JPanel {
     }
 
     /** Rodapé com o usuário logado e o botão Sair. */
-    public void definirUsuario(String nome, String detalhe, Runnable aoSair) {
+    public void definirUsuario(String nome, String detalhe, Runnable aoAlterarSenha, Runnable aoSair) {
         JLabel rotuloNome = new JLabel(nome);
         rotuloNome.setFont(Tema.fonte(Font.BOLD, 13f));
         JLabel rotuloDetalhe = new JLabel(detalhe);
@@ -103,6 +103,14 @@ public class MenuLateral extends JPanel {
         textos.setOpaque(false);
         textos.add(rotuloNome);
         textos.add(rotuloDetalhe);
+        textos.setToolTipText("Clique para alterar sua senha");
+        textos.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        textos.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                aoAlterarSenha.run();
+            }
+        });
 
         JButton sair = new JButton("Sair");
         sair.putClientProperty(FlatClientProperties.STYLE,

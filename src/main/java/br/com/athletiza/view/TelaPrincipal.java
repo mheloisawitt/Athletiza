@@ -13,6 +13,8 @@ import br.com.athletiza.view.competicoes.PainelConsultaCompeticoes;
 import br.com.athletiza.view.eventos.PainelConsultaEventos;
 import br.com.athletiza.view.gestao.PainelConsultaGestoes;
 import br.com.athletiza.view.treinos.PainelTreinos;
+import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
+import br.com.athletiza.view.usuarios.PainelConsultaUsuarios;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -55,8 +57,12 @@ public class TelaPrincipal extends JFrame implements Navegador {
         modulos.put("Treinos", () -> new PainelTreinos(this));
         modulos.put("Eventos", () -> new PainelConsultaEventos(this));
         modulos.put("Registros", () -> new PainelEmConstrucao("Registros", "CH-42 a CH-43"));
+        if (Sessao.podeGerenciarUsuarios()) {
+            modulos.put("Usuários", () -> new PainelConsultaUsuarios(this));
+        }
         modulos.keySet().forEach(menu::adicionarItem);
-        menu.definirUsuario(usuario.getNome(), usuario.getPerfil().getDescricao(), this::sair);
+        menu.definirUsuario(usuario.getNome(), usuario.getPerfil().getDescricao(),
+                () -> DialogoAlterarSenha.abrir(this, usuario), this::sair);
 
         setLayout(new BorderLayout());
         add(menu, BorderLayout.WEST);
