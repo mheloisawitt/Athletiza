@@ -14,6 +14,14 @@ Em [`docs/requisitos`](docs/requisitos):
 
 Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras de integridade.
 
+Para a apresentação:
+
+- [`docs/manual.md`](docs/manual.md): manual de uso por módulo
+- [`docs/diagramas/classes.md`](docs/diagramas/classes.md): diagrama de classes (modelo, persistência e telas)
+- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 12 diagramas de sequência (2 ou mais por integrante)
+- [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
+- [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
+
 ## Pré-requisitos
 
 - JDK 17 ou superior
@@ -95,7 +103,7 @@ Principais classes do modelo:
 | CH-06 | GenericDAO, AbstractDAO e DAO de exemplo (`ModalidadeDAO`) | Concluído |
 | CH-07 | Hierarquia de pessoas | Concluído |
 | CH-08 | Hierarquia de atividades do calendário | Concluído |
-| CH-09 | Demais entidades com List, Map e Set | Concluído (diagrama de classes pendente) |
+| CH-09 | Demais entidades com List, Map e Set e diagrama de classes | Concluído |
 | CH-10 | Exceções personalizadas e Validador | Concluído |
 | CH-11 | Comparable e Comparators | Concluído |
 | CH-03 | Tema escuro, botões, PainelConsulta e PainelFormulario reutilizáveis | Concluído |
@@ -132,6 +140,9 @@ Principais classes do modelo:
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
 | RF01 | Cadastro de usuários e troca da própria senha | Concluído |
+| CH-48 | Diagramas de sequência (12 fluxos, em Mermaid e PNG) | Concluído |
+| CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
+| CH-51 | Matriz de requisitos técnicos para a apresentação | Concluído (slides a cargo do grupo) |
 | CH-42 | Módulo Registros (definir conteúdo com a diretoria) | Aguardando decisão |
 
 ## Como criar uma tela nova
