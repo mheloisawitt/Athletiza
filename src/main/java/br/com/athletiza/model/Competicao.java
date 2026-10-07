@@ -93,6 +93,29 @@ public class Competicao extends Atividade {
         return atletas.add(atleta);
     }
 
+    /**
+     * Restaura uma inscrição já gravada no banco, sem repetir as validações
+     * (o atleta pode ter deixado a modalidade depois de inscrito). Uso dos DAOs.
+     */
+    public void restaurarInscricao(Modalidade modalidade, Atleta atleta) {
+        adicionarModalidade(modalidade);
+        inscricoes.get(modalidade).add(atleta);
+    }
+
+    /** Total de inscrições somando todas as modalidades. */
+    public int getTotalInscricoes() {
+        return inscricoes.values().stream().mapToInt(Set::size).sum();
+    }
+
+    /** Melhor colocação obtida, para exibir na consulta (ex.: "1º - Futsal (F)"). */
+    public String getMelhorResultado() {
+        return resultados.stream()
+                .filter(r -> r.getColocacao() != null)
+                .min(java.util.Comparator.comparing(Resultado::getColocacao))
+                .map(r -> r.getColocacao() + "º - " + r.getModalidade())
+                .orElse(resultados.isEmpty() ? "" : resultados.size() + " lançado(s)");
+    }
+
     public boolean removerAtleta(Modalidade modalidade, Atleta atleta) {
         Set<Atleta> atletas = inscricoes.get(modalidade);
         return atletas != null && atletas.remove(atleta);
