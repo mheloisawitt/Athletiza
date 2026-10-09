@@ -162,7 +162,7 @@ public class TelaLogin extends JFrame {
 
         PainelMarca() {
             setLayout(new GridBagLayout());
-            JLabel nome = new JLabel("ATLÉTICA");
+            JLabel nome = new JLabel("ATHLETIZA");
             nome.setFont(Tema.fonte(Font.BOLD | Font.ITALIC, 52f));
             nome.setForeground(Cores.TEXTO);
             nome.setAlignmentX(CENTER_ALIGNMENT);
