@@ -7,7 +7,6 @@ import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
 import com.formdev.flatlaf.FlatClientProperties;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -18,6 +17,8 @@ import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Path2D;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.prefs.Preferences;
@@ -156,7 +157,7 @@ public class TelaLogin extends JFrame {
         }
     }
 
-    /** Lado esquerdo da tela: fundo decorado com marcas de garra, nome e subtítulo. */
+    /** Lado esquerdo da tela: fundo com arranhões de lobo, escudo da atlética, nome e subtítulo. */
     private static class PainelMarca extends JPanel {
 
         PainelMarca() {
@@ -169,19 +170,25 @@ public class TelaLogin extends JFrame {
             subtitulo.setFont(Tema.fonte(Font.PLAIN, 15f));
             subtitulo.setForeground(Cores.TEXTO_SECUNDARIO);
             subtitulo.setAlignmentX(CENTER_ALIGNMENT);
+            JLabel sigla = new JLabel("CEAVI");
+            sigla.setFont(Tema.fonte(Font.BOLD, 26f));
+            sigla.setForeground(Cores.VERDE);
+            sigla.setAlignmentX(CENTER_ALIGNMENT);
 
             JPanel textos = new JPanel();
             textos.setOpaque(false);
             textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
-            java.net.URL imagem = getClass().getResource("/imagens/logo.png");
+            java.net.URL imagem = getClass().getResource("/imagens/escudo-ceavi.png");
             if (imagem != null) {
                 JLabel logo = new JLabel(new javax.swing.ImageIcon(new javax.swing.ImageIcon(imagem).getImage()
-                        .getScaledInstance(-1, 180, java.awt.Image.SCALE_SMOOTH)));
+                        .getScaledInstance(-1, 220, java.awt.Image.SCALE_SMOOTH)));
                 logo.setAlignmentX(CENTER_ALIGNMENT);
                 textos.add(logo);
+                textos.add(Box.createVerticalStrut(12));
             }
             textos.add(nome);
-            textos.add(Box.createVerticalStrut(4));
+            textos.add(sigla);
+            textos.add(Box.createVerticalStrut(8));
             textos.add(subtitulo);
             add(textos);
         }
@@ -195,21 +202,47 @@ public class TelaLogin extends JFrame {
             g2.setPaint(new GradientPaint(0, 0, new Color(0x1A1025), w, h, Cores.FUNDO_MENU));
             g2.fillRect(0, 0, w, h);
 
-            g2.setStroke(new BasicStroke(10, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            desenharGarra(g2, -40, h - 20, Cores.VERDE, 90);
-            desenharGarra(g2, w - 150, 70, Cores.ROXO, 70);
+            desenharArranhoes(g2, -30, h + 10, Cores.VERDE, 110);
+            desenharArranhoes(g2, w - 170, 90, Cores.ROXO, 95);
             g2.setColor(Cores.CINZA_ESCURO);
             g2.fillRect(w - 1, 0, 1, h);
             g2.dispose();
             super.paintComponent(g);
         }
 
-        private static void desenharGarra(Graphics2D g2, int x, int y, Color cor, int alfa) {
-            g2.setColor(new Color(cor.getRed(), cor.getGreen(), cor.getBlue(), alfa));
+        /**
+         * Três arranhões de garra em diagonal: cada um é fino nas pontas, largo no meio e levemente
+         * curvo, com um brilho suave por baixo, como um rasgo feito pelo lobo.
+         */
+        private static void desenharArranhoes(Graphics2D g2, int x, int y, Color cor, int alfa) {
+            int[] comprimentos = {205, 240, 190};
             for (int i = 0; i < 3; i++) {
-                int deslocamento = i * 26;
-                g2.drawLine(x + deslocamento, y, x + 150 + deslocamento, y - 170);
+                double x0 = x + i * 30;
+                double y0 = y + i * 6 - (i == 1 ? 12 : 0);
+                double x1 = x0 + comprimentos[i] * 0.66;
+                double y1 = y0 - comprimentos[i] * 0.75;
+                g2.setColor(new Color(cor.getRed(), cor.getGreen(), cor.getBlue(), alfa / 4));
+                g2.fill(arranhao(x0, y0, x1, y1, 13));
+                g2.setColor(new Color(cor.getRed(), cor.getGreen(), cor.getBlue(), alfa));
+                g2.fill(arranhao(x0, y0, x1, y1, 6));
             }
+        }
+
+        private static Shape arranhao(double x0, double y0, double x1, double y1, double largura) {
+            double dx = x1 - x0;
+            double dy = y1 - y0;
+            double tamanho = Math.hypot(dx, dy);
+            double nx = -dy / tamanho;
+            double ny = dx / tamanho;
+            // ponto de controle deslocado para dar a curvatura do golpe
+            double cx = (x0 + x1) / 2 + nx * tamanho * 0.08;
+            double cy = (y0 + y1) / 2 + ny * tamanho * 0.08;
+            Path2D.Double forma = new Path2D.Double();
+            forma.moveTo(x0, y0);
+            forma.quadTo(cx + nx * largura, cy + ny * largura, x1, y1);
+            forma.quadTo(cx - nx * largura, cy - ny * largura, x0, y0);
+            forma.closePath();
+            return forma;
         }
 
         @Override
