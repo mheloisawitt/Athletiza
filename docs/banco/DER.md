@@ -1,6 +1,7 @@
 # Modelo do banco de dados (DER)
 
-Banco: **PostgreSQL**. Scripts em [`src/main/resources/sql`](../../src/main/resources/sql).
+Banco: **MySQL 8.4** (InnoDB, utf8mb4). Scripts em [`src/main/resources/sql`](../../src/main/resources/sql).
+Instalação no Windows: [`instalar-mysql.md`](instalar-mysql.md).
 
 O diagrama abaixo é renderizado automaticamente pelo GitHub.
 

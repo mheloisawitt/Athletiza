@@ -45,7 +45,7 @@ public final class ConnectionFactory {
         } catch (SQLException e) {
             LOG.log(Level.SEVERE, "Falha ao conectar em " + url, e);
             throw new PersistenciaException("Não foi possível conectar ao banco de dados. "
-                    + "Verifique se o PostgreSQL está em execução e se os dados em " + ARQUIVO + " estão corretos.", e);
+                    + "Verifique se o MySQL está em execução e se os dados em " + ARQUIVO + " estão corretos.", e);
         }
     }
 

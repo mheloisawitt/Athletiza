@@ -69,7 +69,7 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         List<Competicao> competicoes = super.listarTodos();
         Map<Integer, Competicao> porId = competicoes.stream().collect(Collectors.toMap(Competicao::getId, Function.identity()));
         Map<Integer, Atleta> atletas = atletasPorId();
-        consultar(SELECT_RESULTADOS + " ORDER BY r.colocacao", rs -> {
+        consultar(SELECT_RESULTADOS + " ORDER BY r.colocacao IS NULL, r.colocacao", rs -> {
             Competicao competicao = porId.get(rs.getInt("competicao_id"));
             competicao.adicionarResultado(mapearResultado(rs, atletas));
             return null;
@@ -130,7 +130,7 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
 
     public List<Resultado> listarResultados(Competicao competicao) throws PersistenciaException {
         Map<Integer, Atleta> atletas = atletasPorId();
-        return consultar(SELECT_RESULTADOS + " WHERE r.competicao_id = ? ORDER BY m.nome, m.genero, r.colocacao",
+        return consultar(SELECT_RESULTADOS + " WHERE r.competicao_id = ? ORDER BY m.nome, m.genero, r.colocacao IS NULL, r.colocacao",
                 rs -> mapearResultado(rs, atletas), competicao.getId());
     }
 

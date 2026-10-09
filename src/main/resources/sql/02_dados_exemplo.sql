@@ -1,6 +1,6 @@
--- Athletiza - dados de exemplo (baseados no protótipo das telas)
--- Execute depois do 01_estrutura.sql. Os relacionamentos usam subconsultas
--- (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
+-- Athletiza - dados de exemplo (baseados no protótipo das telas) - MySQL 8
+-- Execute depois do 01_estrutura.sql, com o banco athletiza selecionado.
+-- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
 
 -- Usuário administrador inicial: login "admin", senha "admin123".
 -- A senha é provisória: o sistema exige a troca no primeiro acesso.
@@ -29,7 +29,10 @@ INSERT INTO cargo (nome, ordem, cargo_superior_id)
     SELECT 'Vice-presidente', 2, id FROM cargo WHERE nome = 'Presidente';
 INSERT INTO cargo (nome, ordem, cargo_superior_id)
     SELECT c.nome, 3, p.id
-    FROM (VALUES ('Diretor de Esportes'), ('Diretor de Eventos'), ('Tesoureiro'), ('Secretário')) AS c (nome),
+    FROM (SELECT 'Diretor de Esportes' AS nome
+             UNION ALL SELECT 'Diretor de Eventos'
+             UNION ALL SELECT 'Tesoureiro'
+             UNION ALL SELECT 'Secretário') AS c,
          cargo p
     WHERE p.nome = 'Vice-presidente';
 INSERT INTO cargo (nome, ordem, cargo_superior_id)
@@ -45,8 +48,11 @@ INSERT INTO membro (nome, matricula, contato) VALUES
 
 INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id)
     SELECT g.id, m.id, c.id
-    FROM (VALUES ('201801', 'Presidente'), ('201845', 'Vice-presidente'), ('201902', 'Diretor de Esportes'),
-                 ('201933', 'Diretor de Eventos'), ('202010', 'Tesoureiro')) AS v (matricula, cargo),
+    FROM (SELECT '201801' AS matricula, 'Presidente' AS cargo
+             UNION ALL SELECT '201845', 'Vice-presidente'
+             UNION ALL SELECT '201902', 'Diretor de Esportes'
+             UNION ALL SELECT '201933', 'Diretor de Eventos'
+             UNION ALL SELECT '202010', 'Tesoureiro') AS v,
          gestao g, membro m, cargo c
     WHERE g.nome = 'Gestão 2025-2026' AND m.matricula = v.matricula AND c.nome = v.cargo;
 
@@ -62,22 +68,25 @@ INSERT INTO atleta (nome, matricula, contato, data_nascimento) VALUES
 
 INSERT INTO atleta_modalidade (atleta_id, modalidade_id, situacao)
     SELECT a.id, m.id, 'ATIVO'
-    FROM (VALUES ('202001', 'Futsal', 'FEMININO'), ('202034', 'Vôlei', 'FEMININO'),
-                 ('202067', 'Atletismo', 'MASCULINO'), ('202102', 'Futsal', 'FEMININO'),
-                 ('202145', 'Handebol', 'MASCULINO'), ('202178', 'Vôlei', 'FEMININO'),
-                 ('202190', 'Futsal', 'FEMININO'), ('202034', 'Futsal', 'FEMININO')) AS v (matricula, modalidade, genero),
+    FROM (SELECT '202001' AS matricula, 'Futsal' AS modalidade, 'FEMININO' AS genero
+             UNION ALL SELECT '202034', 'Vôlei', 'FEMININO'
+             UNION ALL SELECT '202067', 'Atletismo', 'MASCULINO'
+             UNION ALL SELECT '202102', 'Futsal', 'FEMININO'
+             UNION ALL SELECT '202145', 'Handebol', 'MASCULINO'
+             UNION ALL SELECT '202178', 'Vôlei', 'FEMININO'
+             UNION ALL SELECT '202190', 'Futsal', 'FEMININO'
+             UNION ALL SELECT '202034', 'Futsal', 'FEMININO') AS v,
          atleta a, modalidade m
     WHERE a.matricula = v.matricula AND m.nome = v.modalidade AND m.genero = v.genero;
 
 -- Treinos e amistosos (Futsal Feminino, outubro/2026)
 INSERT INTO treino (tipo, titulo, data, horario, local, modalidade_id, responsavel_id, adversario)
     SELECT v.tipo, v.titulo, CAST(v.data AS DATE), CAST(v.horario AS TIME), v.local, m.id, r.id, v.adversario
-    FROM (VALUES ('TREINO', 'Treino Futsal (F)', '2026-10-01', '19:00', 'Quadra 1', NULL),
-                 ('TREINO', 'Treino Futsal (F)', '2026-10-03', '19:00', 'Quadra 1', NULL),
-                 ('TREINO', 'Treino Futsal (F)', '2026-10-06', '19:00', 'Quadra 1', NULL),
-                 ('AMISTOSO', 'Amistoso Futsal (F) x Atlética Furiosa', '2026-10-08', '20:00', 'Quadra 1', 'Atlética Furiosa'),
-                 ('TREINO', 'Treino Futsal (F)', '2026-10-10', '19:00', 'Quadra 1', NULL))
-             AS v (tipo, titulo, data, horario, local, adversario),
+    FROM (SELECT 'TREINO' AS tipo, 'Treino Futsal (F)' AS titulo, '2026-10-01' AS data, '19:00' AS horario, 'Quadra 1' AS local, NULL AS adversario
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-10-03', '19:00', 'Quadra 1', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-10-06', '19:00', 'Quadra 1', NULL
+             UNION ALL SELECT 'AMISTOSO', 'Amistoso Futsal (F) x Atlética Furiosa', '2026-10-08', '20:00', 'Quadra 1', 'Atlética Furiosa'
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-10-10', '19:00', 'Quadra 1', NULL) AS v,
          modalidade m, membro r
     WHERE m.nome = 'Futsal' AND m.genero = 'FEMININO' AND r.matricula = '201902';
 
@@ -117,9 +126,9 @@ INSERT INTO evento_responsavel (evento_id, membro_id)
 
 INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
     SELECT e.id, v.descricao, m.id, CAST(v.prazo AS DATE), v.situacao
-    FROM (VALUES ('Reservar o espaço', '201933', '2026-09-30', 'CONCLUIDA'),
-                 ('Contratar DJ', '201933', '2026-10-05', 'EM_ANDAMENTO'),
-                 ('Vender ingressos', '202010', '2026-10-11', 'PENDENTE')) AS v (descricao, matricula, prazo, situacao),
+    FROM (SELECT 'Reservar o espaço' AS descricao, '201933' AS matricula, '2026-09-30' AS prazo, 'CONCLUIDA' AS situacao
+             UNION ALL SELECT 'Contratar DJ', '201933', '2026-10-05', 'EM_ANDAMENTO'
+             UNION ALL SELECT 'Vender ingressos', '202010', '2026-10-11', 'PENDENTE') AS v,
          evento e, membro m
     WHERE e.titulo = 'Festa Atlética' AND m.matricula = v.matricula;
 

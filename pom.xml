@@ -20,11 +20,18 @@
     </properties>
 
     <dependencies>
-        <!-- Driver JDBC do PostgreSQL -->
+        <!-- Driver JDBC do MySQL -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.13</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.7.0</version>
+            <exclusions>
+                <!-- Só é usado pelo X DevAPI do MySQL, que o sistema não usa -->
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Tema visual moderno para Swing (modo escuro do protótipo) -->
@@ -34,7 +41,7 @@
             <version>3.7.2</version>
         </dependency>
 
-        <!-- Testes: JUnit + banco H2 em memória (modo PostgreSQL), não vão para o sistema final -->
+        <!-- Testes: JUnit + banco H2 em memória (modo MySQL), não vão para o sistema final -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

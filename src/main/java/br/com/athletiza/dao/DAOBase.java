@@ -28,10 +28,8 @@ public abstract class DAOBase {
 
     private static final Logger LOG = Logger.getLogger(DAOBase.class.getName());
 
-    /** Códigos SQLState padrão (PostgreSQL e H2). */
-    private static final String VIOLACAO_CHAVE_ESTRANGEIRA = "23503";
-    private static final String VIOLACAO_UNICIDADE = "23505";
-    private static final String VIOLACAO_CHECK = "23514";
+    /** Tipos de erro do banco que viram mensagens específicas para o usuário. */
+    enum Violacao { CHAVE_ESTRANGEIRA, UNICIDADE, CHECK, OUTRA }
 
     /** Nome do que o DAO grava, com artigo, usado nas mensagens (ex.: "a modalidade"). */
     protected abstract String getNomeEntidade();
@@ -133,16 +131,35 @@ public abstract class DAOBase {
     /** Converte o erro técnico em uma mensagem que o usuário entende. */
     protected PersistenciaException traduzir(SQLException e, String operacao) {
         LOG.log(Level.SEVERE, "Erro ao " + operacao + " " + getNomeEntidade(), e);
-        String estado = e.getSQLState() == null ? "" : e.getSQLState();
-        String mensagem = switch (estado) {
-            case VIOLACAO_CHAVE_ESTRANGEIRA -> "excluir".equals(operacao)
+        String mensagem = switch (violacao(e)) {
+            case CHAVE_ESTRANGEIRA -> "excluir".equals(operacao)
                     ? "Não é possível excluir " + getNomeEntidade() + ": existem outros registros vinculados."
                     : "Não é possível salvar " + getNomeEntidade() + ": um dos registros relacionados não existe mais.";
-            case VIOLACAO_UNICIDADE -> "Não é possível salvar " + getNomeEntidade() + ": já existe um cadastro com esses dados.";
-            case VIOLACAO_CHECK -> "Não é possível salvar " + getNomeEntidade() + ": há dados inválidos.";
-            default -> "Erro ao " + operacao + " " + getNomeEntidade() + ". Tente novamente.";
+            case UNICIDADE -> "Não é possível salvar " + getNomeEntidade() + ": já existe um cadastro com esses dados.";
+            case CHECK -> "Não é possível salvar " + getNomeEntidade() + ": há dados inválidos.";
+            case OUTRA -> "Erro ao " + operacao + " " + getNomeEntidade() + ". Tente novamente.";
         };
         return new PersistenciaException(mensagem, e);
+    }
+
+    /**
+     * Identifica o tipo do erro. O MySQL informa pelo código do erro
+     * (1062 duplicado, 1451/1452 chave estrangeira, 3819 check);
+     * o H2 dos testes, pelo SQLState padrão (23505, 23503, 23513).
+     */
+    static Violacao violacao(SQLException e) {
+        String estado = e.getSQLState() == null ? "" : e.getSQLState();
+        return switch (e.getErrorCode()) {
+            case 1062 -> Violacao.UNICIDADE;
+            case 1451, 1452 -> Violacao.CHAVE_ESTRANGEIRA;
+            case 3819 -> Violacao.CHECK;
+            default -> switch (estado) {
+                case "23505" -> Violacao.UNICIDADE;
+                case "23503", "23506" -> Violacao.CHAVE_ESTRANGEIRA;
+                case "23513", "23514" -> Violacao.CHECK;
+                default -> Violacao.OUTRA;
+            };
+        };
     }
 
     private static void preencherParametros(PreparedStatement ps, Object... parametros) throws SQLException {

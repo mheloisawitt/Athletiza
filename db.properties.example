@@ -1,7 +1,7 @@
 # Configuração do banco de dados do Athletiza.
-# Copie este arquivo para "db.properties" (na mesma pasta) e preencha com os dados do seu PostgreSQL.
+# Copie este arquivo para "db.properties" (na mesma pasta) e preencha com a senha do root do seu MySQL.
 # O db.properties não vai para o Git: cada integrante tem o seu.
 
-db.url=jdbc:postgresql://localhost:5432/athletiza
-db.usuario=postgres
+db.url=jdbc:mysql://localhost:3306/athletiza
+db.usuario=root
 db.senha=sua_senha_aqui

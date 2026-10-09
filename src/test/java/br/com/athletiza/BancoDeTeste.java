@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 /**
  * Prepara um banco para os testes executando os scripts de src/main/resources/sql.
  *
- * Por padrão usa H2 em memória (modo PostgreSQL), que não exige instalação.
- * Para testar em um PostgreSQL real, rode com:
- * mvn test -Dteste.db.url=jdbc:postgresql://localhost:5432/athletiza_teste -Dteste.db.usuario=postgres -Dteste.db.senha=...
+ * Por padrão usa H2 em memória (modo MySQL), que não exige instalação.
+ * Para testar em um MySQL real (use um banco só para testes, ele é apagado), rode com:
+ * mvn test -Dteste.db.url=jdbc:mysql://localhost:3306/athletiza_teste -Dteste.db.usuario=root -Dteste.db.senha=...
  */
 public final class BancoDeTeste {
 
@@ -27,7 +27,7 @@ public final class BancoDeTeste {
     public static void recriar() throws SQLException {
         Properties config = new Properties();
         config.setProperty("db.url", System.getProperty("teste.db.url",
-                "jdbc:h2:mem:athletiza;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1"));
+                "jdbc:h2:mem:athletiza;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"));
         config.setProperty("db.usuario", System.getProperty("teste.db.usuario", "sa"));
         config.setProperty("db.senha", System.getProperty("teste.db.senha", ""));
         ConnectionFactory.configurar(config);

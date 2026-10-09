@@ -1,6 +1,6 @@
 # Athletiza
 
-Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC + PostgreSQL) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
+Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC + MySQL) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
 
 O sistema reúne em um só lugar o calendário, as gestões, os atletas, os treinos, as competições e os eventos da atlética.
 
@@ -30,20 +30,22 @@ Para a apresentação:
 - JDK 17 ou superior
 - Apache NetBeans (versão recente, já vem com Maven embutido)
 - Git
-- PostgreSQL 14 ou superior (com pgAdmin, que já vem no instalador)
+- MySQL Community Server 8.4 LTS ou superior e, de preferência, o MySQL Workbench
+  ([passo a passo da instalação no Windows](docs/banco/instalar-mysql.md))
 
 ## Configurar o banco de dados
 
-1. No pgAdmin, abra o **Query Tool** no banco `postgres` e execute
-   [`src/main/resources/sql/00_criar_banco.sql`](src/main/resources/sql/00_criar_banco.sql)
-2. Abra o **Query Tool** no novo banco `athletiza` e execute, nesta ordem:
+1. Ligue o MySQL (serviço **MySQL84** no aplicativo *Serviços* do Windows) e abra a conexão no MySQL Workbench.
+2. Execute, nesta ordem (no Workbench, abra cada script e execute o arquivo inteiro; depois do primeiro,
+   coloque `athletiza` no *Default Schema* da conexão):
+   - [`00_criar_banco.sql`](src/main/resources/sql/00_criar_banco.sql): cria o banco `athletiza` (em utf8mb4) e o seleciona
    - [`01_estrutura.sql`](src/main/resources/sql/01_estrutura.sql): cria as tabelas (pode ser executado de novo para zerar o banco)
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
-3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do seu PostgreSQL.
+3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
-**Já tem dados no banco?** Em vez de recriar tudo, rode as migrações de
-[`src/main/resources/sql/migracoes`](src/main/resources/sql/migracoes) em ordem (ex.: `0011_registros.sql`, `0012_senha_provisoria.sql`).
+Pelo terminal, com o `mysql` no PATH: `mysql -u root -p < src/main/resources/sql/00_criar_banco.sql`, depois
+`mysql -u root -p athletiza < .../01_estrutura.sql` e o mesmo para o `02_dados_exemplo.sql`.
 
 **Log de erros:** detalhes técnicos de erros inesperados ficam em `Documentos/Athletiza-logs/athletiza-0.log`
 (até 5 arquivos de 1 MB). Para usar outra pasta: `-Dathletiza.logs=CAMINHO`.
@@ -71,11 +73,11 @@ java -jar target/Athletiza-1.0-SNAPSHOT.jar
 
 No NetBeans: botão direito no projeto > **Test** (ou Alt+F6). Pela linha de comando: `mvn test`.
 
-Os testes usam um banco H2 em memória, então rodam sem PostgreSQL instalado.
-Para testar contra um PostgreSQL real (use um banco separado, pois os testes apagam os dados):
+Os testes usam um banco H2 em memória (modo MySQL), então rodam sem MySQL instalado.
+Para testar contra um MySQL real, crie antes um banco separado (`CREATE DATABASE athletiza_teste;`), pois os testes apagam os dados:
 
 ```bash
-mvn test -Dteste.db.url=jdbc:postgresql://localhost:5432/athletiza_teste -Dteste.db.usuario=postgres -Dteste.db.senha=SUA_SENHA
+mvn test -Dteste.db.url=jdbc:mysql://localhost:3306/athletiza_teste -Dteste.db.usuario=root -Dteste.db.senha=SUA_SENHA
 ```
 
 ## Estrutura de pacotes
@@ -113,6 +115,7 @@ Principais classes do modelo:
 | CH-02 | Projeto Java, repositório e pacotes | Concluído |
 | CH-04 | DER e scripts SQL | Concluído |
 | CH-05 | Conexão com o banco (JDBC) | Concluído |
+| CH-05 | Troca do PostgreSQL pelo MySQL 8.4 (scripts, driver, mensagens de erro e testes) | Concluído |
 | CH-06 | GenericDAO, AbstractDAO e DAO de exemplo (`ModalidadeDAO`) | Concluído |
 | CH-07 | Hierarquia de pessoas | Concluído |
 | CH-08 | Hierarquia de atividades do calendário | Concluído |

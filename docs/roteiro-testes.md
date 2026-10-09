@@ -6,8 +6,8 @@ Além deste roteiro manual, o projeto tem testes automatizados (`mvn test`, banc
 
 ## Preparação
 
-1. Recrie o banco: execute `00_criar_banco.sql`, `01_estrutura.sql` e `02_dados_exemplo.sql`
-   (pasta `src/main/resources/sql`), nessa ordem.
+1. Ligue o MySQL (serviço MySQL84) e recrie o banco no MySQL Workbench: execute `00_criar_banco.sql`,
+   `01_estrutura.sql` e `02_dados_exemplo.sql` (pasta `src/main/resources/sql`), nessa ordem.
 2. Confira o `db.properties` (copiado do `db.properties.example`) e rode o sistema pelo NetBeans.
 3. **Datas dos dados de exemplo:** os treinos, eventos e tarefas são de outubro a dezembro de 2026. Os alertas e a
    lista de próximos eventos dependem da data do computador. Se estiver testando em outra data, use os casos
@@ -141,8 +141,8 @@ Casos marcados com ❌ são negativos: o sistema deve **recusar** a operação c
 
 | ID | Pré-condição | Passos | Resultado esperado | Resultado | Obs. |
 |---|---|---|---|---|---|
-| ERR-01 | — | Parar o PostgreSQL e tentar entrar | ❌ Mensagem amigável "Não foi possível conectar ao banco de dados…" | | |
-| ERR-02 | Logado | Parar o PostgreSQL e abrir uma consulta | Mensagem amigável, sistema continua aberto | | |
+| ERR-01 | — | Parar o MySQL (serviço MySQL84) e tentar entrar | ❌ Mensagem amigável "Não foi possível conectar ao banco de dados…" | | |
+| ERR-02 | Logado | Parar o MySQL (serviço MySQL84) e abrir uma consulta | Mensagem amigável, sistema continua aberto | | |
 | ERR-03 | ERR-02 | Abrir `Documentos/Athletiza-logs/athletiza-0.log` | Erro registrado com data, hora e detalhes | | |
 | ERR-04 | Qualquer cadastro | Preencher e clicar **Cancelar** | Pede confirmação antes de descartar | | |
 | ERR-05 | Qualquer consulta | Excluir um registro | Pede confirmação antes de excluir | | |

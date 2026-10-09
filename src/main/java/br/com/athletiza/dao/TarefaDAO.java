@@ -35,15 +35,15 @@ public class TarefaDAO extends DAOBase {
         return "a tarefa";
     }
 
-    /** Tarefas de um evento ou competição, por prazo. */
+    /** Tarefas de um evento ou competição, por prazo (as sem prazo por último). */
     public List<Tarefa> listar(Dono dono, int idDono) throws PersistenciaException {
-        return consultar(SELECT + " WHERE t." + dono.coluna + " = ? ORDER BY t.prazo", TarefaDAO::mapear, idDono);
+        return consultar(SELECT + " WHERE t." + dono.coluna + " = ? ORDER BY t.prazo IS NULL, t.prazo", TarefaDAO::mapear, idDono);
     }
 
     /** Tarefas de todos os eventos ou de todas as competições, agrupadas pelo id do dono. */
     public Map<Integer, List<Tarefa>> listarPorDono(Dono dono) throws PersistenciaException {
         Map<Integer, List<Tarefa>> porDono = new java.util.HashMap<>();
-        consultar(SELECT + " WHERE t." + dono.coluna + " IS NOT NULL ORDER BY t.prazo", rs -> {
+        consultar(SELECT + " WHERE t." + dono.coluna + " IS NOT NULL ORDER BY t.prazo IS NULL, t.prazo", rs -> {
             porDono.computeIfAbsent(rs.getInt(dono.coluna), id -> new java.util.ArrayList<>()).add(mapear(rs));
             return null;
         });
