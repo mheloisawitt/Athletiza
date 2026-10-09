@@ -166,7 +166,7 @@ public class TelaLogin extends JFrame {
             nome.setFont(Tema.fonte(Font.BOLD | Font.ITALIC, 52f));
             nome.setForeground(Cores.TEXTO);
             nome.setAlignmentX(CENTER_ALIGNMENT);
-            JLabel subtitulo = new JLabel("Sistema de Gerenciamento");
+            JLabel subtitulo = new JLabel("Sistema de Gerenciamento de Atléticas");
             subtitulo.setFont(Tema.fonte(Font.PLAIN, 15f));
             subtitulo.setForeground(Cores.TEXTO_SECUNDARIO);
             subtitulo.setAlignmentX(CENTER_ALIGNMENT);
@@ -202,7 +202,7 @@ public class TelaLogin extends JFrame {
             g2.setPaint(new GradientPaint(0, 0, new Color(0x1A1025), w, h, Cores.FUNDO_MENU));
             g2.fillRect(0, 0, w, h);
 
-            desenharArranhoes(g2, -30, h + 10, Cores.VERDE, 110);
+            desenharArranhoes(g2, -60, h + 40, Cores.VERDE, 110);
             desenharArranhoes(g2, w - 170, 90, Cores.ROXO, 95);
             g2.setColor(Cores.CINZA_ESCURO);
             g2.fillRect(w - 1, 0, 1, h);
