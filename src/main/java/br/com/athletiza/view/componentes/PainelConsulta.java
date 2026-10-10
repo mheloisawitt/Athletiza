@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -125,16 +126,14 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         barraBotoes.add(botao, 0);
     }
 
-    /** Mostra "‹ Voltar" antes do título (para consultas abertas a partir de outra tela). */
+    /** Mostra o botão Voltar antes do título (para consultas abertas a partir de outra tela). */
     protected void exibirVoltar(Runnable acao) {
-        JButton voltar = new JButton("‹ Voltar");
-        voltar.putClientProperty(FlatClientProperties.STYLE,
-                "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> acao.run());
+        JButton voltar = Botoes.voltar(e -> acao.run());
         linhaTitulo.remove(rotuloTitulo);
         JPanel titulo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titulo.setOpaque(false);
         titulo.add(voltar);
+        titulo.add(Box.createHorizontalStrut(12));
         titulo.add(rotuloTitulo);
         linhaTitulo.add(titulo, BorderLayout.WEST);
     }

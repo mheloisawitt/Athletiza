@@ -7,10 +7,10 @@ import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.view.Tema;
+import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.Recarregavel;
-import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -46,15 +47,13 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
         this.gestao = gestao;
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
-        JButton voltar = new JButton("‹ Voltar");
-        voltar.putClientProperty(FlatClientProperties.STYLE,
-                "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> navegador.voltar());
+        JButton voltar = Botoes.voltar(e -> navegador.voltar());
         JLabel titulo = new JLabel("Organograma · " + gestao.getNome());
         titulo.setFont(Tema.fonteTitulo());
         JPanel cabecalho = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         cabecalho.setOpaque(false);
         cabecalho.add(voltar);
+        cabecalho.add(Box.createHorizontalStrut(12));
         cabecalho.add(titulo);
         add(cabecalho, BorderLayout.NORTH);
 
