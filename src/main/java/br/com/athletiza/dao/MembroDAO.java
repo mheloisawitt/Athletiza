@@ -56,6 +56,8 @@ public class MembroDAO extends AbstractDAO<Membro> {
                 "SELECT COUNT(*) FROM evento_responsavel WHERE membro_id = ?", id);
         adicionarSeHouver(vinculos, "tarefa(s) sob sua responsabilidade",
                 "SELECT COUNT(*) FROM tarefa WHERE responsavel_id = ?", id);
+        adicionarSeHouver(vinculos, "demanda(s) sob sua responsabilidade",
+                "SELECT COUNT(*) FROM demanda_responsavel WHERE membro_id = ?", id);
         return vinculos;
     }
 

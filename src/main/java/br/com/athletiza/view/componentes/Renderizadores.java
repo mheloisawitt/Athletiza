@@ -122,10 +122,10 @@ public final class Renderizadores {
                 return Cores.VERDE;
             }
             if (nome.startsWith("PLANEJAD") || nome.equals("PENDENTE") || nome.equals("LESIONADO")
-                    || nome.equals("AFASTADO")) {
+                    || nome.equals("AFASTADO") || nome.equals("ABERTA") || nome.equals("MEDIA")) {
                 return Cores.AMARELO;
             }
-            if (nome.startsWith("CANCELAD") || nome.equals("AUSENTE")) {
+            if (nome.startsWith("CANCELAD") || nome.equals("AUSENTE") || nome.equals("ALTA")) {
                 return Cores.VERMELHO;
             }
             return Cores.TEXTO_SECUNDARIO;

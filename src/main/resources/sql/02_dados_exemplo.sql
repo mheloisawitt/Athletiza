@@ -132,6 +132,25 @@ INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
          evento e, membro m
     WHERE e.titulo = 'Festa Atlética' AND m.matricula = v.matricula;
 
+-- Demandas (a primeira sem relação, as outras ligadas a um evento ou a uma competição)
+INSERT INTO demanda (titulo, descricao, prioridade, situacao, prazo) VALUES
+    ('Renovar o estoque de camisetas', 'Orçar com dois fornecedores antes de comprar.', 'MEDIA', 'ABERTA', '2026-11-10');
+
+INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id)
+    SELECT 'Arrecadar alimentos', 'ALTA', 'EM_ANDAMENTO', '2026-10-20', id FROM evento WHERE titulo = 'Ação Social';
+
+INSERT INTO demanda (titulo, prioridade, situacao, prazo, competicao_id)
+    SELECT 'Reservar ônibus para os atletas', 'ALTA', 'ABERTA', '2026-10-25', id FROM competicao WHERE titulo = 'JIUDESC 2026';
+
+INSERT INTO demanda_responsavel (demanda_id, membro_id)
+    SELECT d.id, m.id
+    FROM (SELECT 'Renovar o estoque de camisetas' AS titulo, '202010' AS matricula
+             UNION ALL SELECT 'Arrecadar alimentos', '201933'
+             UNION ALL SELECT 'Arrecadar alimentos', '201801'
+             UNION ALL SELECT 'Reservar ônibus para os atletas', '201902') AS v,
+         demanda d, membro m
+    WHERE d.titulo = v.titulo AND m.matricula = v.matricula;
+
 -- Compromissos
 INSERT INTO compromisso (titulo, data, horario, local) VALUES
     ('Reunião Gestão', '2026-10-08', '14:00', 'Sala da atlética');

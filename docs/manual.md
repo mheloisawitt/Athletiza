@@ -68,6 +68,15 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 - **Responsáveis e tarefas:** adicione os membros que organizam o evento e as tarefas, com responsável,
   prazo e situação. Tarefas atrasadas aparecem em vermelho; **Concluir** encerra a tarefa selecionada.
 
+## Demandas
+
+- Registre o que precisa ser feito pela atlética, com prioridade (alta, média ou baixa), prazo e situação
+  (aberta, em andamento, concluída ou cancelada).
+- **Relacionada a:** opcionalmente, ligue a demanda a um evento (festa, ação social, ação ambiental...) ou
+  a uma competição. Deixe "Nenhum" para uma demanda avulsa.
+- **Responsáveis:** marque um ou mais membros. Filtre a consulta por situação ou por responsável.
+- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo.
+
 ## Registros (fotos e vídeos)
 
 - As fotos e vídeos ficam organizados em **pastas** (Festas, Ações Sociais, Competições, Treinos, Outros...).

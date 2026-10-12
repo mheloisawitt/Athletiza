@@ -9,6 +9,8 @@
 --   CASCADE  -> apaga junto as linhas que só existem por causa do registro principal
 --               (ex.: presenças de um treino, tarefas de um evento)
 
+DROP TABLE IF EXISTS demanda_responsavel;
+DROP TABLE IF EXISTS demanda;
 DROP TABLE IF EXISTS arquivo;
 DROP TABLE IF EXISTS pasta;
 DROP TABLE IF EXISTS tarefa;
@@ -248,6 +250,34 @@ CREATE TABLE arquivo (
     enviado_por VARCHAR(50),
     descricao   VARCHAR(500),
     FOREIGN KEY (pasta_id) REFERENCES pasta (id) ON DELETE RESTRICT
+);
+
+-- ===================== Demandas =====================
+-- O que precisa ser feito pela atlética. A relação com um evento ou com uma
+-- competição é opcional (no máximo um dos dois); se o evento ou a competição
+-- for excluído, a demanda continua existindo, apenas sem a relação.
+
+CREATE TABLE demanda (
+    id            INTEGER AUTO_INCREMENT PRIMARY KEY,
+    titulo        VARCHAR(100) NOT NULL,
+    descricao     VARCHAR(500),
+    prioridade    VARCHAR(10)  NOT NULL DEFAULT 'MEDIA' CHECK (prioridade IN ('ALTA', 'MEDIA', 'BAIXA')),
+    situacao      VARCHAR(20)  NOT NULL DEFAULT 'ABERTA'
+                  CHECK (situacao IN ('ABERTA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA')),
+    prazo         DATE,
+    evento_id     INTEGER,
+    competicao_id INTEGER,
+    CHECK (evento_id IS NULL OR competicao_id IS NULL),
+    FOREIGN KEY (evento_id) REFERENCES evento (id) ON DELETE SET NULL,
+    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL
+);
+
+CREATE TABLE demanda_responsavel (
+    demanda_id INTEGER NOT NULL,
+    membro_id  INTEGER NOT NULL,
+    PRIMARY KEY (demanda_id, membro_id),
+    FOREIGN KEY (demanda_id) REFERENCES demanda (id) ON DELETE CASCADE,
+    FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_treino_data ON treino (data);
