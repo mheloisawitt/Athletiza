@@ -256,8 +256,9 @@ CREATE TABLE arquivo (
 
 -- ===================== Demandas =====================
 -- O que precisa ser feito pela atlética. A relação com um evento ou com uma
--- competição é opcional (no máximo um dos dois); se o evento ou a competição
--- for excluído, a demanda continua existindo, apenas sem a relação.
+-- competição é opcional (no máximo um dos dois, garantido pelo sistema: o MySQL não aceita CHECK
+-- em coluna de chave estrangeira com ON DELETE SET NULL); se o evento ou a competição for excluído,
+-- a demanda continua existindo, apenas sem a relação.
 -- Os responsáveis devem ser membros com cargo na gestão em andamento. A regra é conferida pelo
 -- sistema ao salvar (DemandaController), pois uma chave estrangeira não consegue verificar a gestão.
 
@@ -271,7 +272,6 @@ CREATE TABLE demanda (
     prazo         DATE,
     evento_id     INTEGER,
     competicao_id INTEGER,
-    CHECK (evento_id IS NULL OR competicao_id IS NULL),
     FOREIGN KEY (evento_id) REFERENCES evento (id) ON DELETE SET NULL,
     FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL
 );
