@@ -1,5 +1,5 @@
 -- Athletiza - estrutura do banco de dados (MySQL 8)
--- Execute com o banco athletiza selecionado (no Workbench: USE athletiza; ou Default Schema = athletiza).
+-- Execute depois do 00_criar_banco.sql. O USE abaixo seleciona o banco athletiza.
 -- Pode ser executado novamente: apaga e recria todas as tabelas (os dados são perdidos).
 --
 -- As tabelas são apagadas das dependentes para as principais, para não violar as chaves estrangeiras.
@@ -8,6 +8,8 @@
 --   RESTRICT -> impede excluir um registro que ainda é usado em outro lugar
 --   CASCADE  -> apaga junto as linhas que só existem por causa do registro principal
 --               (ex.: presenças de um treino, tarefas de um evento)
+
+USE athletiza;
 
 DROP TABLE IF EXISTS demanda_responsavel;
 DROP TABLE IF EXISTS demanda;

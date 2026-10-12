@@ -1,6 +1,8 @@
 -- Athletiza - dados de exemplo (baseados no protótipo das telas) - MySQL 8
--- Execute depois do 01_estrutura.sql, com o banco athletiza selecionado.
+-- Execute depois do 01_estrutura.sql. O USE abaixo seleciona o banco athletiza.
 -- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
+
+USE athletiza;
 
 -- Usuário administrador inicial: login "admin", senha "admin123".
 -- A senha é provisória: o sistema exige a troca no primeiro acesso.
