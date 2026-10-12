@@ -258,6 +258,8 @@ CREATE TABLE arquivo (
 -- O que precisa ser feito pela atlética. A relação com um evento ou com uma
 -- competição é opcional (no máximo um dos dois); se o evento ou a competição
 -- for excluído, a demanda continua existindo, apenas sem a relação.
+-- Os responsáveis devem ser membros com cargo na gestão em andamento. A regra é conferida pelo
+-- sistema ao salvar (DemandaController), pois uma chave estrangeira não consegue verificar a gestão.
 
 CREATE TABLE demanda (
     id            INTEGER AUTO_INCREMENT PRIMARY KEY,

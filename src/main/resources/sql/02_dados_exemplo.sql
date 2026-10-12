@@ -144,6 +144,7 @@ INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id)
 INSERT INTO demanda (titulo, prioridade, situacao, prazo, competicao_id)
     SELECT 'Reservar ônibus para os atletas', 'ALTA', 'ABERTA', '2026-10-25', id FROM competicao WHERE titulo = 'JIUDESC 2026';
 
+-- Responsáveis: somente membros com cargo na gestão em andamento (Gestão 2025-2026)
 INSERT INTO demanda_responsavel (demanda_id, membro_id)
     SELECT d.id, m.id
     FROM (SELECT 'Renovar o estoque de camisetas' AS titulo, '202010' AS matricula
@@ -151,7 +152,9 @@ INSERT INTO demanda_responsavel (demanda_id, membro_id)
              UNION ALL SELECT 'Arrecadar alimentos', '201801'
              UNION ALL SELECT 'Reservar ônibus para os atletas', '201902') AS v,
          demanda d, membro m
-    WHERE d.titulo = v.titulo AND m.matricula = v.matricula;
+    WHERE d.titulo = v.titulo AND m.matricula = v.matricula
+      AND EXISTS (SELECT 1 FROM gestao_membro_cargo gmc JOIN gestao g ON g.id = gmc.gestao_id
+                  WHERE gmc.membro_id = m.id AND g.situacao = 'EM_ANDAMENTO');
 
 -- Compromissos
 INSERT INTO compromisso (titulo, data, horario, local) VALUES

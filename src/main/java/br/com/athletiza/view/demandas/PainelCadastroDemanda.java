@@ -36,7 +36,8 @@ public class PainelCadastroDemanda extends PainelFormulario {
     private final JComboBox<PrioridadeDemanda> prioridade = new JComboBox<>(PrioridadeDemanda.values());
     private final JTextField prazo = new JTextField();
     private final JComboBox<Atividade> relacionada = new JComboBox<>();
-    private final ListaMarcavel<Membro> responsaveis = new ListaMarcavel<>("Nenhum membro ativo cadastrado.");
+    private final ListaMarcavel<Membro> responsaveis = new ListaMarcavel<>(
+            "Nenhum membro na gestão em andamento. Cadastre a composição da gestão no módulo Gestão.");
     private final JTextArea descricao = new JTextArea();
 
     public PainelCadastroDemanda(Demanda demanda, Navegador navegador) {
@@ -54,18 +55,18 @@ public class PainelCadastroDemanda extends PainelFormulario {
         adicionarCampo("Prioridade", prioridade, true);
         adicionarCampo("Prazo", prazo, false);
         adicionarCampoLinhaInteira("Relacionada a evento ou competição", relacionada, false);
-        adicionarCampoLinhaInteira("Responsáveis", responsaveis, false);
+        adicionarCampoLinhaInteira("Responsáveis (membros da gestão em andamento)", responsaveis, false);
         adicionarCampoLinhaInteira("Descrição", areaTexto(descricao), false);
 
         carregarOpcoes();
         preencher();
     }
 
-    /** Eventos e competições para relacionar e membros ativos (mais os já responsáveis, mesmo inativos). */
+    /** Eventos e competições para relacionar e membros da gestão em andamento (mais os já responsáveis). */
     private void carregarOpcoes() {
         try {
             Combos.atualizarItens(relacionada, controller.listarRelacionaveis());
-            List<Membro> membros = new ArrayList<>(new MembroController().listarAtivos());
+            List<Membro> membros = new ArrayList<>(new MembroController().listarDaGestaoEmAndamento());
             demanda.getResponsaveis().stream().filter(m -> !membros.contains(m)).forEach(membros::add);
             responsaveis.setItens(membros, Membro::getNome);
         } catch (PersistenciaException e) {

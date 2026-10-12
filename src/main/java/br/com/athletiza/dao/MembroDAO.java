@@ -41,6 +41,13 @@ public class MembroDAO extends AbstractDAO<Membro> {
                 membro.getNome(), membro.getMatricula(), membro.getContato(), membro.getSituacao(), membro.getId());
     }
 
+    /** Membros ativos que ocupam ao menos um cargo em uma gestão em andamento, em ordem alfabética. */
+    public List<Membro> listarDaGestaoEmAndamento() throws PersistenciaException {
+        return consultar("SELECT m.* FROM membro m WHERE m.situacao = 'ATIVO' AND EXISTS ("
+                + "SELECT 1 FROM gestao_membro_cargo gmc JOIN gestao g ON g.id = gmc.gestao_id"
+                + " WHERE gmc.membro_id = m.id AND g.situacao = 'EM_ANDAMENTO') ORDER BY m.nome");
+    }
+
     /** Indica se outro membro (diferente de idIgnorado) já usa a matrícula. */
     public boolean existeMatricula(String matricula, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM membro WHERE matricula = ? AND id <> ?",

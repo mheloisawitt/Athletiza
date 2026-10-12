@@ -84,6 +84,24 @@ class DemandaControllerTest {
     }
 
     @Test
+    void responsavelPrecisaSerMembroDaGestaoEmAndamento() throws Exception {
+        Membro semCargo = new Membro("Carlos Souza", "202199", null);
+        membros.salvar(semCargo);
+        assertFalse(membros.listarDaGestaoEmAndamento().contains(semCargo));
+        assertEquals(5, membros.listarDaGestaoEmAndamento().size());
+
+        Demanda demanda = new Demanda("Organizar o almoxarifado", PrioridadeDemanda.BAIXA, null);
+        demanda.definirResponsaveis(List.of(membro("Paula Ribeiro"), semCargo));
+
+        ValidacaoException erro = assertThrows(ValidacaoException.class, () -> controller.salvar(demanda));
+        assertTrue(erro.getMessage().contains("Carlos Souza"), erro.getMessage());
+
+        demanda.definirResponsaveis(List.of(membro("Paula Ribeiro")));
+        controller.salvar(demanda);
+        assertEquals("Paula Ribeiro", buscar("Organizar o almoxarifado").getNomesResponsaveis());
+    }
+
+    @Test
     void relacionaveisSaoEventosECompeticoesEmOrdemDeData() throws Exception {
         List<Atividade> relacionaveis = controller.listarRelacionaveis();
 

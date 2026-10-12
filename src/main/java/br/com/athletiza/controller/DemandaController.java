@@ -8,7 +8,9 @@ import br.com.athletiza.model.Demanda;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.SituacaoDemanda;
 import br.com.athletiza.util.Validador;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -33,13 +35,25 @@ public class DemandaController {
                 .toList();
     }
 
+    /**
+     * Os responsáveis devem ser membros da gestão em andamento. Quem já era responsável
+     * pela demanda pode continuar, mesmo que tenha saído da gestão depois.
+     */
     public void salvar(Demanda demanda) throws ValidacaoException, PersistenciaException {
+        Set<Membro> permitidos = new HashSet<>(new MembroController().listarDaGestaoEmAndamento());
+        if (!demanda.isNova()) {
+            dao.buscarPorId(demanda.getId()).ifPresent(salva -> permitidos.addAll(salva.getResponsaveis()));
+        }
+        List<String> foraDaGestao = demanda.getResponsaveis().stream()
+                .filter(m -> !permitidos.contains(m)).map(Membro::getNome).toList();
         new Validador()
                 .obrigatorio(demanda.getTitulo(), "Demanda")
                 .tamanhoMaximo(demanda.getTitulo(), 100, "Demanda")
                 .obrigatorio(demanda.getPrioridade(), "Prioridade")
                 .obrigatorio(demanda.getSituacao(), "Situação")
                 .tamanhoMaximo(demanda.getDescricao(), 500, "Descrição")
+                .regra(foraDaGestao.isEmpty(), "Os responsáveis devem ser membros da gestão em andamento. Não fazem parte dela: "
+                        + String.join(", ", foraDaGestao) + ".")
                 .validar();
         if (demanda.isNova()) {
             dao.inserir(demanda);

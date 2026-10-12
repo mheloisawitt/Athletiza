@@ -74,7 +74,8 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
   (aberta, em andamento, concluída ou cancelada).
 - **Relacionada a:** opcionalmente, ligue a demanda a um evento (festa, ação social, ação ambiental...) ou
   a uma competição. Deixe "Nenhum" para uma demanda avulsa.
-- **Responsáveis:** marque um ou mais membros. Filtre a consulta por situação ou por responsável.
+- **Responsáveis:** marque um ou mais membros da gestão em andamento (quem tem cargo nela, no módulo Gestão).
+  Filtre a consulta por situação ou por responsável.
 - As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo.
 
 ## Registros (fotos e vídeos)
