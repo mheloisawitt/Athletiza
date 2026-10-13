@@ -1,14 +1,12 @@
 package br.com.athletiza.model;
 
-import java.util.Comparator;
+import br.com.athletiza.exception.ValidacaoException;
 import java.util.Objects;
 
 /**
  * Pasta da galeria de registros (ex.: Festas, Ações Sociais). Ordem natural: pelo nome.
  */
 public class Pasta extends Entidade implements Comparable<Pasta> {
-
-    private static final Comparator<Pasta> POR_NOME = Comparator.comparing(Pasta::getNome, Textos.COMPARADOR);
 
     private String nome;
     private int quantidadeArquivos;
@@ -18,6 +16,13 @@ public class Pasta extends Entidade implements Comparable<Pasta> {
 
     public Pasta(String nome) {
         this.nome = nome;
+    }
+
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(nome, "Nome da pasta")
+                .tamanhoMaximo(nome, 60, "Nome da pasta")
+                .validar();
     }
 
     public String getNome() {
@@ -39,7 +44,7 @@ public class Pasta extends Entidade implements Comparable<Pasta> {
 
     @Override
     public int compareTo(Pasta outra) {
-        return POR_NOME.compare(this, outra);
+        return Textos.comparar(nome, outra.nome);
     }
 
     @Override
@@ -47,9 +52,10 @@ public class Pasta extends Entidade implements Comparable<Pasta> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Pasta outra) || nome == null) {
+        if (!(o instanceof Pasta) || nome == null) {
             return false;
         }
+        Pasta outra = (Pasta) o;
         return nome.equalsIgnoreCase(outra.nome);
     }
 

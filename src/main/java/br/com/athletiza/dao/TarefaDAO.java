@@ -6,6 +6,8 @@ import br.com.athletiza.model.SituacaoTarefa;
 import br.com.athletiza.model.Tarefa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,18 +15,7 @@ import java.util.Map;
  * Tarefas de eventos e de competições (RF19). Cada tarefa pertence a um evento
  * ou a uma competição (colunas evento_id e competicao_id da tabela tarefa).
  */
-public class TarefaDAO extends DAOBase {
-
-    /** A quem a tarefa pertence: define a coluna usada nas consultas. */
-    public enum Dono {
-        EVENTO("evento_id"), COMPETICAO("competicao_id");
-
-        private final String coluna;
-
-        Dono(String coluna) {
-            this.coluna = coluna;
-        }
-    }
+public class TarefaDAO extends DAOBase implements TarefaRepository {
 
     private static final String SELECT = "SELECT t.*, m.id AS membro_id, m.nome AS membro_nome,"
             + " m.matricula AS membro_matricula, m.contato AS membro_contato, m.situacao AS membro_situacao"
@@ -35,26 +26,33 @@ public class TarefaDAO extends DAOBase {
         return "a tarefa";
     }
 
-    /** Tarefas de um evento ou competição, por prazo (as sem prazo por último). */
+    @Override
     public List<Tarefa> listar(Dono dono, int idDono) throws PersistenciaException {
-        return consultar(SELECT + " WHERE t." + dono.coluna + " = ? ORDER BY t.prazo IS NULL, t.prazo", TarefaDAO::mapear, idDono);
+        return consultar(SELECT + " WHERE t." + coluna(dono) + " = ? ORDER BY t.prazo IS NULL, t.prazo",
+                rs -> mapear(rs), idDono);
     }
 
     /** Tarefas de todos os eventos ou de todas as competições, agrupadas pelo id do dono. */
-    public Map<Integer, List<Tarefa>> listarPorDono(Dono dono) throws PersistenciaException {
-        Map<Integer, List<Tarefa>> porDono = new java.util.HashMap<>();
-        consultar(SELECT + " WHERE t." + dono.coluna + " IS NOT NULL ORDER BY t.prazo IS NULL, t.prazo", rs -> {
-            porDono.computeIfAbsent(rs.getInt(dono.coluna), id -> new java.util.ArrayList<>()).add(mapear(rs));
+    Map<Integer, List<Tarefa>> listarPorDono(Dono dono) throws PersistenciaException {
+        String coluna = coluna(dono);
+        Map<Integer, List<Tarefa>> porDono = new HashMap<>();
+        consultar(SELECT + " WHERE t." + coluna + " IS NOT NULL ORDER BY t.prazo IS NULL, t.prazo", rs -> {
+            int idDono = rs.getInt(coluna);
+            if (!porDono.containsKey(idDono)) {
+                porDono.put(idDono, new ArrayList<>());
+            }
+            porDono.get(idDono).add(mapear(rs));
             return null;
         });
         return porDono;
     }
 
+    @Override
     public void salvar(Dono dono, int idDono, Tarefa tarefa) throws PersistenciaException {
         Integer responsavel = tarefa.getResponsavel() == null ? null : tarefa.getResponsavel().getId();
         if (tarefa.isNova()) {
-            tarefa.setId(executarInsercao("INSERT INTO tarefa (" + dono.coluna + ", descricao, responsavel_id, prazo, situacao)"
-                    + " VALUES (?, ?, ?, ?, ?)", idDono, tarefa.getDescricao(), responsavel, tarefa.getPrazo(),
+            tarefa.setId(executarInsercao("INSERT INTO tarefa (" + coluna(dono) + ", descricao, responsavel_id, prazo,"
+                    + " situacao) VALUES (?, ?, ?, ?, ?)", idDono, tarefa.getDescricao(), responsavel, tarefa.getPrazo(),
                     tarefa.getSituacao()));
         } else {
             executarAtualizacao("UPDATE tarefa SET descricao = ?, responsavel_id = ?, prazo = ?, situacao = ? WHERE id = ?",
@@ -62,8 +60,14 @@ public class TarefaDAO extends DAOBase {
         }
     }
 
+    @Override
     public void excluir(Tarefa tarefa) throws PersistenciaException {
         executarAtualizacao("DELETE FROM tarefa WHERE id = ?", tarefa.getId());
+    }
+
+    /** Coluna da tabela tarefa que guarda o dono. */
+    private static String coluna(Dono dono) {
+        return dono == Dono.EVENTO ? "evento_id" : "competicao_id";
     }
 
     private static Tarefa mapear(ResultSet rs) throws SQLException {

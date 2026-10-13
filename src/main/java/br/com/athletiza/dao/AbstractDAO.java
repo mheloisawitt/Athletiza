@@ -5,7 +5,6 @@ import br.com.athletiza.model.Entidade;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Base dos DAOs de uma entidade (CH-06). Implementa as operações comuns
@@ -30,7 +29,7 @@ public abstract class AbstractDAO<T extends Entidade> extends DAOBase implements
     }
 
     @Override
-    public Optional<T> buscarPorId(int id) throws PersistenciaException {
+    public T buscarPorId(int id) throws PersistenciaException {
         return consultarUm("SELECT * FROM " + getTabela() + " WHERE id = ?", id);
     }
 
@@ -40,11 +39,12 @@ public abstract class AbstractDAO<T extends Entidade> extends DAOBase implements
     }
 
     protected List<T> consultar(String sql, Object... parametros) throws PersistenciaException {
-        return consultar(sql, this::mapear, parametros);
+        return consultar(sql, rs -> mapear(rs), parametros);
     }
 
-    protected Optional<T> consultarUm(String sql, Object... parametros) throws PersistenciaException {
+    /** Primeiro resultado da consulta, ou null se ela não retornar nenhuma linha. */
+    protected T consultarUm(String sql, Object... parametros) throws PersistenciaException {
         List<T> resultado = consultar(sql, parametros);
-        return resultado.isEmpty() ? Optional.empty() : Optional.of(resultado.get(0));
+        return resultado.isEmpty() ? null : resultado.get(0);
     }
 }

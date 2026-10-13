@@ -1,69 +1,119 @@
 package br.com.athletiza.controller;
 
-import br.com.athletiza.dao.AlertaDAO;
-import br.com.athletiza.dao.AtividadeDAO;
-import br.com.athletiza.dao.CompeticaoDAO;
-import br.com.athletiza.dao.CompromissoDAO;
-import br.com.athletiza.dao.EventoDAO;
-import br.com.athletiza.dao.TreinoDAO;
+import br.com.athletiza.dao.AlertaRepository;
+import br.com.athletiza.dao.AtividadeRepository;
+import br.com.athletiza.dao.CompeticaoRepository;
+import br.com.athletiza.dao.CompromissoRepository;
+import br.com.athletiza.dao.EventoRepository;
+import br.com.athletiza.dao.MembroRepository;
+import br.com.athletiza.dao.ModalidadeRepository;
+import br.com.athletiza.dao.TreinoRepository;
 import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Alerta;
+import br.com.athletiza.model.Amistoso;
 import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Compromisso;
 import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.Treino;
-import br.com.athletiza.util.Validador;
+import br.com.athletiza.view.calendario.DialogoCompromisso;
+import br.com.athletiza.view.calendario.PainelCalendario;
+import br.com.athletiza.view.competicoes.PainelCadastroCompeticao;
+import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.view.eventos.PainelCadastroEvento;
+import br.com.athletiza.view.treinos.PainelCadastroTreino;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 /**
- * Regras do calendário da tela inicial (CH-15 a CH-17).
+ * Controller do calendário da tela inicial (CH-15 a CH-17, RF09, RF10, RF24).
  */
 public class CalendarioController {
 
-    private final AtividadeDAO atividadeDAO;
-    private final CompromissoDAO compromissoDAO;
-    private final AlertaDAO alertaDAO = new AlertaDAO();
+    /** Dias de antecedência para avisar sobre competições. */
+    static final int DIAS_AVISO_COMPETICAO = 7;
+    /** Quantos dias para trás procurar treinos sem lista de presença. */
+    static final int DIAS_PRESENCA_PENDENTE = 30;
 
-    public CalendarioController() {
-        this(new AtividadeDAO(), new CompromissoDAO());
+    private final PainelCalendario view;
+    private final AtividadeRepository atividadeRepository;
+    private final AlertaRepository alertaRepository;
+    private final CompromissoRepository compromissoRepository;
+    private final TreinoRepository treinoRepository;
+    private final CompeticaoRepository competicaoRepository;
+    private final EventoRepository eventoRepository;
+    private final ModalidadeRepository modalidadeRepository;
+    private final MembroRepository membroRepository;
+    private final Navegador navegador;
+
+    public CalendarioController(PainelCalendario view, AtividadeRepository atividadeRepository,
+            AlertaRepository alertaRepository, CompromissoRepository compromissoRepository,
+            TreinoRepository treinoRepository, CompeticaoRepository competicaoRepository,
+            EventoRepository eventoRepository, ModalidadeRepository modalidadeRepository,
+            MembroRepository membroRepository, Navegador navegador) {
+        this.view = view;
+        this.atividadeRepository = atividadeRepository;
+        this.alertaRepository = alertaRepository;
+        this.compromissoRepository = compromissoRepository;
+        this.treinoRepository = treinoRepository;
+        this.competicaoRepository = competicaoRepository;
+        this.eventoRepository = eventoRepository;
+        this.modalidadeRepository = modalidadeRepository;
+        this.membroRepository = membroRepository;
+        this.navegador = navegador;
+        adicionarAcoesBotoes();
     }
 
-    CalendarioController(AtividadeDAO atividadeDAO, CompromissoDAO compromissoDAO) {
-        this.atividadeDAO = atividadeDAO;
-        this.compromissoDAO = compromissoDAO;
+    public void adicionarAcoesBotoes() {
+        view.adicionarAcaoCarregar(e -> carregar());
+        view.adicionarAcaoNovoCompromisso(e -> novoCompromisso(view.getDiaDoNovoCompromisso()));
+        view.adicionarAcaoEditarCompromisso(e -> editarCompromisso((Compromisso) view.getAtividadeClicada()));
+        view.adicionarAcaoExcluirCompromisso(e -> excluirCompromisso((Compromisso) view.getAtividadeClicada()));
+        view.adicionarAcaoAbrirAtividade(e -> abrir(view.getAtividadeClicada()));
+    }
+
+    /** Busca as atividades do período exibido, os próximos eventos e os alertas. */
+    private void carregar() {
+        LocalDate hoje = LocalDate.now();
+        try {
+            view.exibir(atividadesDoPeriodo(view.getInicioDoPeriodo(), view.getFimDoPeriodo()),
+                    proximasAtividades(hoje, view.getDiasProximos()), alertas(hoje));
+        } catch (PersistenciaException e) {
+            view.exibir(new HashMap<LocalDate, List<Atividade>>(), new ArrayList<Atividade>(), new ArrayList<Alerta>());
+            view.mostrarErro(e);
+        }
     }
 
     /**
      * Atividades do mês agrupadas por dia (CH-15). Uma competição de vários dias
      * aparece em todos eles. As listas de cada dia vêm ordenadas por horário.
      */
-    public Map<LocalDate, List<Atividade>> atividadesDoMes(YearMonth mes) throws PersistenciaException {
+    Map<LocalDate, List<Atividade>> atividadesDoMes(YearMonth mes) throws PersistenciaException {
         return atividadesDoPeriodo(mes.atDay(1), mes.atEndOfMonth());
     }
 
-    /**
-     * Atividades de um período qualquer (ex.: uma semana, RF10) agrupadas por dia,
-     * cada lista ordenada por horário.
-     */
-    public Map<LocalDate, List<Atividade>> atividadesDoPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
+    /** Atividades de um período qualquer (ex.: uma semana, RF10), agrupadas por dia (TreeMap: em ordem de data). */
+    Map<LocalDate, List<Atividade>> atividadesDoPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         Map<LocalDate, List<Atividade>> porDia = new TreeMap<>();
-        for (Atividade atividade : atividadeDAO.listarPorPeriodo(inicio, fim)) {
+        for (Atividade atividade : atividadeRepository.listarPorPeriodo(inicio, fim)) {
             for (LocalDate dia = inicio; !dia.isAfter(fim); dia = dia.plusDays(1)) {
                 if (atividade.ocorreEm(dia)) {
-                    porDia.computeIfAbsent(dia, d -> new ArrayList<>()).add(atividade);
+                    if (!porDia.containsKey(dia)) {
+                        porDia.put(dia, new ArrayList<Atividade>());
+                    }
+                    porDia.get(dia).add(atividade);
                 }
             }
         }
-        porDia.values().forEach(Collections::sort);
+        for (List<Atividade> doDia : porDia.values()) {
+            Collections.sort(doDia);
+        }
         return porDia;
     }
 
@@ -73,66 +123,112 @@ public class CalendarioController {
      *
      * @param dias quantos dias à frente considerar (ex.: 7, 15, 30)
      */
-    public List<Atividade> proximasAtividades(LocalDate hoje, int dias) throws PersistenciaException {
-        return atividadeDAO.listarPorPeriodo(hoje, hoje.plusDays(dias)).stream()
-                .sorted()
-                .toList();
+    List<Atividade> proximasAtividades(LocalDate hoje, int dias) throws PersistenciaException {
+        List<Atividade> proximas = atividadeRepository.listarPorPeriodo(hoje, hoje.plusDays(dias));
+        Collections.sort(proximas);
+        return proximas;
     }
-
-    /** Dias de antecedência para avisar sobre competições. */
-    static final int DIAS_AVISO_COMPETICAO = 7;
-    /** Quantos dias para trás procurar treinos sem lista de presença. */
-    static final int DIAS_PRESENCA_PENDENTE = 30;
 
     /**
      * Alertas da tela inicial (RF24): tarefas atrasadas, treinos sem presença
      * registrada e competições da próxima semana, do mais urgente ao menos urgente.
      */
-    public List<Alerta> alertas(LocalDate hoje) throws PersistenciaException {
+    List<Alerta> alertas(LocalDate hoje) throws PersistenciaException {
         List<Alerta> alertas = new ArrayList<>();
-        alertas.addAll(alertaDAO.tarefasAtrasadas(hoje));
-        alertas.addAll(alertaDAO.treinosSemPresenca(hoje, DIAS_PRESENCA_PENDENTE));
-        alertas.addAll(alertaDAO.competicoesProximas(hoje, DIAS_AVISO_COMPETICAO));
+        alertas.addAll(alertaRepository.tarefasAtrasadas(hoje));
+        alertas.addAll(alertaRepository.treinosSemPresenca(hoje, DIAS_PRESENCA_PENDENTE));
+        alertas.addAll(alertaRepository.competicoesProximas(hoje, DIAS_AVISO_COMPETICAO));
         Collections.sort(alertas);
         return alertas;
+    }
+
+    private void novoCompromisso(LocalDate dia) {
+        Compromisso compromisso = new Compromisso();
+        compromisso.setData(dia);
+        if (abrirDialogoCompromisso(compromisso)) {
+            view.irParaDia(compromisso.getData());
+            carregar();
+        }
+    }
+
+    private void editarCompromisso(Compromisso compromisso) {
+        if (abrirDialogoCompromisso(compromisso)) {
+            view.irParaDia(compromisso.getData());
+        }
+        carregar();
+    }
+
+    /** Abre o diálogo (modal: espera ser fechado) e indica se o compromisso foi salvo. */
+    private boolean abrirDialogoCompromisso(Compromisso compromisso) {
+        DialogoCompromisso dialogo = new DialogoCompromisso(view,
+                compromisso.isNova() ? "Novo compromisso" : "Editar compromisso");
+        CompromissoController controller = new CompromissoController(dialogo.getFormulario(), compromisso,
+                compromissoRepository, dialogo);
+        dialogo.setVisible(true);
+        return controller.isSalvou();
+    }
+
+    private void excluirCompromisso(Compromisso compromisso) {
+        if (!view.confirmar("Deseja realmente excluir o compromisso \"" + compromisso.getTitulo() + "\"?")) {
+            return;
+        }
+        try {
+            compromissoRepository.excluir(compromisso.getId());
+        } catch (PersistenciaException e) {
+            view.mostrarErro(e);
+        }
+        carregar();
+    }
+
+    /**
+     * Abre treino, competição ou evento na tela de edição do seu módulo (RF09).
+     * Ao salvar ou cancelar, o "Voltar" retorna ao calendário já atualizado.
+     */
+    private void abrir(Atividade atividade) {
+        try {
+            Atividade completa = carregarCompleta(atividade);
+            if (completa instanceof Treino) {
+                Treino treino = (Treino) completa;
+                PainelCadastroTreino tela = new PainelCadastroTreino(treino instanceof Amistoso);
+                new CadastroTreinoController(tela, treino, treinoRepository, modalidadeRepository, membroRepository,
+                        navegador);
+                navegador.abrir(tela);
+            } else if (completa instanceof Competicao) {
+                PainelCadastroCompeticao tela = new PainelCadastroCompeticao();
+                new CadastroCompeticaoController(tela, (Competicao) completa, competicaoRepository, navegador);
+                navegador.abrir(tela);
+            } else if (completa instanceof Evento) {
+                PainelCadastroEvento tela = new PainelCadastroEvento();
+                new CadastroEventoController(tela, (Evento) completa, eventoRepository, navegador);
+                navegador.abrir(tela);
+            }
+        } catch (PersistenciaException e) {
+            view.mostrarErro(e);
+        }
     }
 
     /**
      * Lê a atividade completa do banco (o calendário carrega só o resumo), para
      * abrir a tela de edição a partir do calendário (RF09).
      */
-    public Atividade carregarCompleta(Atividade atividade) throws PersistenciaException {
-        Optional<? extends Atividade> completa;
-        if (atividade instanceof Treino treino) {
-            completa = new TreinoDAO().buscarPorId(treino.getId());
-        } else if (atividade instanceof Competicao competicao) {
-            completa = new CompeticaoDAO().buscarPorId(competicao.getId());
-        } else if (atividade instanceof Evento evento) {
-            completa = new EventoDAO().buscarPorId(evento.getId());
+    Atividade carregarCompleta(Atividade atividade) throws PersistenciaException {
+        Atividade completa;
+        if (atividade instanceof Treino) {
+            completa = treinoRepository.buscarPorId(atividade.getId());
+        } else if (atividade instanceof Competicao) {
+            completa = competicaoRepository.buscarPorId(atividade.getId());
+        } else if (atividade instanceof Evento) {
+            completa = eventoRepository.buscarPorId(atividade.getId());
         } else {
-            completa = Optional.of(atividade);
+            completa = atividade;
         }
-        return completa.orElseThrow(() -> new PersistenciaException("Esta atividade não existe mais."));
+        if (completa == null) {
+            throw new PersistenciaException("Esta atividade não existe mais.");
+        }
+        return completa;
     }
 
-    /** Inclui ou altera um compromisso (CH-16). */
-    public void salvarCompromisso(Compromisso compromisso) throws ValidacaoException, PersistenciaException {
-        new Validador()
-                .obrigatorio(compromisso.getTitulo(), "Título")
-                .tamanhoMaximo(compromisso.getTitulo(), 100, "Título")
-                .obrigatorio(compromisso.getData(), "Data")
-                .tamanhoMaximo(compromisso.getLocal(), 100, "Local")
-                .tamanhoMaximo(compromisso.getObservacoes(), 500, "Observações")
-                .validar();
-
-        if (compromisso.isNova()) {
-            compromissoDAO.inserir(compromisso);
-        } else {
-            compromissoDAO.atualizar(compromisso);
-        }
-    }
-
-    public void excluirCompromisso(Compromisso compromisso) throws PersistenciaException {
-        compromissoDAO.excluir(compromisso.getId());
+    public PainelCalendario getView() {
+        return view;
     }
 }

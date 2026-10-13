@@ -1,12 +1,9 @@
 package br.com.athletiza.view.eventos;
 
-import br.com.athletiza.controller.EventoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.SituacaoEvento;
 import br.com.athletiza.model.TipoEvento;
-import br.com.athletiza.util.Validador;
-import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import com.formdev.flatlaf.FlatClientProperties;
 import javax.swing.JComboBox;
@@ -15,11 +12,10 @@ import javax.swing.JTextField;
 
 /**
  * Cadastro e edição de evento (CH-40). Ao salvar, aparece no calendário.
+ * As ações ficam no CadastroEventoController.
  */
 public class PainelCadastroEvento extends PainelFormulario {
 
-    private final Evento evento;
-    private final EventoController controller = new EventoController();
     private final JTextField nome = new JTextField();
     private final JComboBox<TipoEvento> tipo = new JComboBox<>(TipoEvento.values());
     private final JTextField data = new JTextField();
@@ -29,10 +25,11 @@ public class PainelCadastroEvento extends PainelFormulario {
     private final JTextArea descricao = new JTextArea();
     private final JTextArea observacoes = new JTextArea();
 
-    public PainelCadastroEvento(Evento evento, Navegador navegador) {
-        super(evento.isNova() ? "Novo Evento" : "Editar Evento", navegador);
-        this.evento = evento;
+    public PainelCadastroEvento() {
+        inicializarComponentes();
+    }
 
+    private void inicializarComponentes() {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: Festa Atlética");
         data.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
         horario.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "hh:mm");
@@ -47,7 +44,10 @@ public class PainelCadastroEvento extends PainelFormulario {
         adicionarCampo("Situação", situacao, true);
         adicionarCampoLinhaInteira("Descrição", areaTexto(descricao), false);
         adicionarCampoLinhaInteira("Observações", areaTexto(observacoes), false);
+    }
 
+    public void preencherCampos(Evento evento) {
+        setTitulo(evento.isNova() ? "Novo Evento" : "Editar Evento");
         nome.setText(evento.getTitulo());
         if (evento.getTipoEvento() != null) {
             tipo.setSelectedItem(evento.getTipoEvento());
@@ -60,25 +60,35 @@ public class PainelCadastroEvento extends PainelFormulario {
         observacoes.setText(evento.getObservacoes());
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
-        evento.setTitulo(nome.getText().trim());
-        evento.setTipoEvento((TipoEvento) tipo.getSelectedItem());
-        evento.setData(Validador.converterData(data.getText(), "Data"));
-        evento.setHorario(Validador.converterHorario(horario.getText(), "Horário"));
-        evento.setLocal(textoOuNulo(local.getText()));
-        evento.setSituacao((SituacaoEvento) situacao.getSelectedItem());
-        evento.setDescricao(textoOuNulo(descricao.getText()));
-        evento.setObservacoes(textoOuNulo(observacoes.getText()));
-        controller.salvar(evento);
+    public String getNome() {
+        return nome.getText().trim();
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Evento salvo com sucesso. Ele já aparece no calendário.";
+    public TipoEvento getTipo() {
+        return (TipoEvento) tipo.getSelectedItem();
     }
 
-    private static String textoOuNulo(String texto) {
-        return texto == null || texto.isBlank() ? null : texto.trim();
+    public String getData() {
+        return data.getText();
+    }
+
+    public String getHorario() {
+        return horario.getText();
+    }
+
+    public String getLocal() {
+        return textoOuNulo(local.getText());
+    }
+
+    public SituacaoEvento getSituacao() {
+        return (SituacaoEvento) situacao.getSelectedItem();
+    }
+
+    public String getDescricao() {
+        return textoOuNulo(descricao.getText());
+    }
+
+    public String getObservacoes() {
+        return textoOuNulo(observacoes.getText());
     }
 }

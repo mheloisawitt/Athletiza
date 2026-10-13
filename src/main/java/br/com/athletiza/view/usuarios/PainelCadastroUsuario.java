@@ -1,15 +1,11 @@
 package br.com.athletiza.view.usuarios;
 
-import br.com.athletiza.controller.UsuarioController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Situacao;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import com.formdev.flatlaf.FlatClientProperties;
-import java.util.Arrays;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
@@ -17,67 +13,83 @@ import javax.swing.JTextField;
 
 /**
  * Cadastro e edição de usuário (RF01). Na edição, a senha só é trocada se for preenchida.
+ * As ações ficam no CadastroUsuarioController.
  */
 public class PainelCadastroUsuario extends PainelFormulario {
 
-    private final Usuario usuario;
-    private final UsuarioController controller = new UsuarioController();
     private final JTextField nome = new JTextField();
     private final JTextField login = new JTextField();
     private final JComboBox<Perfil> perfil = new JComboBox<>(Perfil.values());
     private final JComboBox<Situacao> situacao = new JComboBox<>(Situacao.values());
     private final JPasswordField senha = new JPasswordField();
     private final JPasswordField confirmacao = new JPasswordField();
+    private final boolean novo;
 
-    public PainelCadastroUsuario(Usuario usuario, Navegador navegador) {
-        super(usuario.isNova() ? "Novo Usuário" : "Editar Usuário", navegador);
-        this.usuario = usuario;
+    /** @param novo true na inclusão (a senha é obrigatória) */
+    public PainelCadastroUsuario(boolean novo) {
+        this.novo = novo;
+        inicializarComponentes();
+    }
 
+    private void inicializarComponentes() {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nome completo");
         login.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: juliana.martins");
         for (JPasswordField campo : new JPasswordField[]{senha, confirmacao}) {
             campo.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true");
             campo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT,
-                    usuario.isNova() ? "Mínimo de 6 caracteres" : "Deixe em branco para manter a atual");
+                    novo ? "Mínimo de 6 caracteres" : "Deixe em branco para manter a atual");
         }
 
         adicionarCampo("Nome", nome, true);
         adicionarCampo("Login", login, true);
         adicionarCampo("Perfil", perfil, true);
         adicionarCampo("Situação", situacao, true);
-        adicionarCampo(usuario.isNova() ? "Senha" : "Nova senha", senha, usuario.isNova());
-        adicionarCampo("Confirmação da senha", confirmacao, usuario.isNova());
+        adicionarCampo(novo ? "Senha" : "Nova senha", senha, novo);
+        adicionarCampo("Confirmação da senha", confirmacao, novo);
 
         JLabel ajuda = new JLabel("<html>Administrador: acesso total, inclusive usuários. Diretoria: inclui, edita e exclui"
                 + " registros. Consulta: apenas visualiza.<br>A senha definida aqui para outra pessoa é provisória:"
                 + " ela deverá trocá-la no primeiro acesso.</html>");
         ajuda.setForeground(Cores.TEXTO_SECUNDARIO);
         adicionarLinha(ajuda);
+    }
 
+    public void preencherCampos(Usuario usuario) {
+        setTitulo(usuario.isNova() ? "Novo Usuário" : "Editar Usuário");
         nome.setText(usuario.getNome());
         login.setText(usuario.getLogin());
         perfil.setSelectedItem(usuario.getPerfil());
         situacao.setSelectedItem(usuario.isAtivo() ? Situacao.ATIVO : Situacao.INATIVO);
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
-        char[] novaSenha = senha.getPassword();
-        char[] novaConfirmacao = confirmacao.getPassword();
-        try {
-            usuario.setNome(nome.getText().trim());
-            usuario.setLogin(login.getText().trim());
-            usuario.setPerfil((Perfil) perfil.getSelectedItem());
-            usuario.setAtivo(situacao.getSelectedItem() == Situacao.ATIVO);
-            controller.salvar(usuario, novaSenha, novaConfirmacao);
-        } finally {
-            Arrays.fill(novaSenha, '\0');
-            Arrays.fill(novaConfirmacao, '\0');
-        }
+    public String getNome() {
+        return nome.getText().trim();
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Usuário salvo com sucesso.";
+    public String getLogin() {
+        return login.getText().trim();
+    }
+
+    public Perfil getPerfil() {
+        return (Perfil) perfil.getSelectedItem();
+    }
+
+    public boolean isAtivo() {
+        return situacao.getSelectedItem() == Situacao.ATIVO;
+    }
+
+    /** Senha digitada. Quem chama deve apagar o array depois de usar (Arrays.fill). */
+    public char[] getSenha() {
+        return senha.getPassword();
+    }
+
+    public char[] getConfirmacao() {
+        return confirmacao.getPassword();
+    }
+
+    /** Preenche os campos de senha (usado nos testes). */
+    public void setSenha(String novaSenha, String novaConfirmacao) {
+        senha.setText(novaSenha);
+        confirmacao.setText(novaConfirmacao);
     }
 }

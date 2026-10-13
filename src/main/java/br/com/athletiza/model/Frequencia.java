@@ -1,16 +1,32 @@
 package br.com.athletiza.model;
 
-import java.util.Comparator;
-
 /**
  * Frequência de um atleta nos treinos de um período (CH-37).
  * Ordem natural: maior frequência primeiro e, empatando, pelo nome.
  */
-public record Frequencia(Atleta atleta, int treinos, int presencas) implements Comparable<Frequencia> {
+public class Frequencia implements Comparable<Frequencia> {
 
-    private static final Comparator<Frequencia> ORDEM = Comparator
-            .comparingInt(Frequencia::getPercentual).reversed()
-            .thenComparing(Frequencia::atleta);
+    private final Atleta atleta;
+    private final int treinos;
+    private final int presencas;
+
+    public Frequencia(Atleta atleta, int treinos, int presencas) {
+        this.atleta = atleta;
+        this.treinos = treinos;
+        this.presencas = presencas;
+    }
+
+    public Atleta getAtleta() {
+        return atleta;
+    }
+
+    public int getTreinos() {
+        return treinos;
+    }
+
+    public int getPresencas() {
+        return presencas;
+    }
 
     /** Percentual de presença, de 0 a 100. */
     public int getPercentual() {
@@ -23,6 +39,9 @@ public record Frequencia(Atleta atleta, int treinos, int presencas) implements C
 
     @Override
     public int compareTo(Frequencia outra) {
-        return ORDEM.compare(this, outra);
+        if (getPercentual() != outra.getPercentual()) {
+            return Integer.compare(outra.getPercentual(), getPercentual()); // invertido: maior primeiro
+        }
+        return atleta.compareTo(outra.atleta);
     }
 }

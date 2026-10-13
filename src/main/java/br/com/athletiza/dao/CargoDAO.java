@@ -7,12 +7,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Acesso aos dados dos cargos da gestão (CH-18).
  */
-public class CargoDAO extends AbstractDAO<Cargo> {
+public class CargoDAO extends AbstractDAO<Cargo> implements CargoRepository {
 
     @Override
     protected String getTabela() {
@@ -45,6 +44,7 @@ public class CargoDAO extends AbstractDAO<Cargo> {
     /** Todos os cargos, cada um ligado ao objeto do seu cargo superior. */
     @Override
     public List<Cargo> listarTodos() throws PersistenciaException {
+        // Primeira passada: lê os cargos e guarda o id do superior de cada um
         Map<Integer, Integer> superiores = new HashMap<>();
         List<Cargo> cargos = consultar("SELECT * FROM cargo ORDER BY " + getOrdenacaoPadrao(), rs -> {
             Cargo cargo = mapear(rs);
@@ -54,20 +54,31 @@ public class CargoDAO extends AbstractDAO<Cargo> {
             }
             return cargo;
         });
+        // Segunda passada: liga cada cargo ao objeto do seu superior
         Map<Integer, Cargo> porId = new HashMap<>();
-        cargos.forEach(c -> porId.put(c.getId(), c));
-        cargos.forEach(c -> c.setCargoSuperior(porId.get(superiores.get(c.getId()))));
+        for (Cargo cargo : cargos) {
+            porId.put(cargo.getId(), cargo);
+        }
+        for (Cargo cargo : cargos) {
+            cargo.setCargoSuperior(porId.get(superiores.get(cargo.getId())));
+        }
         return cargos;
     }
 
+    /** Busca na lista completa, para o cargo vir com toda a cadeia de superiores. */
     @Override
-    public Optional<Cargo> buscarPorId(int id) throws PersistenciaException {
-        return listarTodos().stream().filter(c -> c.getId() == id).findFirst();
+    public Cargo buscarPorId(int id) throws PersistenciaException {
+        for (Cargo cargo : listarTodos()) {
+            if (cargo.getId() == id) {
+                return cargo;
+            }
+        }
+        return null;
     }
 
-    /** Quantas vezes o cargo está ocupado, somando todas as gestões. */
+    @Override
     public int contarOcupacoes(int id) throws PersistenciaException {
-        return consultar("SELECT COUNT(*) FROM gestao_membro_cargo WHERE cargo_id = ?", rs -> rs.getInt(1), id).get(0);
+        return contar("SELECT COUNT(*) FROM gestao_membro_cargo WHERE cargo_id = ?", id);
     }
 
     private static Integer idDoSuperior(Cargo cargo) {

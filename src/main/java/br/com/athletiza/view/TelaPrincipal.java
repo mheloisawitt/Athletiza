@@ -1,30 +1,18 @@
 package br.com.athletiza.view;
 
-import br.com.athletiza.model.Usuario;
-import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.MenuLateral;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.Recarregavel;
-import br.com.athletiza.view.atletas.PainelConsultaAtletas;
-import br.com.athletiza.view.calendario.PainelCalendario;
-import br.com.athletiza.view.competicoes.PainelConsultaCompeticoes;
-import br.com.athletiza.view.eventos.PainelConsultaEventos;
-import br.com.athletiza.view.gestao.PainelConsultaGestoes;
-import br.com.athletiza.view.registros.PainelRegistros;
-import br.com.athletiza.view.treinos.PainelTreinos;
-import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
-import br.com.athletiza.view.usuarios.PainelConsultaUsuarios;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,59 +20,73 @@ import javax.swing.JPanel;
 /**
  * Janela principal (CH-14): menu lateral à esquerda e a área central, que
  * troca de conteúdo com CardLayout, sem abrir janelas extras.
+ *
+ * Os módulos (telas do menu) são criados pelo PrincipalController e adicionados
+ * com adicionarModulo. Como implementa Navegador, os controllers abrem outras
+ * telas na área central (abrir) e voltam para a anterior (voltar).
  */
 public class TelaPrincipal extends JFrame implements Navegador {
 
-    /** Módulos do menu, na ordem de exibição. Cada um é criado só quando aberto pela primeira vez. */
-    private final Map<String, Supplier<JComponent>> modulos = new LinkedHashMap<>();
-    private final Map<String, JComponent> modulosCriados = new HashMap<>();
-
+    private final Map<String, JComponent> modulos = new HashMap<>();
     private final CardLayout cartoes = new CardLayout();
     private final JPanel conteudo = new JPanel(cartoes);
-    private final MenuLateral menu = new MenuLateral(this::mostrarModulo);
+    private final MenuLateral menu = new MenuLateral(e -> mostrarModulo(e.getActionCommand()));
     private String moduloAtual;
     /** Telas abertas sobre o módulo atual (ex.: consulta -> cadastro). "Voltar" retorna à anterior. */
     private final Deque<JComponent> telasAbertas = new ArrayDeque<>();
 
-    public TelaPrincipal(Usuario usuario) {
+    public TelaPrincipal() {
         super("Athletiza - Sistema de Gerenciamento");
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        modulos.put("Início", () -> new PainelCalendario(this));
-        modulos.put("Gestão", () -> new PainelConsultaGestoes(this));
-        modulos.put("Atletas", () -> new PainelConsultaAtletas(this));
-        modulos.put("Competições", () -> new PainelConsultaCompeticoes(this));
-        modulos.put("Treinos", () -> new PainelTreinos(this));
-        modulos.put("Eventos", () -> new PainelConsultaEventos(this));
-        modulos.put("Registros", PainelRegistros::new);
-        if (Sessao.podeGerenciarUsuarios()) {
-            modulos.put("Usuários", () -> new PainelConsultaUsuarios(this));
-        }
-        modulos.keySet().forEach(menu::adicionarItem);
-        menu.definirUsuario(usuario.getNome(), usuario.getPerfil().getDescricao(),
-                () -> DialogoAlterarSenha.abrir(this, usuario), this::sair);
-
         setLayout(new BorderLayout());
         add(menu, BorderLayout.WEST);
         add(conteudo, BorderLayout.CENTER);
-
         setSize(1280, 800);
         setMinimumSize(new Dimension(1000, 620));
         setLocationRelativeTo(null);
-        menu.selecionar("Início");
+    }
+
+    /** Adiciona um item ao menu lateral e a tela que ele abre. */
+    public void adicionarModulo(String nome, JComponent tela) {
+        modulos.put(nome, tela);
+        conteudo.add(tela, nome);
+        menu.adicionarItem(nome);
+    }
+
+    /** Seleciona um item do menu, como se o usuário clicasse nele. */
+    public void selecionarModulo(String nome) {
+        menu.selecionar(nome);
+    }
+
+    /** Nome e perfil do usuário logado, no rodapé do menu. */
+    public void definirUsuario(String nome, String perfil) {
+        menu.definirUsuario(nome, perfil);
+    }
+
+    public void adicionarAcaoAlterarSenha(ActionListener acao) {
+        menu.adicionarAcaoAlterarSenha(acao);
+    }
+
+    public void adicionarAcaoSair(ActionListener acao) {
+        menu.adicionarAcaoSair(acao);
+    }
+
+    public boolean confirmar(String pergunta) {
+        return Mensagens.confirmar(this, pergunta);
     }
 
     private void mostrarModulo(String nome) {
-        telasAbertas.forEach(conteudo::remove);
+        for (JComponent tela : telasAbertas) {
+            conteudo.remove(tela);
+        }
         telasAbertas.clear();
-        modulosCriados.computeIfAbsent(nome, chave -> {
-            JComponent painel = modulos.get(chave).get();
-            conteudo.add(painel, chave);
-            return painel;
-        });
         moduloAtual = nome;
         cartoes.show(conteudo, nome);
-        recarregarModuloAtual();
+        recarregar(modulos.get(nome));
     }
 
     @Override
@@ -92,9 +94,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         telasAbertas.push(tela);
         conteudo.add(tela, nomeCartao(tela));
         cartoes.show(conteudo, nomeCartao(tela));
-        if (tela instanceof Recarregavel recarregavel) {
-            recarregavel.carregar();
-        }
+        recarregar(tela);
     }
 
     @Override
@@ -105,12 +105,10 @@ public class TelaPrincipal extends JFrame implements Navegador {
         JComponent anterior = telasAbertas.peek();
         if (anterior == null) {
             cartoes.show(conteudo, moduloAtual);
-            recarregarModuloAtual();
+            recarregar(modulos.get(moduloAtual));
         } else {
             cartoes.show(conteudo, nomeCartao(anterior));
-            if (anterior instanceof Recarregavel recarregavel) {
-                recarregavel.carregar();
-            }
+            recarregar(anterior);
         }
     }
 
@@ -118,18 +116,10 @@ public class TelaPrincipal extends JFrame implements Navegador {
         return "tela-" + System.identityHashCode(tela);
     }
 
-    private void recarregarModuloAtual() {
-        Component modulo = modulosCriados.get(moduloAtual);
-        if (modulo instanceof Recarregavel recarregavel) {
-            recarregavel.carregar();
-        }
-    }
-
-    private void sair() {
-        if (Mensagens.confirmar(this, "Deseja sair do sistema?")) {
-            Sessao.encerrar();
-            dispose();
-            new TelaLogin().setVisible(true);
+    /** Telas que buscam dados (Recarregavel) são atualizadas sempre que aparecem. */
+    private static void recarregar(Component tela) {
+        if (tela instanceof Recarregavel) {
+            ((Recarregavel) tela).carregar();
         }
     }
 }

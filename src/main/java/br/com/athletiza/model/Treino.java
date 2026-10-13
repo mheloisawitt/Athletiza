@@ -1,7 +1,9 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +38,36 @@ public class Treino extends Atividade {
         return getTipo().getDescricao();
     }
 
+    /**
+     * Regras de preenchimento do cadastro (CH-35). Amistoso sobrescreve
+     * validarCampos para conferir também o adversário (polimorfismo).
+     */
+    public final void validar() throws ValidacaoException {
+        Validador validador = new Validador();
+        validarCampos(validador);
+        validador.validar();
+    }
+
+    protected void validarCampos(Validador validador) {
+        validador.obrigatorio(modalidade, "Modalidade")
+                .obrigatorio(getData(), "Data")
+                .tamanhoMaximo(getLocal(), 100, "Local")
+                .tamanhoMaximo(getTitulo(), 100, "Título")
+                .tamanhoMaximo(getObservacoes(), 500, "Observações");
+    }
+
+    /** Título usado quando o usuário deixa o campo vazio (ex.: "Treino Futsal (F)"). */
+    public String getTituloPadrao() {
+        return "Treino " + modalidade;
+    }
+
+    /** Preenche o título padrão se ele estiver vazio. */
+    public void gerarTituloSeVazio() {
+        if (getTitulo() == null || getTitulo().isBlank()) {
+            setTitulo(getTituloPadrao());
+        }
+    }
+
     public Modalidade getModalidade() {
         return modalidade;
     }
@@ -56,15 +88,24 @@ public class Treino extends Atividade {
         presencas.put(atleta, presente);
     }
 
+    /** Indica se o atleta está marcado como presente (false se não houver registro). */
+    public boolean estavaPresente(Atleta atleta) {
+        return Boolean.TRUE.equals(presencas.get(atleta));
+    }
+
     public Map<Atleta, Boolean> getPresencas() {
         return Collections.unmodifiableMap(presencas);
     }
 
+    /** Atletas presentes, em ordem alfabética. */
     public List<Atleta> getPresentes() {
-        return presencas.entrySet().stream()
-                .filter(Map.Entry::getValue)
-                .map(Map.Entry::getKey)
-                .sorted()
-                .toList();
+        List<Atleta> presentes = new ArrayList<>();
+        for (Map.Entry<Atleta, Boolean> presenca : presencas.entrySet()) {
+            if (presenca.getValue()) {
+                presentes.add(presenca.getKey());
+            }
+        }
+        Collections.sort(presentes);
+        return presentes;
     }
 }

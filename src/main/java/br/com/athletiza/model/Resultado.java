@@ -1,10 +1,23 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
+
 /**
  * Resultado obtido em uma competição, por modalidade (RF16).
  * Quando o atleta é nulo, o resultado é da equipe.
  */
 public class Resultado extends Entidade {
+
+    /** Regras de preenchimento do lançamento (CH-32). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(modalidade, "Modalidade")
+                .regra(colocacao == null || colocacao > 0, "A \"Colocação\" deve ser maior que zero.")
+                .regra(colocacao != null || (placar != null && !placar.isBlank()), "Informe a colocação ou o placar.")
+                .tamanhoMaximo(placar, 50, "Placar")
+                .tamanhoMaximo(observacao, 500, "Observação")
+                .validar();
+    }
 
     private Modalidade modalidade;
     private Atleta atleta;

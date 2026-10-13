@@ -1,25 +1,24 @@
 package br.com.athletiza.view.atletas;
 
-import br.com.athletiza.controller.AtletaController;
-import br.com.athletiza.controller.ModalidadeController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Situacao;
 import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Combos;
-import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 
 /**
  * Consulta de atletas (CH-25): filtro por modalidade e situação, busca por texto
  * e ordenação escolhida pelo usuário (Comparators de Atleta).
+ * As ações ficam no ConsultaAtletasController.
  */
 public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
 
@@ -44,23 +43,26 @@ public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
         }
     }
 
-    private final AtletaController controller = new AtletaController();
-    private final ModalidadeController modalidadeController = new ModalidadeController();
-    private final Navegador navegador;
-    private final JComboBox<Modalidade> filtroModalidade = Combos.comOpcaoTodos(List.of(), "Todas as modalidades");
-    private final JComboBox<Situacao> filtroSituacao = Combos.comOpcaoTodos(List.of(Situacao.values()), "Todas as situações");
+    private final JComboBox<Modalidade> filtroModalidade =
+            Combos.comOpcaoTodos(new ArrayList<Modalidade>(), "Todas as modalidades");
+    private final JComboBox<Situacao> filtroSituacao =
+            Combos.comOpcaoTodos(Arrays.asList(Situacao.values()), "Todas as situações");
     private final JComboBox<Ordem> ordem = new JComboBox<>(Ordem.values());
+    private final JButton btnModalidades = Botoes.contornoVerde("Modalidades", null);
+    private ActionListener acaoFiltrar;
     private boolean atualizandoFiltros;
 
-    public PainelConsultaAtletas(Navegador navegador) {
+    public PainelConsultaAtletas() {
         super("Atletas", new ModeloTabela<Atleta>()
-                .coluna("Nome", String.class, Atleta::getNome)
-                .coluna("Matrícula", String.class, Atleta::getMatricula)
-                .coluna("Modalidades", String.class, a -> a.getModalidades().stream()
-                        .map(Modalidade::toString).collect(Collectors.joining(", ")))
-                .coluna("Contato", String.class, Atleta::getContato)
-                .coluna("Situação", Situacao.class, Atleta::getSituacao));
-        this.navegador = navegador;
+                .coluna("Nome", String.class, a -> a.getNome())
+                .coluna("Matrícula", String.class, a -> a.getMatricula())
+                .coluna("Modalidades", String.class, a -> a.getModalidadesTexto())
+                .coluna("Contato", String.class, a -> a.getContato())
+                .coluna("Situação", Situacao.class, a -> a.getSituacao()));
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
         larguraColuna(0, 220);
         larguraColuna(1, 100);
         larguraColuna(2, 220);
@@ -69,58 +71,52 @@ public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
         adicionarFiltro(filtroModalidade);
         adicionarFiltro(filtroSituacao);
         adicionarFiltro(ordem);
-        filtroModalidade.addActionListener(e -> recarregarPorFiltro());
-        filtroSituacao.addActionListener(e -> recarregarPorFiltro());
+        filtroModalidade.addActionListener(e -> filtrar());
+        filtroSituacao.addActionListener(e -> filtrar());
         ordem.addActionListener(e -> {
             limparOrdenacaoDaTabela();
-            recarregarPorFiltro();
+            filtrar();
         });
-
-        adicionarBotao(Botoes.contornoVerde("Modalidades", e -> navegador.abrir(new PainelConsultaModalidades(navegador))));
+        adicionarBotao(btnModalidades);
     }
 
-    @Override
-    protected List<Atleta> buscarDados() throws AthletizaException {
-        atualizarOpcoesDeModalidade();
-        Ordem ordemEscolhida = (Ordem) ordem.getSelectedItem();
-        return controller.pesquisar(null, (Modalidade) filtroModalidade.getSelectedItem(),
-                (Situacao) filtroSituacao.getSelectedItem(), ordemEscolhida.comparador);
+    /** Ação executada quando um filtro ou a ordenação mudam. */
+    public void adicionarAcaoFiltrar(ActionListener acao) {
+        this.acaoFiltrar = acao;
     }
 
-    @Override
-    protected void incluir() {
-        navegador.abrir(new PainelCadastroAtleta(new Atleta(), navegador));
+    public void adicionarAcaoModalidades(ActionListener acao) {
+        btnModalidades.addActionListener(acao);
     }
 
-    @Override
-    protected void editar(Atleta atleta) {
-        navegador.abrir(new PainelCadastroAtleta(atleta, navegador));
-    }
-
-    @Override
-    protected void excluir(Atleta atleta) {
-        try {
-            controller.excluir(atleta);
-            Mensagens.sucesso(this, "Atleta excluído.");
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
-        }
-        carregar();
-    }
-
-    /** As modalidades podem ter mudado no cadastro de modalidades; mantém a seleção atual. */
-    private void atualizarOpcoesDeModalidade() throws AthletizaException {
+    /** Troca as opções do filtro de modalidade, mantendo a selecionada (sem disparar o filtro). */
+    public void setModalidades(List<Modalidade> modalidades) {
         atualizandoFiltros = true;
         try {
-            Combos.atualizarItens(filtroModalidade, modalidadeController.listar());
+            Combos.atualizarItens(filtroModalidade, modalidades);
         } finally {
             atualizandoFiltros = false;
         }
     }
 
-    private void recarregarPorFiltro() {
-        if (!atualizandoFiltros) {
-            carregar();
+    /** Modalidade escolhida no filtro, ou null para todas. */
+    public Modalidade getModalidade() {
+        return (Modalidade) filtroModalidade.getSelectedItem();
+    }
+
+    /** Situação escolhida no filtro, ou null para todas. */
+    public Situacao getSituacao() {
+        return (Situacao) filtroSituacao.getSelectedItem();
+    }
+
+    /** Critério de ordenação escolhido. */
+    public Comparator<Atleta> getOrdem() {
+        return ((Ordem) ordem.getSelectedItem()).comparador;
+    }
+
+    private void filtrar() {
+        if (!atualizandoFiltros && acaoFiltrar != null) {
+            acaoFiltrar.actionPerformed(null);
         }
     }
 }

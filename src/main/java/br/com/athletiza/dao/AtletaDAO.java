@@ -13,20 +13,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Acesso aos dados dos atletas e de seus vínculos com modalidades (CH-24).
  * O atleta e suas modalidades são gravados na mesma transação.
  */
-public class AtletaDAO extends AbstractDAO<Atleta> {
+public class AtletaDAO extends AbstractDAO<Atleta> implements AtletaRepository {
 
     private static final String SELECT_VINCULOS = "SELECT am.atleta_id, am.situacao, m.id AS modalidade_id,"
             + " m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM atleta_modalidade am JOIN modalidade m ON m.id = am.modalidade_id";
 
     /** Vínculo lido do banco: a qual atleta pertence, qual modalidade e em que situação. */
-    private record Vinculo(int atletaId, Modalidade modalidade, SituacaoAtleta situacao) {
+    private static class Vinculo {
+
+        final int atletaId;
+        final Modalidade modalidade;
+        final SituacaoAtleta situacao;
+
+        Vinculo(int atletaId, Modalidade modalidade, SituacaoAtleta situacao) {
+            this.atletaId = atletaId;
+            this.modalidade = modalidade;
+            this.situacao = situacao;
+        }
     }
 
     @Override
@@ -71,11 +80,13 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
     }
 
     @Override
-    public Optional<Atleta> buscarPorId(int id) throws PersistenciaException {
-        Optional<Atleta> atleta = super.buscarPorId(id);
-        if (atleta.isPresent()) {
-            consultar(SELECT_VINCULOS + " WHERE am.atleta_id = ?", AtletaDAO::mapearVinculo, id)
-                    .forEach(v -> atleta.get().vincularModalidade(v.modalidade(), v.situacao()));
+    public Atleta buscarPorId(int id) throws PersistenciaException {
+        Atleta atleta = super.buscarPorId(id);
+        if (atleta != null) {
+            List<Vinculo> vinculos = consultar(SELECT_VINCULOS + " WHERE am.atleta_id = ?", rs -> mapearVinculo(rs), id);
+            for (Vinculo vinculo : vinculos) {
+                atleta.vincularModalidade(vinculo.modalidade, vinculo.situacao);
+            }
         }
         return atleta;
     }
@@ -85,26 +96,35 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
     public List<Atleta> listarTodos() throws PersistenciaException {
         List<Atleta> atletas = super.listarTodos();
         Map<Integer, Atleta> porId = new HashMap<>();
-        atletas.forEach(a -> porId.put(a.getId(), a));
-        for (Vinculo vinculo : consultar(SELECT_VINCULOS + " ORDER BY m.nome, m.genero", AtletaDAO::mapearVinculo)) {
-            Atleta atleta = porId.get(vinculo.atletaId());
+        for (Atleta atleta : atletas) {
+            porId.put(atleta.getId(), atleta);
+        }
+        List<Vinculo> vinculos = consultar(SELECT_VINCULOS + " ORDER BY m.nome, m.genero", rs -> mapearVinculo(rs));
+        for (Vinculo vinculo : vinculos) {
+            Atleta atleta = porId.get(vinculo.atletaId);
             if (atleta != null) {
-                atleta.vincularModalidade(vinculo.modalidade(), vinculo.situacao());
+                atleta.vincularModalidade(vinculo.modalidade, vinculo.situacao);
             }
         }
         return atletas;
     }
 
-    /** Indica se outro atleta (diferente de idIgnorado) já usa a matrícula. */
+    /** Todos os atletas indexados pelo id (usado pelos DAOs de treino e competição). */
+    Map<Integer, Atleta> listarPorId() throws PersistenciaException {
+        Map<Integer, Atleta> porId = new HashMap<>();
+        for (Atleta atleta : listarTodos()) {
+            porId.put(atleta.getId(), atleta);
+        }
+        return porId;
+    }
+
+    @Override
     public boolean existeMatricula(String matricula, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM atleta WHERE matricula = ? AND id <> ?",
                 matricula, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /**
-     * Descreve os registros que impedem a exclusão do atleta (CH-45),
-     * por exemplo "2 presença(s) em treinos". Lista vazia: pode excluir.
-     */
+    @Override
     public List<String> listarVinculos(int id) throws PersistenciaException {
         List<String> vinculos = new ArrayList<>();
         int presencas = contar("SELECT COUNT(*) FROM presenca_treino WHERE atleta_id = ?", id);
@@ -120,10 +140,6 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
             vinculos.add(resultados + " resultado(s) em competições");
         }
         return vinculos;
-    }
-
-    private int contar(String sql, Object... parametros) throws PersistenciaException {
-        return consultar(sql, rs -> rs.getInt(1), parametros).get(0);
     }
 
     private static void gravarVinculos(Connection con, int atletaId, Atleta atleta) throws SQLException {

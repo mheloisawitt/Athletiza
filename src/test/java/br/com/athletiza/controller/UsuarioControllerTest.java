@@ -2,22 +2,30 @@ package br.com.athletiza.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
+import br.com.athletiza.NavegadorFalso;
+import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Sessao;
+import br.com.athletiza.view.usuarios.DialogoAlterarSenha;
+import br.com.athletiza.view.usuarios.PainelCadastroUsuario;
+import br.com.athletiza.view.usuarios.PainelConsultaUsuarios;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UsuarioControllerTest {
 
-    private final UsuarioController controller = new UsuarioController();
-    private final LoginController login = new LoginController();
+    private final NavegadorFalso navegador = new NavegadorFalso();
+    private final UsuarioDAO dao = new UsuarioDAO();
+    private final LoginController login = new LoginController(null, dao);
+    private final ConsultaUsuariosController consulta =
+            new ConsultaUsuariosController(new PainelConsultaUsuarios(), dao, navegador);
 
     @BeforeEach
     void prepararBanco() throws Exception {
@@ -25,22 +33,36 @@ class UsuarioControllerTest {
         Sessao.encerrar();
     }
 
+    /** Grava o usuário como se ele tivesse sido preenchido na tela de cadastro. */
+    private void salvar(Usuario usuario, String senha, String confirmacao) throws Exception {
+        CadastroUsuarioController cadastro = new CadastroUsuarioController(new PainelCadastroUsuario(usuario.isNova()),
+                usuario, dao, navegador);
+        cadastro.gravar(senha == null ? null : senha.toCharArray(), confirmacao == null ? null : confirmacao.toCharArray());
+    }
+
+    private AlterarSenhaController alterarSenha(Usuario usuario) {
+        return new AlterarSenhaController(new DialogoAlterarSenha(null, null), usuario, dao);
+    }
+
+    private Usuario admin() throws Exception {
+        return dao.buscarPorLogin("admin");
+    }
+
     @Test
     void criaUsuarioQueConsegueEntrar() throws Exception {
         Usuario diretora = new Usuario("Juliana Martins", "juliana", Perfil.DIRETORIA);
 
-        controller.salvar(diretora, "segredo1".toCharArray(), "segredo1".toCharArray());
+        salvar(diretora, "segredo1", "segredo1");
 
         assertEquals(Perfil.DIRETORIA, login.autenticar("juliana", "segredo1".toCharArray()).getPerfil());
-        assertEquals(2, controller.listar().size());
+        assertEquals(2, dao.listarTodos().size());
     }
 
     @Test
     void validaLoginESenhaDoNovoUsuario() {
         Usuario invalido = new Usuario(" ", "ju liana", Perfil.CONSULTA);
 
-        ValidacaoException erro = assertThrows(ValidacaoException.class,
-                () -> controller.salvar(invalido, "123".toCharArray(), "124".toCharArray()));
+        ValidacaoException erro = assertThrows(ValidacaoException.class, () -> salvar(invalido, "123", "124"));
 
         assertEquals(4, erro.getErros().size(), erro.getMessage());
     }
@@ -49,41 +71,40 @@ class UsuarioControllerTest {
     void naoPermiteLoginRepetido() {
         Usuario repetido = new Usuario("Outro", "ADMIN", Perfil.CONSULTA);
 
-        assertThrows(RegraNegocioException.class,
-                () -> controller.salvar(repetido, "segredo1".toCharArray(), "segredo1".toCharArray()));
+        assertThrows(RegraNegocioException.class, () -> salvar(repetido, "segredo1", "segredo1"));
     }
 
     @Test
     void alteracaoSemSenhaMantemASenhaAtual() throws Exception {
-        Usuario admin = controller.listar().get(0);
+        Usuario admin = admin();
         admin.setNome("Administrador Geral");
 
-        controller.salvar(admin, new char[0], new char[0]);
+        salvar(admin, "", "");
 
         assertEquals("Administrador Geral", login.autenticar("admin", "admin123".toCharArray()).getNome());
     }
 
     @Test
     void sistemaNuncaFicaSemAdministradorAtivo() throws Exception {
-        Usuario admin = controller.listar().get(0);
+        Usuario admin = admin();
 
         admin.setPerfil(Perfil.DIRETORIA);
-        assertThrows(RegraNegocioException.class, () -> controller.salvar(admin, null, null));
+        assertThrows(RegraNegocioException.class, () -> salvar(admin, null, null));
         admin.setPerfil(Perfil.ADMINISTRADOR);
         admin.setAtivo(false);
-        assertThrows(RegraNegocioException.class, () -> controller.salvar(admin, null, null));
-        assertThrows(RegraNegocioException.class, () -> controller.excluir(admin));
+        assertThrows(RegraNegocioException.class, () -> salvar(admin, null, null));
+        assertThrows(RegraNegocioException.class, () -> consulta.excluir(admin));
     }
 
     @Test
     void naoExcluiOProprioUsuario() throws Exception {
         Usuario outroAdmin = new Usuario("Mariana", "mariana", Perfil.ADMINISTRADOR);
-        controller.salvar(outroAdmin, "segredo1".toCharArray(), "segredo1".toCharArray());
+        salvar(outroAdmin, "segredo1", "segredo1");
         Sessao.iniciar(outroAdmin);
 
-        assertThrows(RegraNegocioException.class, () -> controller.excluir(outroAdmin));
-        controller.excluir(controller.listar().stream().filter(u -> u.getLogin().equals("admin")).findFirst().orElseThrow());
-        assertEquals(1, controller.listar().size());
+        assertThrows(RegraNegocioException.class, () -> consulta.excluir(outroAdmin));
+        consulta.excluir(admin());
+        assertEquals(1, dao.listarTodos().size());
     }
 
     @Test
@@ -91,7 +112,7 @@ class UsuarioControllerTest {
         Usuario admin = login.autenticar("admin", "admin123".toCharArray());
         assertTrue(admin.isDeveTrocarSenha());
 
-        controller.alterarSenha(admin, "admin123".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray());
+        alterarSenha(admin).alterarSenha("admin123".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray());
 
         assertFalse(admin.isDeveTrocarSenha());
         assertFalse(login.autenticar("admin", "novaSenha".toCharArray()).isDeveTrocarSenha());
@@ -102,24 +123,25 @@ class UsuarioControllerTest {
         Sessao.iniciar(login.autenticar("admin", "admin123".toCharArray()));
         Usuario diretora = new Usuario("Juliana Martins", "juliana", Perfil.DIRETORIA);
 
-        controller.salvar(diretora, "segredo1".toCharArray(), "segredo1".toCharArray());
+        salvar(diretora, "segredo1", "segredo1");
         assertTrue(login.autenticar("juliana", "segredo1".toCharArray()).isDeveTrocarSenha());
 
-        Usuario admin = controller.listar().stream().filter(u -> u.getLogin().equals("admin")).findFirst().orElseThrow();
+        Usuario admin = admin();
         Sessao.iniciar(admin);
-        controller.salvar(admin, "outraSenha".toCharArray(), "outraSenha".toCharArray());
+        salvar(admin, "outraSenha", "outraSenha");
         assertFalse(login.autenticar("admin", "outraSenha".toCharArray()).isDeveTrocarSenha());
     }
 
     @Test
     void trocaAPropriaSenhaConferindoASenhaAtual() throws Exception {
         Usuario admin = login.autenticar("admin", "admin123".toCharArray());
+        AlterarSenhaController controller = alterarSenha(admin);
 
-        assertThrows(RegraNegocioException.class, () -> controller.alterarSenha(admin,
+        assertThrows(RegraNegocioException.class, () -> controller.alterarSenha(
                 "errada".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray()));
-        assertThrows(RegraNegocioException.class, () -> controller.alterarSenha(admin,
+        assertThrows(RegraNegocioException.class, () -> controller.alterarSenha(
                 "admin123".toCharArray(), "admin123".toCharArray(), "admin123".toCharArray()));
-        controller.alterarSenha(admin, "admin123".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray());
+        controller.alterarSenha("admin123".toCharArray(), "novaSenha".toCharArray(), "novaSenha".toCharArray());
 
         assertThrows(RegraNegocioException.class, () -> login.autenticar("admin", "admin123".toCharArray()));
         assertEquals("admin", login.autenticar("admin", "novaSenha".toCharArray()).getLogin());

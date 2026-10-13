@@ -1,23 +1,46 @@
 package br.com.athletiza.model;
 
 import java.text.Collator;
-import java.util.Comparator;
 import java.util.Locale;
 
 /**
- * Comparação de textos em português: ignora maiúsculas/minúsculas e
- * ordena acentos corretamente ("Álvaro" fica junto de "Alice").
+ * Comparações usadas na ordenação das classes de modelo.
+ *
+ * Textos em português ignoram maiúsculas/minúsculas e ordenam acentos
+ * corretamente ("Álvaro" fica junto de "Alice"). Valores nulos ficam no final.
  */
 final class Textos {
 
-    static final Comparator<String> COMPARADOR = criarComparador();
+    private static final Collator COLLATOR = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
+
+    static {
+        COLLATOR.setStrength(Collator.SECONDARY);
+    }
 
     private Textos() {
     }
 
-    private static Comparator<String> criarComparador() {
-        Collator collator = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
-        collator.setStrength(Collator.SECONDARY);
-        return Comparator.nullsLast(collator::compare);
+    /** Compara dois textos em ordem alfabética; nulos ficam no final. */
+    static int comparar(String a, String b) {
+        if (a == null || b == null) {
+            return compararNulos(a, b);
+        }
+        return COLLATOR.compare(a, b);
+    }
+
+    /** Compara dois valores pela ordem natural deles (compareTo); nulos ficam no final. */
+    static <T extends Comparable<T>> int compararNulosNoFim(T a, T b) {
+        if (a == null || b == null) {
+            return compararNulos(a, b);
+        }
+        return a.compareTo(b);
+    }
+
+    /** Usado quando pelo menos um dos dois é nulo: o nulo fica depois. */
+    private static int compararNulos(Object a, Object b) {
+        if (a == null && b == null) {
+            return 0;
+        }
+        return a == null ? 1 : -1;
     }
 }

@@ -8,6 +8,10 @@ package br.com.athletiza.exception;
  */
 public class PersistenciaException extends AthletizaException {
 
+    public PersistenciaException() {
+        super("Erro ao acessar o banco de dados. Tente novamente.");
+    }
+
     public PersistenciaException(String mensagem) {
         super(mensagem);
     }

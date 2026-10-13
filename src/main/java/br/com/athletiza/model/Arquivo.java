@@ -1,7 +1,7 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 
 /**
  * Foto ou vídeo guardado em uma pasta da galeria de registros.
@@ -9,10 +9,6 @@ import java.util.Comparator;
  * Ordem natural: os enviados mais recentemente primeiro.
  */
 public class Arquivo extends Entidade implements Comparable<Arquivo> {
-
-    private static final Comparator<Arquivo> MAIS_RECENTE_PRIMEIRO = Comparator
-            .comparing(Arquivo::getEnviadoEm, Comparator.nullsLast(Comparator.reverseOrder()))
-            .thenComparing(Arquivo::getNome, Textos.COMPARADOR);
 
     private Pasta pasta;
     private String nome;
@@ -22,6 +18,16 @@ public class Arquivo extends Entidade implements Comparable<Arquivo> {
     private LocalDateTime enviadoEm;
     private String enviadoPor;
     private String descricao;
+
+    /** Regras para renomear, mover ou descrever o arquivo. */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(nome, "Nome")
+                .tamanhoMaximo(nome, 150, "Nome")
+                .obrigatorio(pasta, "Pasta")
+                .tamanhoMaximo(descricao, 500, "Descrição")
+                .validar();
+    }
 
     public boolean isImagem() {
         return tipo == TipoArquivo.IMAGEM;
@@ -102,9 +108,19 @@ public class Arquivo extends Entidade implements Comparable<Arquivo> {
         this.descricao = descricao;
     }
 
+    /** Ordem natural: os enviados mais recentemente primeiro e, empatando, pelo nome. */
     @Override
     public int compareTo(Arquivo outro) {
-        return MAIS_RECENTE_PRIMEIRO.compare(this, outro);
+        if (enviadoEm == null && outro.enviadoEm != null) {
+            return 1; // sem data fica no final
+        }
+        if (enviadoEm != null && outro.enviadoEm == null) {
+            return -1;
+        }
+        if (enviadoEm != null && !enviadoEm.equals(outro.enviadoEm)) {
+            return outro.enviadoEm.compareTo(enviadoEm); // invertido: o mais recente primeiro
+        }
+        return Textos.comparar(nome, outro.nome);
     }
 
     @Override

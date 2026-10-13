@@ -1,11 +1,8 @@
 package br.com.athletiza.view.competicoes;
 
-import br.com.athletiza.controller.CompeticaoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.SituacaoCompeticao;
-import br.com.athletiza.util.Validador;
-import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import com.formdev.flatlaf.FlatClientProperties;
 import javax.swing.JComboBox;
@@ -14,11 +11,10 @@ import javax.swing.JTextField;
 
 /**
  * Cadastro e edição de competição (CH-30). Ao salvar, ela passa a aparecer no calendário.
+ * As ações ficam no CadastroCompeticaoController.
  */
 public class PainelCadastroCompeticao extends PainelFormulario {
 
-    private final Competicao competicao;
-    private final CompeticaoController controller = new CompeticaoController();
     private final JTextField nome = new JTextField();
     private final JTextField local = new JTextField();
     private final JTextField inicio = new JTextField();
@@ -27,10 +23,11 @@ public class PainelCadastroCompeticao extends PainelFormulario {
     private final JComboBox<SituacaoCompeticao> situacao = new JComboBox<>(SituacaoCompeticao.values());
     private final JTextArea observacoes = new JTextArea();
 
-    public PainelCadastroCompeticao(Competicao competicao, Navegador navegador) {
-        super(competicao.isNova() ? "Nova Competição" : "Editar Competição", navegador);
-        this.competicao = competicao;
+    public PainelCadastroCompeticao() {
+        inicializarComponentes();
+    }
 
+    private void inicializarComponentes() {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: JIUDESC 2026");
         local.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Cidade ou ginásio");
         inicio.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
@@ -44,7 +41,10 @@ public class PainelCadastroCompeticao extends PainelFormulario {
         adicionarCampo("Horário", horario, false);
         adicionarCampo("Situação", situacao, true);
         adicionarCampoLinhaInteira("Observações", areaTexto(observacoes), false);
+    }
 
+    public void preencherCampos(Competicao competicao) {
+        setTitulo(competicao.isNova() ? "Nova Competição" : "Editar Competição");
         nome.setText(competicao.getTitulo());
         local.setText(competicao.getLocal());
         inicio.setText(competicao.getData() == null ? "" : Validador.FORMATO_DATA.format(competicao.getData()));
@@ -54,20 +54,31 @@ public class PainelCadastroCompeticao extends PainelFormulario {
         observacoes.setText(competicao.getObservacoes());
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
-        competicao.setTitulo(nome.getText().trim());
-        competicao.setLocal(local.getText().isBlank() ? null : local.getText().trim());
-        competicao.setData(Validador.converterData(inicio.getText(), "Data de início"));
-        competicao.setDataFim(Validador.converterData(fim.getText(), "Data de fim"));
-        competicao.setHorario(Validador.converterHorario(horario.getText(), "Horário"));
-        competicao.setSituacao((SituacaoCompeticao) situacao.getSelectedItem());
-        competicao.setObservacoes(observacoes.getText().isBlank() ? null : observacoes.getText().trim());
-        controller.salvar(competicao);
+    public String getNome() {
+        return nome.getText().trim();
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Competição salva com sucesso. Ela já aparece no calendário.";
+    public String getLocal() {
+        return textoOuNulo(local.getText());
+    }
+
+    public String getDataInicio() {
+        return inicio.getText();
+    }
+
+    public String getDataFim() {
+        return fim.getText();
+    }
+
+    public String getHorario() {
+        return horario.getText();
+    }
+
+    public SituacaoCompeticao getSituacao() {
+        return (SituacaoCompeticao) situacao.getSelectedItem();
+    }
+
+    public String getObservacoes() {
+        return textoOuNulo(observacoes.getText());
     }
 }

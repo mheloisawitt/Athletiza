@@ -1,16 +1,14 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
-import java.util.Comparator;
+import java.util.List;
 
 /**
  * Tarefa ligada a um evento ou competição, com responsável e prazo (RF19).
  * Ordem natural: pelo prazo.
  */
 public class Tarefa extends Entidade implements Comparable<Tarefa> {
-
-    private static final Comparator<Tarefa> POR_PRAZO = Comparator.comparing(Tarefa::getPrazo,
-            Comparator.nullsLast(Comparator.naturalOrder()));
 
     private String descricao;
     private Membro responsavel;
@@ -24,6 +22,14 @@ public class Tarefa extends Entidade implements Comparable<Tarefa> {
         this.descricao = descricao;
         this.responsavel = responsavel;
         this.prazo = prazo;
+    }
+
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(descricao, "Descrição")
+                .tamanhoMaximo(descricao, 200, "Descrição")
+                .obrigatorio(situacao, "Situação")
+                .validar();
     }
 
     /** Tarefa não concluída com prazo anterior à data informada (CH-41). */
@@ -63,9 +69,31 @@ public class Tarefa extends Entidade implements Comparable<Tarefa> {
         this.situacao = situacao;
     }
 
+    /** Resumo para as consultas, ex.: "1 de 3 concluídas · 1 atrasada(s)". */
+    public static String resumir(List<Tarefa> tarefas, LocalDate hoje) {
+        if (tarefas.isEmpty()) {
+            return "—";
+        }
+        int concluidas = 0;
+        int atrasadas = 0;
+        for (Tarefa tarefa : tarefas) {
+            if (tarefa.getSituacao() == SituacaoTarefa.CONCLUIDA) {
+                concluidas++;
+            }
+            if (tarefa.isAtrasada(hoje)) {
+                atrasadas++;
+            }
+        }
+        String resumo = concluidas + " de " + tarefas.size() + " concluídas";
+        if (atrasadas > 0) {
+            resumo += " · " + atrasadas + " atrasada(s)";
+        }
+        return resumo;
+    }
+
     @Override
     public int compareTo(Tarefa outra) {
-        return POR_PRAZO.compare(this, outra);
+        return Textos.compararNulosNoFim(prazo, outra.prazo);
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Acesso aos dados dos membros da atlética (CH-22).
  */
-public class MembroDAO extends AbstractDAO<Membro> {
+public class MembroDAO extends AbstractDAO<Membro> implements MembroRepository {
 
     @Override
     protected String getTabela() {
@@ -41,13 +41,18 @@ public class MembroDAO extends AbstractDAO<Membro> {
                 membro.getNome(), membro.getMatricula(), membro.getContato(), membro.getSituacao(), membro.getId());
     }
 
-    /** Indica se outro membro (diferente de idIgnorado) já usa a matrícula. */
+    @Override
+    public List<Membro> listarAtivos() throws PersistenciaException {
+        return consultar("SELECT * FROM membro WHERE situacao = 'ATIVO' ORDER BY nome");
+    }
+
+    @Override
     public boolean existeMatricula(String matricula, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM membro WHERE matricula = ? AND id <> ?",
                 matricula, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /** Descreve o que impede a exclusão do membro (CH-45). Lista vazia: pode excluir. */
+    @Override
     public List<String> listarVinculos(int id) throws PersistenciaException {
         List<String> vinculos = new ArrayList<>();
         adicionarSeHouver(vinculos, "cargo(s) em gestões",
@@ -61,7 +66,7 @@ public class MembroDAO extends AbstractDAO<Membro> {
 
     private void adicionarSeHouver(List<String> vinculos, String descricao, String sql, int id)
             throws PersistenciaException {
-        int quantidade = consultar(sql, rs -> rs.getInt(1), id).get(0);
+        int quantidade = contar(sql, id);
         if (quantidade > 0) {
             vinculos.add(quantidade + " " + descricao);
         }

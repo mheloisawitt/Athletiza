@@ -17,12 +17,26 @@ public class Amistoso extends Treino {
     public Amistoso(Modalidade modalidade, String adversario, LocalDate data, LocalTime horario, String local) {
         super(modalidade, data, horario, local);
         this.adversario = adversario;
-        setTitulo("Amistoso " + modalidade + " x " + adversario);
+        setTitulo(getTituloPadrao());
     }
 
     @Override
     public TipoAtividade getTipo() {
         return TipoAtividade.AMISTOSO;
+    }
+
+    /** Além dos campos do treino, o adversário é obrigatório. */
+    @Override
+    protected void validarCampos(Validador validador) {
+        super.validarCampos(validador);
+        validador.obrigatorio(adversario, "Adversário")
+                .tamanhoMaximo(adversario, 100, "Adversário")
+                .tamanhoMaximo(resultado, 100, "Resultado");
+    }
+
+    @Override
+    public String getTituloPadrao() {
+        return "Amistoso " + getModalidade() + " x " + adversario;
     }
 
     public String getAdversario() {

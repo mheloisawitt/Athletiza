@@ -1,6 +1,5 @@
 package br.com.athletiza.view.componentes;
 
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.view.Tema;
 import java.awt.BorderLayout;
@@ -9,7 +8,9 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,22 +21,23 @@ import javax.swing.JTextArea;
  * Painel base das telas de cadastro (CH-03): título, campos organizados em
  * duas colunas e botões Cancelar e Salvar.
  *
- * A subclasse adiciona os campos no construtor e implementa salvar().
- * Erros lançados em salvar() são mostrados ao usuário automaticamente.
+ * Segue as regras da View no MVC: monta os componentes, devolve o que foi
+ * digitado, exibe mensagens e recebe do Controller as ações dos botões
+ * (adicionarAcaoSalvar, adicionarAcaoCancelar). Não tem regra de negócio.
  */
 public abstract class PainelFormulario extends JPanel {
 
+    private final JLabel rotuloTitulo = new JLabel();
     private final JPanel campos = new JPanel(new GridBagLayout());
-    private final Navegador navegador;
+    private final JButton btnSalvar = Botoes.primario("Salvar", null);
+    private final JButton btnCancelar = Botoes.contorno("Cancelar", null);
     private int linha;
     private int coluna;
 
-    protected PainelFormulario(String titulo, Navegador navegador) {
+    protected PainelFormulario() {
         super(new BorderLayout(0, 20));
-        this.navegador = navegador;
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
-        JLabel rotuloTitulo = new JLabel(titulo);
         rotuloTitulo.setFont(Tema.fonteTitulo());
         add(rotuloTitulo, BorderLayout.NORTH);
 
@@ -50,21 +52,54 @@ public abstract class PainelFormulario extends JPanel {
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botoes.setOpaque(false);
-        botoes.add(Botoes.contorno("Cancelar", e -> cancelar()));
-        botoes.add(Botoes.primario("Salvar", e -> confirmarSalvar()));
+        botoes.add(btnCancelar);
+        botoes.add(btnSalvar);
         add(botoes, BorderLayout.SOUTH);
     }
 
-    /**
-     * Valida e grava os dados. Deve lançar ValidacaoException, RegraNegocioException
-     * ou PersistenciaException em caso de problema.
-     */
-    protected abstract void salvar() throws AthletizaException;
-
-    /** Mensagem exibida após salvar com sucesso. */
-    protected String getMensagemSucesso() {
-        return "Registro salvo com sucesso.";
+    public void setTitulo(String titulo) {
+        rotuloTitulo.setText(titulo);
     }
+
+    /* Ações dos botões: registradas pelo Controller (normalmente com lambda) */
+
+    public void adicionarAcaoSalvar(ActionListener acao) {
+        btnSalvar.addActionListener(acao);
+    }
+
+    public void adicionarAcaoCancelar(ActionListener acao) {
+        btnCancelar.addActionListener(acao);
+    }
+
+    public JButton getBtnSalvar() {
+        return btnSalvar;
+    }
+
+    public JButton getBtnCancelar() {
+        return btnCancelar;
+    }
+
+    /* Mensagens ao usuário */
+
+    public void mostrarMensagem(String mensagem) {
+        Mensagens.sucesso(this, mensagem);
+    }
+
+    public void mostrarAviso(String mensagem) {
+        Mensagens.aviso(this, mensagem);
+    }
+
+    /** Exibe o erro: mensagem amigável para erros do sistema, aviso genérico (e log) para os inesperados. */
+    public void mostrarErro(Exception erro) {
+        Mensagens.erro(this, erro);
+    }
+
+    /** Pergunta Sim/Não. Retorna true se o usuário escolher Sim. */
+    public boolean confirmar(String pergunta) {
+        return Mensagens.confirmar(this, pergunta);
+    }
+
+    /* Montagem dos campos (usado pelas subclasses em inicializarComponentes) */
 
     /** Adiciona um campo ocupando meia linha (dois campos lado a lado). */
     protected void adicionarCampo(String rotulo, JComponent campo, boolean obrigatorio) {
@@ -106,8 +141,14 @@ public abstract class PainelFormulario extends JPanel {
         return new JScrollPane(area);
     }
 
-    protected void voltar() {
-        navegador.voltar();
+    /** Texto digitado sem espaços nas pontas, ou null se o campo estiver vazio. */
+    protected static String textoOuNulo(String texto) {
+        return texto == null || texto.isBlank() ? null : texto.trim();
+    }
+
+    /** Texto para exibir em um campo (vazio em vez de "null"). */
+    protected static String textoOuVazio(Object valor) {
+        return valor == null ? "" : valor.toString();
     }
 
     private void posicionar(String rotulo, JComponent campo, boolean obrigatorio, int largura) {
@@ -134,22 +175,6 @@ public abstract class PainelFormulario extends JPanel {
         if (coluna >= 2) {
             coluna = 0;
             linha++;
-        }
-    }
-
-    private void confirmarSalvar() {
-        try {
-            salvar();
-            Mensagens.sucesso(this, getMensagemSucesso());
-            navegador.voltar();
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
-        }
-    }
-
-    private void cancelar() {
-        if (Mensagens.confirmar(this, "Deseja sair sem salvar? As alterações serão perdidas.")) {
-            navegador.voltar();
         }
     }
 }

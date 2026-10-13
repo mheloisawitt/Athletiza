@@ -7,6 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
+import br.com.athletiza.Dados;
+import br.com.athletiza.NavegadorFalso;
+import br.com.athletiza.dao.AlertaDAO;
+import br.com.athletiza.dao.AtividadeDAO;
+import br.com.athletiza.dao.CompeticaoDAO;
+import br.com.athletiza.dao.CompromissoDAO;
+import br.com.athletiza.dao.EventoDAO;
+import br.com.athletiza.dao.MembroDAO;
+import br.com.athletiza.dao.ModalidadeDAO;
+import br.com.athletiza.dao.TreinoDAO;
 import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Alerta;
 import br.com.athletiza.model.Amistoso;
@@ -14,9 +24,13 @@ import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Compromisso;
 import br.com.athletiza.model.Treino;
+import br.com.athletiza.view.calendario.PainelCalendario;
+import br.com.athletiza.view.calendario.PainelCompromisso;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,11 +40,19 @@ class CalendarioControllerTest {
 
     private static final YearMonth OUTUBRO = YearMonth.of(2026, 10);
 
-    private final CalendarioController controller = new CalendarioController();
+    private final NavegadorFalso navegador = new NavegadorFalso();
+    private CalendarioController controller;
 
     @BeforeEach
     void prepararBanco() throws Exception {
         BancoDeTeste.recriar();
+        controller = new CalendarioController(new PainelCalendario(), new AtividadeDAO(), new AlertaDAO(),
+                new CompromissoDAO(), new TreinoDAO(), new CompeticaoDAO(), new EventoDAO(), new ModalidadeDAO(),
+                new MembroDAO(), navegador);
+    }
+
+    private static CompromissoController compromisso(Compromisso compromisso) {
+        return new CompromissoController(new PainelCompromisso(), compromisso, new CompromissoDAO(), new NavegadorFalso());
     }
 
     @Test
@@ -50,8 +72,8 @@ class CalendarioControllerTest {
         Map<LocalDate, List<Atividade>> outubro = controller.atividadesDoMes(OUTUBRO);
         Map<LocalDate, List<Atividade>> novembro = controller.atividadesDoMes(YearMonth.of(2026, 11));
 
-        assertTrue(outubro.get(LocalDate.of(2026, 10, 31)).stream().anyMatch(a -> a instanceof Competicao));
-        assertTrue(novembro.get(LocalDate.of(2026, 11, 2)).stream().anyMatch(a -> a.getTitulo().equals("JIUDESC 2026")));
+        assertTrue(titulos(outubro.get(LocalDate.of(2026, 10, 31))).contains("JIUDESC 2026"));
+        assertInstanceOf(Competicao.class, novembro.get(LocalDate.of(2026, 11, 2)).get(0));
         assertFalse(novembro.containsKey(LocalDate.of(2026, 11, 3)));
     }
 
@@ -59,8 +81,8 @@ class CalendarioControllerTest {
     void listaProximasAtividadesOrdenadas() throws Exception {
         List<Atividade> proximas = controller.proximasAtividades(LocalDate.of(2026, 10, 7), 7);
 
-        assertEquals(List.of("Reunião Gestão", "Amistoso Futsal (F) x Atlética Furiosa", "Treino Futsal (F)",
-                "Festa Atlética"), proximas.stream().map(Atividade::getTitulo).toList());
+        assertEquals(Arrays.asList("Reunião Gestão", "Amistoso Futsal (F) x Atlética Furiosa", "Treino Futsal (F)",
+                "Festa Atlética"), titulos(proximas));
     }
 
     @Test
@@ -68,38 +90,40 @@ class CalendarioControllerTest {
         Compromisso reuniao = new Compromisso("Reunião com patrocinador", LocalDate.of(2026, 10, 20),
                 LocalTime.of(18, 30), "Sala da atlética");
 
-        controller.salvarCompromisso(reuniao);
+        compromisso(reuniao).gravar();
         reuniao.setTitulo("Reunião com patrocinadores");
-        controller.salvarCompromisso(reuniao);
+        compromisso(reuniao).gravar();
 
         List<Atividade> dia20 = controller.atividadesDoMes(OUTUBRO).get(LocalDate.of(2026, 10, 20));
-        assertEquals(List.of("Reunião com patrocinadores"), dia20.stream().map(Atividade::getTitulo).toList());
+        assertEquals(Arrays.asList("Reunião com patrocinadores"), titulos(dia20));
 
-        controller.excluirCompromisso(reuniao);
+        new CompromissoDAO().excluir(reuniao.getId());
         assertFalse(controller.atividadesDoMes(OUTUBRO).containsKey(LocalDate.of(2026, 10, 20)));
     }
 
     @Test
     void agrupaAtividadesDeUmaSemana() throws Exception {
-        Map<LocalDate, List<Atividade>> semana = controller.atividadesDoPeriodo(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 11));
+        Map<LocalDate, List<Atividade>> semana = controller.atividadesDoPeriodo(LocalDate.of(2026, 10, 5),
+                LocalDate.of(2026, 10, 11));
 
-        assertEquals(List.of(LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 8), LocalDate.of(2026, 10, 10)),
-                List.copyOf(semana.keySet()));
+        assertEquals(Arrays.asList(LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 8), LocalDate.of(2026, 10, 10)),
+                new ArrayList<>(semana.keySet()));
     }
 
     @Test
     void alertasMostramTarefasAtrasadasTreinosSemPresencaECompeticoesProximas() throws Exception {
         List<Alerta> alertas = controller.alertas(LocalDate.of(2026, 10, 7));
 
-        assertEquals(List.of(Alerta.Tipo.TAREFA_ATRASADA, Alerta.Tipo.PRESENCA_PENDENTE, Alerta.Tipo.PRESENCA_PENDENTE),
-                alertas.stream().map(Alerta::tipo).toList());
-        assertTrue(alertas.get(0).texto().contains("Contratar DJ (Festa Atlética, venceu em 05/10/2026)"),
-                alertas.get(0).texto());
-        assertTrue(alertas.get(1).texto().contains("de 03/10/2026"), alertas.get(1).texto());
+        assertEquals(Arrays.asList(Alerta.Tipo.TAREFA_ATRASADA, Alerta.Tipo.PRESENCA_PENDENTE,
+                Alerta.Tipo.PRESENCA_PENDENTE), Arrays.asList(alertas.get(0).getTipo(), alertas.get(1).getTipo(),
+                alertas.get(2).getTipo()));
+        assertEquals(3, alertas.size());
+        assertTrue(alertas.get(0).getTexto().contains("Contratar DJ (Festa Atlética, venceu em 05/10/2026)"),
+                alertas.get(0).getTexto());
+        assertTrue(alertas.get(1).getTexto().contains("de 03/10/2026"), alertas.get(1).getTexto());
 
-        List<Alerta> semanaDaJiudesc = controller.alertas(LocalDate.of(2026, 10, 25));
-        assertTrue(semanaDaJiudesc.stream().anyMatch(a -> a.texto().equals("JIUDESC 2026 começa em 5 dias (30/10/2026)")),
-                semanaDaJiudesc.toString());
+        List<String> semanaDaJiudesc = Dados.textos(controller.alertas(LocalDate.of(2026, 10, 25)), a -> a.getTexto());
+        assertTrue(semanaDaJiudesc.contains("JIUDESC 2026 começa em 5 dias (30/10/2026)"), semanaDaJiudesc.toString());
     }
 
     @Test
@@ -115,8 +139,12 @@ class CalendarioControllerTest {
     @Test
     void compromissoExigeTituloEData() {
         ValidacaoException erro = assertThrows(ValidacaoException.class,
-                () -> controller.salvarCompromisso(new Compromisso(" ", null, null, null)));
+                () -> compromisso(new Compromisso(" ", null, null, null)).gravar());
 
         assertEquals(2, erro.getErros().size());
+    }
+
+    private static List<String> titulos(List<Atividade> atividades) {
+        return Dados.textos(atividades, a -> a.getTitulo());
     }
 }

@@ -1,22 +1,23 @@
 package br.com.athletiza.view.componentes;
 
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.Tema;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -36,8 +37,9 @@ import javax.swing.table.TableStringConverter;
  * Painel base das telas de consulta (CH-03, CH-44): título, botões de ação,
  * campo de busca e JTable com ordenação ao clicar no cabeçalho.
  *
- * Cada tela de consulta estende esta classe e implementa apenas o que é
- * específico: de onde vêm os dados e o que fazer em cada botão.
+ * Segue as regras da View no MVC: exibe a lista recebida (exibir), informa a
+ * linha selecionada (getSelecionado) e recebe do Controller as ações dos
+ * botões (adicionarAcaoIncluir, adicionarAcaoEditar...). Não acessa o banco.
  *
  * @param <T> tipo dos objetos listados
  */
@@ -57,6 +59,9 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     private final JPanel linhaTitulo = new JPanel(new BorderLayout());
     private final Map<Acao, JButton> botoesPadrao = new EnumMap<>(Acao.class);
     private final JLabel rotuloTitulo = new JLabel();
+    private final JButton btnVoltar = new JButton("‹ Voltar");
+    private ActionListener acaoCarregar;
+    private ActionListener acaoClicarDuasVezes;
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo, Set<Acao> acoes) {
         super(new BorderLayout(0, 16));
@@ -73,50 +78,107 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         this(titulo, modelo, EnumSet.of(Acao.INCLUIR, Acao.EDITAR, Acao.EXCLUIR));
     }
 
-    /** Busca os registros a exibir (normalmente pelo controller). */
-    protected abstract List<T> buscarDados() throws AthletizaException;
+    /* Dados exibidos */
 
-    protected void incluir() {
+    /** Mostra os registros na tabela (chamado pelo Controller). */
+    public void exibir(List<T> registros) {
+        modelo.setLinhas(registros);
     }
 
-    protected void editar(T selecionado) {
-    }
-
-    protected void excluir(T selecionado) {
-    }
-
-    protected void gerenciar(T selecionado) {
-    }
-
-    /** Clique duplo numa linha: por padrão, edita (se o perfil permitir). */
-    protected void aoClicarDuasVezes(T selecionado) {
-        if (Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados()) {
-            editar(selecionado);
-        }
-    }
-
-    /** Recarrega os dados da tabela. Chamado ao abrir a tela e após cada alteração. */
-    @Override
-    public void carregar() {
-        try {
-            modelo.setLinhas(buscarDados());
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
-        }
-    }
-
-    /** Objeto da linha selecionada, considerando ordenação e filtro. */
-    protected Optional<T> getSelecionado() {
+    /** Objeto da linha selecionada, considerando ordenação e filtro; null se nenhuma estiver selecionada. */
+    public T getSelecionado() {
         int linhaVisivel = tabela.getSelectedRow();
         if (linhaVisivel < 0) {
-            return Optional.empty();
+            return null;
         }
-        return Optional.of(modelo.getLinha(tabela.convertRowIndexToModel(linhaVisivel)));
+        return modelo.getLinha(tabela.convertRowIndexToModel(linhaVisivel));
     }
 
+    /** Seleciona a primeira linha (usado nos testes e após incluir um registro). */
+    public void selecionarLinha(int linha) {
+        if (linha >= 0 && linha < tabela.getRowCount()) {
+            tabela.setRowSelectionInterval(linha, linha);
+        }
+    }
+
+    public void setTitulo(String titulo) {
+        rotuloTitulo.setText(titulo);
+    }
+
+    /* Ações: registradas pelo Controller */
+
+    /**
+     * Ação executada sempre que a tela precisa buscar os dados de novo
+     * (ao abrir, ao voltar de outra tela, ao mudar um filtro).
+     */
+    public void adicionarAcaoCarregar(ActionListener acao) {
+        this.acaoCarregar = acao;
+    }
+
+    /** Recarrega os dados da tabela: dispara a ação registrada pelo Controller. */
+    @Override
+    public void carregar() {
+        if (acaoCarregar != null) {
+            acaoCarregar.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "carregar"));
+        }
+    }
+
+    public void adicionarAcaoIncluir(ActionListener acao) {
+        adicionarAcao(Acao.INCLUIR, acao);
+    }
+
+    /** Editar também é disparado pelo clique duplo na linha (se o perfil permitir). */
+    public void adicionarAcaoEditar(ActionListener acao) {
+        adicionarAcao(Acao.EDITAR, acao);
+        if (acaoClicarDuasVezes == null && podeAlterar()) {
+            acaoClicarDuasVezes = acao;
+        }
+    }
+
+    public void adicionarAcaoExcluir(ActionListener acao) {
+        adicionarAcao(Acao.EXCLUIR, acao);
+    }
+
+    public void adicionarAcaoGerenciar(ActionListener acao) {
+        adicionarAcao(Acao.GERENCIAR, acao);
+    }
+
+    /** Troca o que acontece no clique duplo em uma linha (por padrão, editar). */
+    public void adicionarAcaoClicarDuasVezes(ActionListener acao) {
+        this.acaoClicarDuasVezes = acao;
+    }
+
+    public void adicionarAcaoVoltar(ActionListener acao) {
+        btnVoltar.addActionListener(acao);
+    }
+
+    public JButton getBotao(Acao acao) {
+        return botoesPadrao.get(acao);
+    }
+
+    /* Mensagens ao usuário */
+
+    public void mostrarMensagem(String mensagem) {
+        Mensagens.sucesso(this, mensagem);
+    }
+
+    public void mostrarAviso(String mensagem) {
+        Mensagens.aviso(this, mensagem);
+    }
+
+    public void mostrarErro(Exception erro) {
+        Mensagens.erro(this, erro);
+    }
+
+    public boolean confirmar(String pergunta) {
+        return Mensagens.confirmar(this, pergunta);
+    }
+
+    /* Montagem da tela (usado pelas subclasses) */
+
     /** Adiciona um filtro extra (ex.: combo de modalidade) ao lado do campo de busca. */
-    protected void adicionarFiltro(javax.swing.JComponent filtro) {
-        barraFiltros.add(javax.swing.Box.createHorizontalStrut(8));
+    protected void adicionarFiltro(JComponent filtro) {
+        barraFiltros.add(Box.createHorizontalStrut(8));
         barraFiltros.add(filtro);
     }
 
@@ -126,15 +188,13 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     }
 
     /** Mostra "‹ Voltar" antes do título (para consultas abertas a partir de outra tela). */
-    protected void exibirVoltar(Runnable acao) {
-        JButton voltar = new JButton("‹ Voltar");
-        voltar.putClientProperty(FlatClientProperties.STYLE,
+    protected void exibirVoltar() {
+        btnVoltar.putClientProperty(FlatClientProperties.STYLE,
                 "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> acao.run());
         linhaTitulo.remove(rotuloTitulo);
         JPanel titulo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titulo.setOpaque(false);
-        titulo.add(voltar);
+        titulo.add(btnVoltar);
         titulo.add(rotuloTitulo);
         linhaTitulo.add(titulo, BorderLayout.WEST);
     }
@@ -154,11 +214,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         }
     }
 
-    /** Pergunta feita antes de excluir. Pode ser trocada pela subclasse. */
-    protected String getPerguntaExclusao(T selecionado) {
-        return "Deseja realmente excluir \"" + selecionado + "\"?";
-    }
-
     /** Desfaz a ordenação feita pelo clique no cabeçalho, mantendo a ordem em que os dados vieram. */
     protected void limparOrdenacaoDaTabela() {
         ordenador.setSortKeys(null);
@@ -169,22 +224,49 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         tabela.getColumnModel().getColumn(coluna).setPreferredWidth(largura);
     }
 
+    /** Indica se o usuário logado pode incluir, editar e excluir (sem login, nos testes, pode). */
+    protected static boolean podeAlterar() {
+        return Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
+    }
+
+    /**
+     * Botões que dependem de uma linha selecionada só disparam a ação do
+     * Controller se houver seleção; senão, avisam o usuário.
+     */
+    private void adicionarAcao(Acao acao, ActionListener listener) {
+        JButton botao = botoesPadrao.get(acao);
+        if (botao == null) {
+            return;
+        }
+        if (acao == Acao.INCLUIR) {
+            botao.addActionListener(listener);
+            return;
+        }
+        botao.addActionListener(e -> {
+            if (getSelecionado() == null) {
+                mostrarAviso("Selecione um registro na tabela.");
+            } else {
+                listener.actionPerformed(e);
+            }
+        });
+    }
+
     private JPanel criarCabecalho(String titulo, Set<Acao> acoes) {
         rotuloTitulo.setText(titulo);
         rotuloTitulo.setFont(Tema.fonteTitulo());
 
-        boolean podeAlterar = Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
+        boolean podeAlterar = podeAlterar();
         if (acoes.contains(Acao.EXCLUIR)) {
-            adicionarBotao(Acao.EXCLUIR, Botoes.contornoVermelho("Excluir", e -> comSelecionado(this::confirmarExclusao)), podeAlterar);
+            adicionarBotaoPadrao(Acao.EXCLUIR, Botoes.contornoVermelho("Excluir", null), podeAlterar);
         }
         if (acoes.contains(Acao.EDITAR)) {
-            adicionarBotao(Acao.EDITAR, Botoes.contorno("Editar", e -> comSelecionado(this::editar)), podeAlterar);
+            adicionarBotaoPadrao(Acao.EDITAR, Botoes.contorno("Editar", null), podeAlterar);
         }
         if (acoes.contains(Acao.GERENCIAR)) {
-            adicionarBotao(Acao.GERENCIAR, Botoes.contornoVerde("Gerenciar", e -> comSelecionado(this::gerenciar)), true);
+            adicionarBotaoPadrao(Acao.GERENCIAR, Botoes.contornoVerde("Gerenciar", null), true);
         }
         if (acoes.contains(Acao.INCLUIR)) {
-            adicionarBotao(Acao.INCLUIR, Botoes.destaque("+ Incluir", e -> incluir()), podeAlterar);
+            adicionarBotaoPadrao(Acao.INCLUIR, Botoes.destaque("+ Incluir", null), podeAlterar);
         }
 
         linhaTitulo.setOpaque(false);
@@ -236,8 +318,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         tabela.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && tabela.getSelectedRow() >= 0) {
-                    getSelecionado().ifPresent(PainelConsulta.this::aoClicarDuasVezes);
+                if (e.getClickCount() == 2 && getSelecionado() != null && acaoClicarDuasVezes != null) {
+                    acaoClicarDuasVezes.actionPerformed(new ActionEvent(tabela, ActionEvent.ACTION_PERFORMED, "abrir"));
                 }
             }
         });
@@ -259,23 +341,13 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         }
     }
 
-    private void adicionarBotao(Acao acao, JButton botao, boolean habilitado) {
+    private void adicionarBotaoPadrao(Acao acao, JButton botao, boolean habilitado) {
         botoesPadrao.put(acao, botao);
         botao.setEnabled(habilitado);
         if (!habilitado) {
             botao.setToolTipText("Seu perfil não permite esta ação.");
         }
         barraBotoes.add(botao);
-    }
-
-    private void comSelecionado(java.util.function.Consumer<T> acao) {
-        getSelecionado().ifPresentOrElse(acao, () -> Mensagens.aviso(this, "Selecione um registro na tabela."));
-    }
-
-    private void confirmarExclusao(T selecionado) {
-        if (Mensagens.confirmar(this, getPerguntaExclusao(selecionado))) {
-            excluir(selecionado);
-        }
     }
 
     private void filtrar() {

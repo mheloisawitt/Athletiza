@@ -2,7 +2,7 @@ package br.com.athletiza.view.calendario;
 
 import br.com.athletiza.model.Atividade;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.Tema;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,14 +11,16 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -53,25 +55,32 @@ class PainelSemana extends JPanel {
         add(rolagem, BorderLayout.CENTER);
     }
 
+    /** Comandos enviados no ActionEvent. */
+    static final String SELECIONAR_DIA = "dia";
+    static final String ABRIR = "abrir";
+
     /**
-     * @param aoSelecionarDia clique em um dia
-     * @param aoAbrir         clique duplo em uma atividade
+     * @param aoClicar clique em um dia (getSource() = LocalDate, comando SELECIONAR_DIA) ou
+     *                 clique duplo em uma atividade (getSource() = Atividade, comando ABRIR)
      */
     void atualizar(LocalDate inicio, Map<LocalDate, List<Atividade>> atividades, LocalDate selecionado,
-            Consumer<LocalDate> aoSelecionarDia, Consumer<Atividade> aoAbrir) {
+            ActionListener aoClicar) {
         colunas.removeAll();
         LocalDate hoje = LocalDate.now();
         for (int i = 0; i < 7; i++) {
             LocalDate dia = inicio.plusDays(i);
-            colunas.add(criarColuna(dia, atividades.getOrDefault(dia, List.of()), dia.equals(hoje),
-                    dia.equals(selecionado), aoSelecionarDia, aoAbrir));
+            List<Atividade> doDia = atividades.get(dia);
+            if (doDia == null) {
+                doDia = new ArrayList<>();
+            }
+            colunas.add(criarColuna(dia, doDia, dia.equals(hoje), dia.equals(selecionado), aoClicar));
         }
         colunas.revalidate();
         colunas.repaint();
     }
 
     private static JPanel criarColuna(LocalDate dia, List<Atividade> atividades, boolean hoje, boolean selecionado,
-            Consumer<LocalDate> aoSelecionarDia, Consumer<Atividade> aoAbrir) {
+            ActionListener aoClicar) {
         String texto = dia.format(FORMATO_CABECALHO);
         JLabel cabecalho = new JLabel(Character.toUpperCase(texto.charAt(0)) + texto.substring(1), SwingConstants.CENTER);
         cabecalho.setFont(Tema.fonte(Font.BOLD, 12f));
@@ -89,9 +98,9 @@ class PainelSemana extends JPanel {
             item.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    aoSelecionarDia.accept(dia);
+                    aoClicar.actionPerformed(new ActionEvent(dia, ActionEvent.ACTION_PERFORMED, SELECIONAR_DIA));
                     if (e.getClickCount() == 2) {
-                        aoAbrir.accept(atividade);
+                        aoClicar.actionPerformed(new ActionEvent(atividade, ActionEvent.ACTION_PERFORMED, ABRIR));
                     }
                 }
             });
@@ -113,7 +122,7 @@ class PainelSemana extends JPanel {
         coluna.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                aoSelecionarDia.accept(dia);
+                aoClicar.actionPerformed(new ActionEvent(dia, ActionEvent.ACTION_PERFORMED, SELECIONAR_DIA));
             }
         });
         return coluna;

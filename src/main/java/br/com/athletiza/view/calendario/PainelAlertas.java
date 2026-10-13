@@ -6,7 +6,6 @@ import br.com.athletiza.view.Tema;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -38,8 +37,8 @@ class PainelAlertas extends JPanel {
         add(titulo);
         add(Box.createVerticalStrut(8));
         for (Alerta alerta : alertas.subList(0, Math.min(MAXIMO_VISIVEL, alertas.size()))) {
-            Color cor = corDo(alerta.tipo());
-            JLabel item = new JLabel("<html><div style='width:188px'>" + alerta.texto().replace("<", "&lt;") + "</div></html>");
+            Color cor = corDo(alerta.getTipo());
+            JLabel item = new JLabel("<html><div style='width:188px'>" + alerta.getTexto().replace("<", "&lt;") + "</div></html>");
             item.setFont(Tema.fonte(Font.PLAIN, 12f));
             item.setForeground(cor);
             item.setBorder(BorderFactory.createCompoundBorder(
@@ -51,8 +50,14 @@ class PainelAlertas extends JPanel {
         if (alertas.size() > MAXIMO_VISIVEL) {
             JLabel mais = new JLabel("+ " + (alertas.size() - MAXIMO_VISIVEL) + " outro(s)");
             mais.setForeground(Cores.TEXTO_SECUNDARIO);
-            mais.setToolTipText("<html>" + alertas.subList(MAXIMO_VISIVEL, alertas.size()).stream()
-                    .map(a -> a.texto().replace("<", "&lt;")).collect(Collectors.joining("<br>")) + "</html>");
+            StringBuilder dica = new StringBuilder("<html>");
+            for (int i = MAXIMO_VISIVEL; i < alertas.size(); i++) {
+                if (i > MAXIMO_VISIVEL) {
+                    dica.append("<br>");
+                }
+                dica.append(alertas.get(i).getTexto().replace("<", "&lt;"));
+            }
+            mais.setToolTipText(dica.append("</html>").toString());
             mais.setAlignmentX(LEFT_ALIGNMENT);
             add(mais);
         }
@@ -62,10 +67,13 @@ class PainelAlertas extends JPanel {
     }
 
     private static Color corDo(Alerta.Tipo tipo) {
-        return switch (tipo) {
-            case TAREFA_ATRASADA -> Cores.VERMELHO;
-            case PRESENCA_PENDENTE -> Cores.AMARELO;
-            case COMPETICAO_PROXIMA -> Cores.VERDE;
-        };
+        switch (tipo) {
+            case TAREFA_ATRASADA:
+                return Cores.VERMELHO;
+            case PRESENCA_PENDENTE:
+                return Cores.AMARELO;
+            default:
+                return Cores.VERDE;
+        }
     }
 }

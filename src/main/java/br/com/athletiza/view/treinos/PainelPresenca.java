@@ -1,23 +1,22 @@
 package br.com.athletiza.view.treinos;
 
-import br.com.athletiza.controller.TreinoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.SituacaoAtleta;
 import br.com.athletiza.model.Treino;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
 import br.com.athletiza.view.componentes.Botoes;
-import br.com.athletiza.view.componentes.Mensagens;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import br.com.athletiza.view.componentes.Renderizadores;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -27,21 +26,21 @@ import javax.swing.table.AbstractTableModel;
 /**
  * Lista de presença do treino (CH-36): cada atleta da modalidade marcado como
  * presente ou ausente, salvo de uma vez. Pode ser editada depois.
+ * As ações ficam no PresencaController.
  */
 public class PainelPresenca extends PainelFormulario {
 
-    private final Treino treino;
-    private final TreinoController controller = new TreinoController();
     private final ModeloChamada modelo = new ModeloChamada();
+    private final JLabel descricao = new JLabel();
     private final JLabel contador = new JLabel();
+    private Treino treino;
 
-    public PainelPresenca(Treino treino, Navegador navegador) {
-        super("Lista de presença", navegador);
-        this.treino = treino;
+    public PainelPresenca() {
+        inicializarComponentes();
+    }
 
-        JLabel descricao = new JLabel(treino.getTitulo() + "  ·  " + Validador.FORMATO_DATA.format(treino.getData())
-                + (treino.getHorario() == null ? "" : " às " + Validador.FORMATO_HORARIO.format(treino.getHorario()))
-                + (treino.getLocal() == null ? "" : "  ·  " + treino.getLocal()));
+    private void inicializarComponentes() {
+        setTitulo("Lista de presença");
         descricao.setForeground(Cores.TEXTO_SECUNDARIO);
         adicionarLinha(descricao);
 
@@ -50,7 +49,7 @@ public class PainelPresenca extends PainelFormulario {
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         botoes.setOpaque(false);
         botoes.add(Botoes.contorno("Marcar todos", e -> modelo.marcarTodos(true)));
-        botoes.add(javax.swing.Box.createHorizontalStrut(8));
+        botoes.add(Box.createHorizontalStrut(8));
         botoes.add(Botoes.contorno("Desmarcar todos", e -> modelo.marcarTodos(false)));
         barra.add(botoes, BorderLayout.WEST);
         barra.add(contador, BorderLayout.EAST);
@@ -65,26 +64,37 @@ public class PainelPresenca extends PainelFormulario {
         rolagem.setBorder(BorderFactory.createLineBorder(Cores.CINZA_ESCURO));
         rolagem.setPreferredSize(new Dimension(0, 380));
         adicionarLinha(rolagem);
-
-        try {
-            controller.carregarPresencas(treino);
-            modelo.carregar(controller.atletasDaChamada(treino));
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
-        }
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
+    /** Mostra a chamada: os atletas, marcando quem já estava presente no treino. */
+    public void exibirChamada(Treino treinoExibido, List<Atleta> atletas) {
+        this.treino = treinoExibido;
+        descricao.setText(treino.getTitulo() + "  ·  " + Validador.FORMATO_DATA.format(treino.getData())
+                + (treino.getHorario() == null ? "" : " às " + Validador.FORMATO_HORARIO.format(treino.getHorario()))
+                + (treino.getLocal() == null ? "" : "  ·  " + treino.getLocal()));
+        modelo.carregar(atletas);
+    }
+
+    /** Presença marcada de cada atleta (true = presente). */
+    public Map<Atleta, Boolean> getPresencas() {
+        Map<Atleta, Boolean> presencas = new LinkedHashMap<>();
         for (int i = 0; i < modelo.atletas.size(); i++) {
-            treino.registrarPresenca(modelo.atletas.get(i), modelo.presentes.get(i));
+            presencas.put(modelo.atletas.get(i), modelo.presentes.get(i));
         }
-        controller.salvarPresencas(treino);
+        return presencas;
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Presença salva: " + modelo.totalPresentes() + " de " + modelo.atletas.size() + " atleta(s) presente(s).";
+    /** Marca ou desmarca a presença de um atleta (o mesmo que clicar na caixa; usado nos testes). */
+    public void marcarPresenca(Atleta atleta, boolean presente) {
+        int linha = modelo.atletas.indexOf(atleta);
+        if (linha >= 0) {
+            modelo.setValueAt(presente, linha, 0);
+        }
+    }
+
+    /** Marca ou desmarca a presença de todos (botões da tela; usado também nos testes). */
+    public void marcarTodos(boolean presente) {
+        modelo.marcarTodos(presente);
     }
 
     private void atualizarContador() {
@@ -98,22 +108,32 @@ public class PainelPresenca extends PainelFormulario {
         private final List<Boolean> presentes = new ArrayList<>();
 
         void carregar(List<Atleta> chamada) {
+            atletas.clear();
+            presentes.clear();
             for (Atleta atleta : chamada) {
                 atletas.add(atleta);
-                presentes.add(treino.getPresencas().getOrDefault(atleta, false));
+                presentes.add(treino.estavaPresente(atleta));
             }
             fireTableDataChanged();
             atualizarContador();
         }
 
         void marcarTodos(boolean presente) {
-            presentes.replaceAll(p -> presente);
+            for (int i = 0; i < presentes.size(); i++) {
+                presentes.set(i, presente);
+            }
             fireTableDataChanged();
             atualizarContador();
         }
 
-        long totalPresentes() {
-            return presentes.stream().filter(Boolean::booleanValue).count();
+        int totalPresentes() {
+            int total = 0;
+            for (Boolean presente : presentes) {
+                if (presente) {
+                    total++;
+                }
+            }
+            return total;
         }
 
         @Override
@@ -133,7 +153,10 @@ public class PainelPresenca extends PainelFormulario {
 
         @Override
         public Class<?> getColumnClass(int coluna) {
-            return coluna == 0 ? Boolean.class : coluna == 3 ? SituacaoAtleta.class : String.class;
+            if (coluna == 0) {
+                return Boolean.class;
+            }
+            return coluna == 3 ? SituacaoAtleta.class : String.class;
         }
 
         @Override
@@ -144,12 +167,16 @@ public class PainelPresenca extends PainelFormulario {
         @Override
         public Object getValueAt(int linha, int coluna) {
             Atleta atleta = atletas.get(linha);
-            return switch (coluna) {
-                case 0 -> presentes.get(linha);
-                case 1 -> atleta.getNome();
-                case 2 -> atleta.getMatricula();
-                default -> atleta.getSituacaoNaModalidade(treino.getModalidade()).orElse(null);
-            };
+            if (coluna == 0) {
+                return presentes.get(linha);
+            }
+            if (coluna == 1) {
+                return atleta.getNome();
+            }
+            if (coluna == 2) {
+                return atleta.getMatricula();
+            }
+            return atleta.getSituacaoNaModalidade(treino.getModalidade());
         }
 
         @Override

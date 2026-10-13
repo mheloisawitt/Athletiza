@@ -5,12 +5,11 @@ import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Usuario;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 
 /**
  * Acesso aos dados dos usuários do sistema (RF01).
  */
-public class UsuarioDAO extends AbstractDAO<Usuario> {
+public class UsuarioDAO extends AbstractDAO<Usuario> implements UsuarioRepository {
 
     @Override
     protected String getTabela() {
@@ -45,21 +44,21 @@ public class UsuarioDAO extends AbstractDAO<Usuario> {
                 usuario.getId());
     }
 
-    /** Busca pelo login, sem diferenciar maiúsculas de minúsculas. */
-    public Optional<Usuario> buscarPorLogin(String login) throws PersistenciaException {
+    @Override
+    public Usuario buscarPorLogin(String login) throws PersistenciaException {
         return consultarUm("SELECT * FROM usuario WHERE LOWER(login) = LOWER(?)", login);
     }
 
-    /** Indica se outro usuário (diferente de idIgnorado) já usa o login. */
+    @Override
     public boolean existeLogin(String login, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM usuario WHERE LOWER(login) = LOWER(?) AND id <> ?",
                 login, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /** Quantos administradores ativos existem, sem contar o usuário informado. */
+    @Override
     public int contarOutrosAdministradoresAtivos(Integer idIgnorado) throws PersistenciaException {
-        return consultar("SELECT COUNT(*) FROM usuario WHERE perfil = 'ADMINISTRADOR' AND ativo AND id <> ?",
-                rs -> rs.getInt(1), idIgnorado == null ? -1 : idIgnorado).get(0);
+        return contar("SELECT COUNT(*) FROM usuario WHERE perfil = 'ADMINISTRADOR' AND ativo AND id <> ?",
+                idIgnorado == null ? -1 : idIgnorado);
     }
 
     @Override

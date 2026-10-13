@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Acesso às informações dos arquivos da galeria (o conteúdo fica no disco).
  */
-public class ArquivoDAO extends AbstractDAO<Arquivo> {
+public class ArquivoDAO extends AbstractDAO<Arquivo> implements ArquivoRepository {
 
     @Override
     protected String getTabela() {
@@ -38,6 +38,7 @@ public class ArquivoDAO extends AbstractDAO<Arquivo> {
                 arquivo.getPasta().getId(), arquivo.getNome(), arquivo.getDescricao(), arquivo.getId());
     }
 
+    @Override
     public List<Arquivo> listarPorPasta(Pasta pasta) throws PersistenciaException {
         return consultar("SELECT * FROM arquivo WHERE pasta_id = ?", rs -> {
             Arquivo arquivo = mapear(rs);

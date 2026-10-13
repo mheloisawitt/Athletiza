@@ -1,22 +1,16 @@
 package br.com.athletiza.view.gestao;
 
-import br.com.athletiza.controller.CargoController;
-import br.com.athletiza.controller.GestaoController;
-import br.com.athletiza.controller.MembroController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Cargo;
-import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.MembroCargo;
 import br.com.athletiza.view.componentes.Botoes;
-import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import java.awt.GridLayout;
-import java.util.Comparator;
+import java.awt.event.ActionListener;
 import java.util.EnumSet;
 import java.util.List;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,96 +19,87 @@ import javax.swing.JPanel;
 /**
  * Gerenciamento da gestão (CH-21): quem ocupa cada cargo. Permite adicionar,
  * trocar e remover membros, e abrir o organograma (CH-23).
+ * As ações ficam no GerenciarGestaoController.
  */
 public class PainelGerenciarGestao extends PainelConsulta<MembroCargo> {
 
-    private static final Comparator<MembroCargo> POR_CARGO = Comparator
-            .comparing(MembroCargo::cargo)
-            .thenComparing(MembroCargo::membro, Comparator.comparing(Membro::getNome));
+    private final JButton btnOrganograma = Botoes.contornoVerde("Organograma", null);
+    private final JComboBox<Cargo> cargo = new JComboBox<>();
+    private final JComboBox<Membro> membro = new JComboBox<>();
 
-    private final GestaoController controller = new GestaoController();
-    private final Navegador navegador;
-    private Gestao gestao;
-
-    public PainelGerenciarGestao(Gestao gestao, Navegador navegador) {
-        super(gestao.getNome(), new ModeloTabela<MembroCargo>()
-                .coluna("Cargo", String.class, mc -> mc.cargo().getNome())
-                .coluna("Nível", Integer.class, mc -> mc.cargo().getOrdem())
-                .coluna("Membro", String.class, mc -> mc.membro().getNome())
-                .coluna("Matrícula", String.class, mc -> mc.membro().getMatricula())
-                .coluna("Contato", String.class, mc -> mc.membro().getContato()),
+    public PainelGerenciarGestao() {
+        super("", new ModeloTabela<MembroCargo>()
+                .coluna("Cargo", String.class, mc -> mc.getCargo().getNome())
+                .coluna("Nível", Integer.class, mc -> mc.getCargo().getOrdem())
+                .coluna("Membro", String.class, mc -> mc.getMembro().getNome())
+                .coluna("Matrícula", String.class, mc -> mc.getMembro().getMatricula())
+                .coluna("Contato", String.class, mc -> mc.getMembro().getContato()),
                 EnumSet.of(Acao.INCLUIR, Acao.EDITAR, Acao.EXCLUIR));
-        this.gestao = gestao;
-        this.navegador = navegador;
-        exibirVoltar(navegador::voltar);
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
+        exibirVoltar();
         renomearBotao(Acao.INCLUIR, "+ Adicionar membro");
         renomearBotao(Acao.EDITAR, "Trocar membro");
         renomearBotao(Acao.EXCLUIR, "Remover");
-        adicionarBotao(Botoes.contornoVerde("Organograma", e -> navegador.abrir(new PainelOrganograma(gestao, navegador))));
+        adicionarBotao(btnOrganograma);
         larguraColuna(1, 60);
     }
 
-    /** Lê a composição de novo do banco, para refletir alterações feitas em outras telas. */
-    @Override
-    protected List<MembroCargo> buscarDados() throws AthletizaException {
-        Gestao atualizada = new Gestao(gestao.getNome(), gestao.getDataInicio(), gestao.getDataFim());
-        atualizada.setId(gestao.getId());
-        controller.carregarComposicao(atualizada);
-        gestao = atualizada;
-        return gestao.getComposicao().stream().sorted(POR_CARGO).toList();
+    public void adicionarAcaoOrganograma(ActionListener acao) {
+        btnOrganograma.addActionListener(acao);
     }
 
-    @Override
-    protected void incluir() {
-        try {
-            JComboBox<Cargo> cargo = new JComboBox<>(new CargoController().listar().toArray(Cargo[]::new));
-            JComboBox<Membro> membro = new JComboBox<>(new MembroController().listarAtivos().toArray(Membro[]::new));
-            JPanel campos = new JPanel(new GridLayout(4, 1, 0, 6));
-            campos.add(new JLabel("Cargo"));
-            campos.add(cargo);
-            campos.add(new JLabel("Membro"));
-            campos.add(membro);
-            if (JOptionPane.showConfirmDialog(this, campos, "Adicionar membro à " + gestao.getNome(),
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
-                controller.adicionarMembro(gestao, (Membro) membro.getSelectedItem(), (Cargo) cargo.getSelectedItem());
-                carregar();
-            }
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
+    /**
+     * Diálogo "Adicionar membro": escolha do cargo e do membro.
+     *
+     * @return true se o usuário clicou em OK
+     */
+    public boolean exibirFormularioAdicionar(String nomeGestao, List<Cargo> cargos, List<Membro> membros) {
+        cargo.removeAllItems();
+        for (Cargo opcao : cargos) {
+            cargo.addItem(opcao);
         }
+        preencherMembros(membros, null);
+        JPanel campos = new JPanel(new GridLayout(4, 1, 0, 6));
+        campos.add(new JLabel("Cargo"));
+        campos.add(cargo);
+        campos.add(new JLabel("Membro"));
+        campos.add(membro);
+        return JOptionPane.showConfirmDialog(this, campos, "Adicionar membro à " + nomeGestao,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION;
     }
 
-    /** "Trocar membro": escolhe quem passa a ocupar o cargo selecionado. */
-    @Override
-    protected void editar(MembroCargo ocupacao) {
-        try {
-            JComboBox<Membro> novo = new JComboBox<>(new MembroController().listarAtivos().toArray(Membro[]::new));
-            novo.setSelectedItem(ocupacao.membro());
-            JPanel campos = new JPanel(new GridLayout(2, 1, 0, 6));
-            campos.add(new JLabel("Novo ocupante do cargo " + ocupacao.cargo().getNome()));
-            campos.add(novo);
-            if (JOptionPane.showConfirmDialog(this, campos, "Trocar membro", JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
-                controller.trocarMembro(gestao, ocupacao.cargo(), ocupacao.membro(), (Membro) novo.getSelectedItem());
-                carregar();
-            }
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
+    /**
+     * Diálogo "Trocar membro": escolha de quem passa a ocupar o cargo.
+     *
+     * @return true se o usuário clicou em OK
+     */
+    public boolean exibirFormularioTroca(MembroCargo ocupacao, List<Membro> membros) {
+        preencherMembros(membros, ocupacao.getMembro());
+        JPanel campos = new JPanel(new GridLayout(2, 1, 0, 6));
+        campos.add(new JLabel("Novo ocupante do cargo " + ocupacao.getCargo().getNome()));
+        campos.add(membro);
+        return JOptionPane.showConfirmDialog(this, campos, "Trocar membro", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION;
+    }
+
+    public Cargo getCargoEscolhido() {
+        return (Cargo) cargo.getSelectedItem();
+    }
+
+    public Membro getMembroEscolhido() {
+        return (Membro) membro.getSelectedItem();
+    }
+
+    private void preencherMembros(List<Membro> membros, Membro selecionado) {
+        membro.removeAllItems();
+        for (Membro opcao : membros) {
+            membro.addItem(opcao);
         }
-    }
-
-    @Override
-    protected String getPerguntaExclusao(MembroCargo ocupacao) {
-        return "Remover " + ocupacao.membro().getNome() + " do cargo " + ocupacao.cargo().getNome() + "?";
-    }
-
-    @Override
-    protected void excluir(MembroCargo ocupacao) {
-        try {
-            controller.removerMembro(gestao, ocupacao.membro(), ocupacao.cargo());
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
+        if (selecionado != null) {
+            membro.setSelectedItem(selecionado);
         }
-        carregar();
     }
 }

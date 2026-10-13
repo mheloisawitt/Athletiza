@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Acesso aos dados dos compromissos e ações do calendário (CH-16).
  */
-public class CompromissoDAO extends AbstractDAO<Compromisso> {
+public class CompromissoDAO extends AbstractDAO<Compromisso> implements CompromissoRepository {
 
     @Override
     protected String getTabela() {
@@ -42,6 +42,7 @@ public class CompromissoDAO extends AbstractDAO<Compromisso> {
                 compromisso.getObservacoes(), compromisso.getId());
     }
 
+    @Override
     public List<Compromisso> listarPorPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         return consultar("SELECT * FROM compromisso WHERE data BETWEEN ? AND ? ORDER BY data, horario", inicio, fim);
     }
