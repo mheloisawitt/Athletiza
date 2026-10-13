@@ -1,74 +1,77 @@
 package br.com.athletiza.view.usuarios;
 
-import br.com.athletiza.controller.UsuarioController;
-import br.com.athletiza.exception.AthletizaException;
-import br.com.athletiza.model.Usuario;
 import br.com.athletiza.view.componentes.Mensagens;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.Component;
 import java.awt.GridLayout;
-import java.util.Arrays;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
 /**
- * Troca da senha do usuário logado. Reabre enquanto houver erro, para o usuário corrigir.
- * No primeiro acesso com senha provisória, a troca é obrigatória (abrirObrigatorio).
+ * Troca da senha do usuário logado. O AlterarSenhaController reabre o diálogo
+ * enquanto houver erro, para o usuário corrigir.
  */
-public final class DialogoAlterarSenha {
+public class DialogoAlterarSenha {
 
-    private DialogoAlterarSenha() {
-    }
-
-    public static void abrir(Component pai, Usuario usuario) {
-        exibir(pai, usuario, "Alterar minha senha", null);
-    }
+    private final Component pai;
+    private final JPasswordField atual = new JPasswordField(20);
+    private final JPasswordField nova = new JPasswordField(20);
+    private final JPasswordField confirmacao = new JPasswordField(20);
+    private final JPanel campos = new JPanel(new GridLayout(0, 1, 0, 4));
 
     /**
-     * Troca obrigatória no primeiro acesso com senha provisória.
-     *
-     * @return true se a senha foi trocada; false se o usuário desistiu
+     * @param aviso texto exibido acima dos campos (ex.: na troca obrigatória), ou null
      */
-    public static boolean abrirObrigatorio(Component pai, Usuario usuario) {
-        return exibir(pai, usuario, "Defina uma nova senha",
-                "<html><b>Sua senha é provisória.</b><br>Por segurança, defina uma nova senha para continuar.</html>");
+    public DialogoAlterarSenha(Component pai, String aviso) {
+        this.pai = pai;
+        inicializarComponentes(aviso);
     }
 
-    private static boolean exibir(Component pai, Usuario usuario, String titulo, String aviso) {
-        JPasswordField atual = new JPasswordField(20);
-        JPasswordField nova = new JPasswordField(20);
-        JPasswordField confirmacao = new JPasswordField(20);
-        JPanel campos = new JPanel(new GridLayout(0, 1, 0, 4));
+    private void inicializarComponentes(String aviso) {
         if (aviso != null) {
             campos.add(new JLabel(aviso));
         }
-        for (Object[] campo : new Object[][]{{"Senha atual", atual}, {"Nova senha (mínimo 6 caracteres)", nova},
-            {"Confirmação da nova senha", confirmacao}}) {
-            ((JPasswordField) campo[1]).putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true");
-            campos.add(new JLabel((String) campo[0]));
-            campos.add((Component) campo[1]);
-        }
+        adicionar("Senha atual", atual);
+        adicionar("Nova senha (mínimo 6 caracteres)", nova);
+        adicionar("Confirmação da nova senha", confirmacao);
+    }
 
-        UsuarioController controller = new UsuarioController();
-        while (JOptionPane.showConfirmDialog(pai, campos, titulo, JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION) {
-            char[] senhaAtual = atual.getPassword();
-            char[] senhaNova = nova.getPassword();
-            char[] senhaConfirmacao = confirmacao.getPassword();
-            try {
-                controller.alterarSenha(usuario, senhaAtual, senhaNova, senhaConfirmacao);
-                Mensagens.sucesso(pai, "Senha alterada com sucesso.");
-                return true;
-            } catch (AthletizaException e) {
-                Mensagens.erro(pai, e);
-            } finally {
-                Arrays.fill(senhaAtual, '\0');
-                Arrays.fill(senhaNova, '\0');
-                Arrays.fill(senhaConfirmacao, '\0');
-            }
-        }
-        return false;
+    private void adicionar(String rotulo, JPasswordField campo) {
+        campo.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true");
+        campos.add(new JLabel(rotulo));
+        campos.add(campo);
+    }
+
+    /**
+     * Mostra o diálogo.
+     *
+     * @return true se o usuário clicou em OK
+     */
+    public boolean exibir(String titulo) {
+        return JOptionPane.showConfirmDialog(pai, campos, titulo, JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION;
+    }
+
+    /** Senhas digitadas. Quem chama deve apagar os arrays depois de usar (Arrays.fill). */
+    public char[] getSenhaAtual() {
+        return atual.getPassword();
+    }
+
+    public char[] getNovaSenha() {
+        return nova.getPassword();
+    }
+
+    public char[] getConfirmacao() {
+        return confirmacao.getPassword();
+    }
+
+    public void mostrarMensagem(String mensagem) {
+        Mensagens.sucesso(pai, mensagem);
+    }
+
+    public void mostrarErro(Exception erro) {
+        Mensagens.erro(pai, erro);
     }
 }

@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Acesso aos dados dos eventos, de seus responsáveis e de suas tarefas (CH-38).
+ * Acesso aos dados dos eventos e de seus responsáveis (CH-38).
  */
-public class EventoDAO extends AbstractDAO<Evento> {
+public class EventoDAO extends AbstractDAO<Evento> implements EventoRepository {
 
     private final TarefaDAO tarefaDAO = new TarefaDAO();
 
@@ -54,39 +54,42 @@ public class EventoDAO extends AbstractDAO<Evento> {
     @Override
     public List<Evento> listarTodos() throws PersistenciaException {
         List<Evento> eventos = super.listarTodos();
-        Map<Integer, List<Tarefa>> tarefas = tarefaDAO.listarPorDono(TarefaDAO.Dono.EVENTO);
-        eventos.forEach(e -> tarefas.getOrDefault(e.getId(), List.of()).forEach(e::adicionarTarefa));
+        Map<Integer, List<Tarefa>> tarefas = tarefaDAO.listarPorDono(TarefaRepository.Dono.EVENTO);
+        for (Evento evento : eventos) {
+            List<Tarefa> doEvento = tarefas.get(evento.getId());
+            if (doEvento != null) {
+                for (Tarefa tarefa : doEvento) {
+                    evento.adicionarTarefa(tarefa);
+                }
+            }
+        }
         return eventos;
     }
 
-    /** Preenche os responsáveis e as tarefas do evento. */
+    @Override
     public void carregarDetalhes(Evento evento) throws PersistenciaException {
-        consultar("SELECT m.id AS membro_id, m.nome AS membro_nome, m.matricula AS membro_matricula,"
-                + " m.contato AS membro_contato, m.situacao AS membro_situacao"
+        List<Membro> responsaveis = consultar("SELECT m.id AS membro_id, m.nome AS membro_nome,"
+                + " m.matricula AS membro_matricula, m.contato AS membro_contato, m.situacao AS membro_situacao"
                 + " FROM evento_responsavel er JOIN membro m ON m.id = er.membro_id"
-                + " WHERE er.evento_id = ? ORDER BY m.nome", rs -> {
-                    evento.adicionarResponsavel(MembroDAO.mapearMembro(rs, "membro_"));
-                    return null;
-                }, evento.getId());
-        tarefaDAO.listar(TarefaDAO.Dono.EVENTO, evento.getId()).forEach(evento::adicionarTarefa);
+                + " WHERE er.evento_id = ? ORDER BY m.nome", rs -> MembroDAO.mapearMembro(rs, "membro_"), evento.getId());
+        for (Membro responsavel : responsaveis) {
+            evento.adicionarResponsavel(responsavel);
+        }
+        for (Tarefa tarefa : tarefaDAO.listar(TarefaRepository.Dono.EVENTO, evento.getId())) {
+            evento.adicionarTarefa(tarefa);
+        }
     }
 
+    @Override
     public void adicionarResponsavel(Evento evento, Membro membro) throws PersistenciaException {
         executarAtualizacao("INSERT INTO evento_responsavel (evento_id, membro_id) VALUES (?, ?)",
                 evento.getId(), membro.getId());
     }
 
+    @Override
     public void removerResponsavel(Evento evento, Membro membro) throws PersistenciaException {
         executarAtualizacao("DELETE FROM evento_responsavel WHERE evento_id = ? AND membro_id = ?",
                 evento.getId(), membro.getId());
-    }
-
-    public void salvarTarefa(Evento evento, Tarefa tarefa) throws PersistenciaException {
-        tarefaDAO.salvar(TarefaDAO.Dono.EVENTO, evento.getId(), tarefa);
-    }
-
-    public void excluirTarefa(Tarefa tarefa) throws PersistenciaException {
-        tarefaDAO.excluir(tarefa);
     }
 
     @Override

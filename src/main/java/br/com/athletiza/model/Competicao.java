@@ -1,6 +1,7 @@
 package br.com.athletiza.model;
 
 import br.com.athletiza.exception.RegraNegocioException;
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -38,14 +39,31 @@ public class Competicao extends Atividade {
         return TipoAtividade.COMPETICAO;
     }
 
+    /** Regras de preenchimento do cadastro (CH-30). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(getTitulo(), "Nome")
+                .tamanhoMaximo(getTitulo(), 100, "Nome")
+                .obrigatorio(getData(), "Data de início")
+                .periodo(getData(), dataFim, "Data de início", "Data de fim")
+                .tamanhoMaximo(getLocal(), 100, "Local")
+                .obrigatorio(situacao, "Situação")
+                .tamanhoMaximo(getObservacoes(), 500, "Observações")
+                .validar();
+    }
+
     /** Competições podem durar vários dias e aparecem em todos eles no calendário. */
     @Override
     public boolean ocorreEm(LocalDate dia) {
         if (getData() == null || dia == null) {
             return false;
         }
-        LocalDate fim = dataFim == null ? getData() : dataFim;
-        return !dia.isBefore(getData()) && !dia.isAfter(fim);
+        return !dia.isBefore(getData()) && !dia.isAfter(getTermino());
+    }
+
+    /** Último dia da competição (a data de início, se ela durar um dia só). */
+    public LocalDate getTermino() {
+        return dataFim == null ? getData() : dataFim;
     }
 
     public LocalDate getDataFim() {
@@ -65,7 +83,9 @@ public class Competicao extends Atividade {
     }
 
     public void adicionarModalidade(Modalidade modalidade) {
-        inscricoes.putIfAbsent(modalidade, new LinkedHashSet<>());
+        if (!inscricoes.containsKey(modalidade)) {
+            inscricoes.put(modalidade, new LinkedHashSet<>());
+        }
     }
 
     public void removerModalidade(Modalidade modalidade) {
@@ -105,7 +125,50 @@ public class Competicao extends Atividade {
 
     /** Total de inscrições somando todas as modalidades. */
     public int getTotalInscricoes() {
-        return inscricoes.values().stream().mapToInt(Set::size).sum();
+        int total = 0;
+        for (Set<Atleta> atletas : inscricoes.values()) {
+            total += atletas.size();
+        }
+        return total;
+    }
+
+    /**
+     * Confere se o resultado pode ser lançado (CH-32): a modalidade precisa estar
+     * inscrita e, se o resultado for individual, o atleta precisa estar inscrito nela.
+     */
+    public void verificarResultado(Resultado resultado) throws RegraNegocioException {
+        if (!inscricoes.containsKey(resultado.getModalidade())) {
+            throw new RegraNegocioException("A modalidade " + resultado.getModalidade()
+                    + " não está inscrita nesta competição.");
+        }
+        if (resultado.getAtleta() != null && !getAtletas(resultado.getModalidade()).contains(resultado.getAtleta())) {
+            throw new RegraNegocioException(resultado.getAtleta().getNome() + " não está inscrito(a) em "
+                    + resultado.getModalidade() + " nesta competição.");
+        }
+    }
+
+    /**
+     * Atletas que aparecem na lista de inscrição de uma modalidade: os que
+     * praticam a modalidade e os que já estão inscritos nela (mesmo que tenham saído).
+     */
+    public List<Atleta> getAtletasDisponiveis(Modalidade modalidade, List<Atleta> todosAtletas) {
+        Set<Atleta> disponiveis = new LinkedHashSet<>();
+        for (Atleta atleta : todosAtletas) {
+            if (atleta.praticaModalidade(modalidade)) {
+                disponiveis.add(atleta);
+            }
+        }
+        disponiveis.addAll(getAtletas(modalidade));
+        return new ArrayList<>(disponiveis);
+    }
+
+    /** Cópia com os mesmos dados, mas sem inscrições, resultados e tarefas (para ler de novo do banco). */
+    public Competicao copiarDados() {
+        Competicao copia = new Competicao(getTitulo(), getData(), dataFim, getHorario(), getLocal());
+        copia.setId(getId());
+        copia.setSituacao(situacao);
+        copia.setObservacoes(getObservacoes());
+        return copia;
     }
 
     /** Tarefas da organização da competição (RF19), como inscrições e transporte. */
@@ -118,16 +181,29 @@ public class Competicao extends Atividade {
     }
 
     public List<Tarefa> getTarefasAtrasadas(LocalDate hoje) {
-        return tarefas.stream().filter(t -> t.isAtrasada(hoje)).sorted().toList();
+        List<Tarefa> atrasadas = new ArrayList<>();
+        for (Tarefa tarefa : tarefas) {
+            if (tarefa.isAtrasada(hoje)) {
+                atrasadas.add(tarefa);
+            }
+        }
+        Collections.sort(atrasadas);
+        return atrasadas;
     }
 
     /** Melhor colocação obtida, para exibir na consulta (ex.: "1º - Futsal (F)"). */
     public String getMelhorResultado() {
-        return resultados.stream()
-                .filter(r -> r.getColocacao() != null)
-                .min(java.util.Comparator.comparing(Resultado::getColocacao))
-                .map(r -> r.getColocacao() + "º - " + r.getModalidade())
-                .orElse(resultados.isEmpty() ? "" : resultados.size() + " lançado(s)");
+        Resultado melhor = null;
+        for (Resultado resultado : resultados) {
+            if (resultado.getColocacao() != null
+                    && (melhor == null || resultado.getColocacao() < melhor.getColocacao())) {
+                melhor = resultado;
+            }
+        }
+        if (melhor != null) {
+            return melhor.getColocacao() + "º - " + melhor.getModalidade();
+        }
+        return resultados.isEmpty() ? "" : resultados.size() + " lançado(s)";
     }
 
     public boolean removerAtleta(Modalidade modalidade, Atleta atleta) {
@@ -136,7 +212,11 @@ public class Competicao extends Atividade {
     }
 
     public Set<Atleta> getAtletas(Modalidade modalidade) {
-        return Collections.unmodifiableSet(inscricoes.getOrDefault(modalidade, Set.of()));
+        Set<Atleta> atletas = inscricoes.get(modalidade);
+        if (atletas == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(atletas);
     }
 
     public void adicionarResultado(Resultado resultado) {

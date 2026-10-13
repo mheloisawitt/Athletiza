@@ -21,6 +21,7 @@ Para a apresentação:
 - [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência (2 ou mais por integrante)
 - [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
+- [`docs/conteudo-das-aulas.md`](docs/conteudo-das-aulas.md): onde cada assunto dos slides (pacotes, DAO e DIP, MVC, exceções) aparece no código
 - [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e sugestão de divisão entre os integrantes
 - [`docs/prototipo/prototipo-telas.html`](docs/prototipo/prototipo-telas.html): protótipo navegável das 31 telas (abrir no navegador), com uma imagem de cada tela em [`docs/prototipo/telas`](docs/prototipo/telas)
 - [`docs/roteiro-testes.md`](docs/roteiro-testes.md): roteiro de testes manuais por módulo, para preencher
@@ -85,8 +86,8 @@ mvn test -Dteste.db.url=jdbc:mysql://localhost:3306/athletiza_teste -Dteste.db.u
 ```
 br.com.athletiza
 ├── Athletiza.java   classe principal
-├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
-├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
+├── model            entidades do domínio e regras de negócio (validar()), Validador
+├── view             telas Swing (TelaLogin, TelaPrincipal, Tema): só componentes, getters e mensagens
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
 │   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
@@ -96,11 +97,19 @@ br.com.athletiza
 │   ├── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
 │   ├── usuarios     usuários do sistema e troca de senha
 │   └── registros    galeria de fotos e vídeos em pastas
-├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
-├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
-├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores, ArmazenamentoMidia, Log)
+├── controller       um controller por tela (CadastroAtletaController, ConsultaAtletasController...)
+│                    e o PrincipalController, que cria os DAOs e os módulos do menu
+├── dao              interfaces XRepository (uma por entidade) e as classes XDAO que as implementam com JDBC
+├── util             utilitários (ConnectionFactory, Senha, Sessao, Cores, ArmazenamentoMidia, Log)
 └── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
+
+Dependências entre os pacotes (MVC + DAO, como nos slides):
+
+- `model` não conhece nenhum outro pacote (além de `exception`);
+- `view` conhece o `model` e os utilitários visuais (`Cores`, `Sessao`), nunca `controller` ou `dao`;
+- `controller` conhece `view`, `model` e as **interfaces** do `dao` (Inversão de Dependência);
+- só o `PrincipalController` (e o `main`) faz `new XDAO()`.
 
 Principais classes do modelo:
 
@@ -169,33 +178,97 @@ Principais classes do modelo:
 | CH-42 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
 | CH-43 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Registros definido como galeria de fotos e vídeos |
+| — | Ajuste ao conteúdo das aulas: um controller por tela (MVC), interfaces Repository (DIP), regras no Model, exceções com construtor padrão e código sem Optional/Stream/record | Concluído |
 
 ## Como criar uma tela nova
 
-**Consulta** (lista com JTable): estenda `PainelConsulta<T>`, defina as colunas e implemente `buscarDados()`:
+Cada tela tem uma **View** (pacote `view`) e um **Controller** (pacote `controller`), como no exemplo
+`PacienteView` / `PacienteController` da aula. Exemplo completo: `PainelCadastroModalidade` e `CadastroModalidadeController`.
+
+**View de cadastro**: estenda `PainelFormulario`, monte os campos em `inicializarComponentes()` e exponha getters.
+Os botões Salvar e Cancelar, `mostrarMensagem`, `mostrarErro` e `confirmar` já vêm prontos.
 
 ```java
-public class PainelConsultaGestao extends PainelConsulta<Gestao> {
+public class PainelCadastroModalidade extends PainelFormulario {
 
-    public PainelConsultaGestao() {
-        super("Gestões", new ModeloTabela<Gestao>()
-                .coluna("Gestão", String.class, Gestao::getNome)
-                .coluna("Período", String.class, Gestao::getPeriodo)
-                .coluna("Situação", SituacaoGestao.class, Gestao::getSituacao),
-                EnumSet.of(Acao.INCLUIR, Acao.GERENCIAR));
+    private final JTextField nome = new JTextField();
+    private final JComboBox<Genero> genero = new JComboBox<>(Genero.values());
+
+    public PainelCadastroModalidade() {
+        inicializarComponentes();
     }
 
-    @Override
-    protected List<Gestao> buscarDados() throws AthletizaException {
-        return controller.listar();
+    private void inicializarComponentes() {
+        adicionarCampo("Nome", nome, true);
+        adicionarCampo("Gênero", genero, true);
+    }
+
+    public void preencherCampos(Modalidade modalidade) {
+        setTitulo(modalidade.isNova() ? "Nova Modalidade" : "Editar Modalidade");
+        nome.setText(modalidade.getNome());
+    }
+
+    public String getNome() {
+        return nome.getText().trim();
+    }
+
+    public Genero getGenero() {
+        return (Genero) genero.getSelectedItem();
     }
 }
 ```
 
+**Controller**: recebe a View, o Model e o repositório (a interface, nunca o DAO) no construtor,
+registra os botões com lambda e trata as exceções no fluxo do botão.
+
+```java
+public class CadastroModalidadeController {
+
+    private final PainelCadastroModalidade view;
+    private final Modalidade model;
+    private final ModalidadeRepository repository;
+    private final Navegador navegador;
+
+    public CadastroModalidadeController(PainelCadastroModalidade view, Modalidade model,
+            ModalidadeRepository repository, Navegador navegador) {
+        this.view = view;
+        this.model = model;
+        this.repository = repository;
+        this.navegador = navegador;
+        view.preencherCampos(model);
+        adicionarAcoesBotoes();
+    }
+
+    public void adicionarAcoesBotoes() {
+        view.adicionarAcaoSalvar(e -> salvar());
+        view.adicionarAcaoCancelar(e -> cancelar());
+    }
+
+    private void salvar() {
+        try {
+            gravar();
+            view.mostrarMensagem("Modalidade salva com sucesso.");
+            navegador.voltar();
+        } catch (AthletizaException e) {
+            view.mostrarErro(e);
+        }
+    }
+
+    void gravar() throws ValidacaoException, RegraNegocioException, PersistenciaException {
+        model.setNome(view.getNome());
+        model.setGenero(view.getGenero());
+        model.validar();                 // regra de negócio no Model
+        repository.inserir(model);       // acesso ao banco pelo DAO (o real também confere repetição e edição)
+    }
+}
+```
+
+**Consulta** (lista com JTable): a View estende `PainelConsulta<T>` e define as colunas com lambda
+(`.coluna("Nome", String.class, m -> m.getNome())`). O Controller registra `adicionarAcaoCarregar(e -> carregar())`,
+`adicionarAcaoIncluir`, `adicionarAcaoEditar` e `adicionarAcaoExcluir`, e mostra os dados com `view.exibir(lista)`.
 Busca, ordenação ao clicar no cabeçalho, etiquetas coloridas de situação e datas em dd/mm/aaaa já vêm prontas.
 
-**Cadastro** (formulário): estenda `PainelFormulario`, adicione os campos com `adicionarCampo(...)` e implemente `salvar()`.
-Os botões Salvar e Cancelar, as mensagens de erro e a volta para a consulta já vêm prontos.
+Para a tela aparecer no menu, crie a View e o Controller em `PrincipalController.criarModulos()`.
 
 ## Convenção de branches e commits
 

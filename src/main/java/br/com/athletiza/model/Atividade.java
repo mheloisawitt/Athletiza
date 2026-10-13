@@ -2,7 +2,6 @@ package br.com.athletiza.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Comparator;
 
 /**
  * Qualquer atividade que aparece no calendário: treino, amistoso,
@@ -12,10 +11,6 @@ import java.util.Comparator;
  * tipo, cor e descrição (polimorfismo). Ordem natural: data e horário.
  */
 public abstract class Atividade extends Entidade implements Comparable<Atividade> {
-
-    public static final Comparator<Atividade> POR_DATA = Comparator
-            .comparing(Atividade::getData, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(Atividade::getHorario, Comparator.nullsFirst(Comparator.naturalOrder()));
 
     private String titulo;
     private LocalDate data;
@@ -95,9 +90,23 @@ public abstract class Atividade extends Entidade implements Comparable<Atividade
         this.observacoes = observacoes;
     }
 
+    /** Ordem natural: pela data e, no mesmo dia, pelo horário (sem horário = dia todo, vem primeiro). */
     @Override
     public int compareTo(Atividade outra) {
-        return POR_DATA.compare(this, outra);
+        int resultado = Textos.compararNulosNoFim(data, outra.data);
+        if (resultado != 0) {
+            return resultado;
+        }
+        if (horario == null && outra.horario == null) {
+            return 0;
+        }
+        if (horario == null) {
+            return -1; // sem horário (dia todo) vem primeiro
+        }
+        if (outra.horario == null) {
+            return 1;
+        }
+        return horario.compareTo(outra.horario);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -30,6 +31,20 @@ public class Evento extends Atividade {
     @Override
     public TipoAtividade getTipo() {
         return TipoAtividade.EVENTO;
+    }
+
+    /** Regras de preenchimento do cadastro (CH-40). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(getTitulo(), "Nome")
+                .tamanhoMaximo(getTitulo(), 100, "Nome")
+                .obrigatorio(tipoEvento, "Tipo")
+                .obrigatorio(getData(), "Data")
+                .tamanhoMaximo(getLocal(), 100, "Local")
+                .obrigatorio(situacao, "Situação")
+                .tamanhoMaximo(descricao, 500, "Descrição")
+                .tamanhoMaximo(getObservacoes(), 500, "Observações")
+                .validar();
     }
 
     @Override
@@ -87,6 +102,13 @@ public class Evento extends Atividade {
     }
 
     public List<Tarefa> getTarefasAtrasadas(LocalDate hoje) {
-        return tarefas.stream().filter(t -> t.isAtrasada(hoje)).sorted().toList();
+        List<Tarefa> atrasadas = new ArrayList<>();
+        for (Tarefa tarefa : tarefas) {
+            if (tarefa.isAtrasada(hoje)) {
+                atrasadas.add(tarefa);
+            }
+        }
+        Collections.sort(atrasadas);
+        return atrasadas;
     }
 }

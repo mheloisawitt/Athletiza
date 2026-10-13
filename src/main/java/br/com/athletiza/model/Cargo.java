@@ -1,6 +1,7 @@
 package br.com.athletiza.model;
 
-import java.util.Comparator;
+import br.com.athletiza.exception.RegraNegocioException;
+import br.com.athletiza.exception.ValidacaoException;
 import java.util.Objects;
 
 /**
@@ -8,9 +9,6 @@ import java.util.Objects;
  * (1 = topo) e o cargo superior define a quem ele responde (RF08).
  */
 public class Cargo extends Entidade implements Comparable<Cargo> {
-
-    private static final Comparator<Cargo> ORDEM_NATURAL = Comparator.comparingInt(Cargo::getOrdem)
-            .thenComparing(Cargo::getNome, Textos.COMPARADOR);
 
     private String nome;
     private int ordem;
@@ -23,6 +21,34 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
         this.nome = nome;
         this.ordem = ordem;
         this.cargoSuperior = cargoSuperior;
+    }
+
+    /** Regras de preenchimento do cadastro (CH-18). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(nome, "Nome")
+                .tamanhoMaximo(nome, 60, "Nome")
+                .regra(ordem >= 1, "O \"Nível\" deve ser 1 ou maior (1 = topo do organograma).")
+                .validar();
+    }
+
+    /**
+     * Confere a hierarquia (RF07): o superior precisa ter nível menor e
+     * um cargo não pode ficar subordinado a si mesmo.
+     */
+    public void verificarHierarquia() throws RegraNegocioException {
+        if (cargoSuperior == null) {
+            return;
+        }
+        if (cargoSuperior.getOrdem() >= ordem) {
+            throw new RegraNegocioException("O cargo superior (" + cargoSuperior + ", nível " + cargoSuperior.getOrdem()
+                    + ") deve ter nível menor que o deste cargo.");
+        }
+        for (Cargo acima = cargoSuperior; acima != null; acima = acima.getCargoSuperior()) {
+            if (!isNova() && getId().equals(acima.getId())) {
+                throw new RegraNegocioException("Um cargo não pode ficar subordinado a si mesmo.");
+            }
+        }
     }
 
     public String getNome() {
@@ -49,9 +75,13 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
         this.cargoSuperior = cargoSuperior;
     }
 
+    /** Ordem natural: pelo nível no organograma e, empatando, pelo nome. */
     @Override
     public int compareTo(Cargo outro) {
-        return ORDEM_NATURAL.compare(this, outro);
+        if (ordem != outro.ordem) {
+            return Integer.compare(ordem, outro.ordem);
+        }
+        return Textos.comparar(nome, outro.nome);
     }
 
     @Override
@@ -59,9 +89,10 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Cargo outro) || nome == null) {
+        if (!(o instanceof Cargo) || nome == null) {
             return false;
         }
+        Cargo outro = (Cargo) o;
         return nome.equalsIgnoreCase(outro.nome);
     }
 

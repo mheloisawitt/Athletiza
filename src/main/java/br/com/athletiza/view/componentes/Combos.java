@@ -32,12 +32,14 @@ public final class Combos {
         Object selecionado = combo.getSelectedItem();
         DefaultComboBoxModel<T> modelo = new DefaultComboBoxModel<>();
         modelo.addElement(null);
-        itens.forEach(modelo::addElement);
+        for (T item : itens) {
+            modelo.addElement(item);
+        }
         modelo.setSelectedItem(selecionado != null && itens.contains(selecionado) ? selecionado : null);
         combo.setModel(modelo);
     }
 
-    /** Define o texto exibido para cada item (ex.: Genero::getNomeCompleto). */
+    /** Define o texto exibido para cada item (ex.: g -> g.getNomeCompleto()). */
     public static <T> void exibirComo(JComboBox<T> combo, Function<T, String> texto) {
         @SuppressWarnings("unchecked")
         ListCellRenderer<Object> padrao = (ListCellRenderer<Object>) (ListCellRenderer<?>) combo.getRenderer();

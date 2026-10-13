@@ -12,9 +12,12 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -47,9 +50,13 @@ public class MenuLateral extends JPanel {
     private final ButtonGroup grupo = new ButtonGroup();
     private final Map<String, JToggleButton> itens = new LinkedHashMap<>();
     private final JPanel painelItens = new JPanel();
-    private final Consumer<String> aoSelecionar;
+    private final ActionListener aoSelecionar;
+    private final JButton btnSair = new JButton("Sair");
+    private final JPanel textosUsuario = new JPanel();
+    private ActionListener acaoAlterarSenha;
 
-    public MenuLateral(Consumer<String> aoSelecionar) {
+    /** @param aoSelecionar recebe o clique nos itens; o nome do item vem em getActionCommand() */
+    public MenuLateral(ActionListener aoSelecionar) {
         super(new BorderLayout());
         this.aoSelecionar = aoSelecionar;
         setBackground(Cores.FUNDO_MENU);
@@ -73,7 +80,8 @@ public class MenuLateral extends JPanel {
         item.setAlignmentX(Component.LEFT_ALIGNMENT);
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        item.addActionListener(e -> aoSelecionar.accept(nome));
+        item.setActionCommand(nome);
+        item.addActionListener(aoSelecionar);
         item.addItemListener(e -> item.putClientProperty(FlatClientProperties.STYLE,
                 item.isSelected() ? ESTILO_ITEM_SELECIONADO : ESTILO_ITEM));
         grupo.add(item);
@@ -82,42 +90,52 @@ public class MenuLateral extends JPanel {
         painelItens.add(Box.createVerticalStrut(4));
     }
 
-    /** Marca o item como selecionado e avisa quem está ouvindo. */
+    /** Marca o item como selecionado e avisa quem está ouvindo (como se o usuário clicasse). */
     public void selecionar(String nome) {
         JToggleButton item = itens.get(nome);
         if (item != null) {
-            item.setSelected(true);
-            aoSelecionar.accept(nome);
+            item.doClick();
         }
     }
 
+    /** Clique no nome do usuário: alterar a senha. */
+    public void adicionarAcaoAlterarSenha(ActionListener acao) {
+        this.acaoAlterarSenha = acao;
+    }
+
+    public void adicionarAcaoSair(ActionListener acao) {
+        btnSair.addActionListener(acao);
+    }
+
     /** Rodapé com o usuário logado e o botão Sair. */
-    public void definirUsuario(String nome, String detalhe, Runnable aoAlterarSenha, Runnable aoSair) {
+    public void definirUsuario(String nome, String detalhe) {
         JLabel rotuloNome = new JLabel(nome);
         rotuloNome.setFont(Tema.fonte(Font.BOLD, 13f));
         JLabel rotuloDetalhe = new JLabel(detalhe);
         rotuloDetalhe.setFont(Tema.fonte(Font.PLAIN, 11f));
         rotuloDetalhe.setForeground(Cores.TEXTO_SECUNDARIO);
 
-        JPanel textos = new JPanel();
+        JPanel textos = textosUsuario;
         textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
         textos.setOpaque(false);
         textos.add(rotuloNome);
         textos.add(rotuloDetalhe);
         textos.setToolTipText("Clique para alterar sua senha");
         textos.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        textos.addMouseListener(new java.awt.event.MouseAdapter() {
+        textos.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                aoAlterarSenha.run();
+            public void mouseClicked(MouseEvent e) {
+                if (acaoAlterarSenha != null) {
+                    acaoAlterarSenha.actionPerformed(new ActionEvent(textos,
+                            ActionEvent.ACTION_PERFORMED, "alterarSenha"));
+                }
             }
         });
 
-        JButton sair = new JButton("Sair");
+        JButton sair = btnSair;
         sair.putClientProperty(FlatClientProperties.STYLE,
                 "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; font:-1; margin:2,4,2,4");
         sair.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        sair.addActionListener(e -> aoSair.run());
 
         JPanel rodape = new JPanel(new BorderLayout(10, 0));
         rodape.setOpaque(false);

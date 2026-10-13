@@ -9,21 +9,21 @@ import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
 import br.com.athletiza.model.Tarefa;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Acesso aos dados das competições, das inscrições (competição -> modalidade -> atletas)
  * e dos resultados (CH-28, CH-31, CH-32).
  */
-public class CompeticaoDAO extends AbstractDAO<Competicao> {
+public class CompeticaoDAO extends AbstractDAO<Competicao> implements CompeticaoRepository {
 
     private static final String SELECT_RESULTADOS = "SELECT r.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM resultado r JOIN modalidade m ON m.id = r.modalidade_id";
@@ -63,34 +63,46 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
                 competicao.getLocal(), competicao.getSituacao(), competicao.getObservacoes(), competicao.getId());
     }
 
-    /** Todas as competições, cada uma com seus resultados (para a coluna de resultado da consulta). */
+    /** Todas as competições, cada uma com seus resultados e tarefas (para as colunas da consulta). */
     @Override
     public List<Competicao> listarTodos() throws PersistenciaException {
         List<Competicao> competicoes = super.listarTodos();
-        Map<Integer, Competicao> porId = competicoes.stream().collect(Collectors.toMap(Competicao::getId, Function.identity()));
-        Map<Integer, Atleta> atletas = atletasPorId();
+        Map<Integer, Competicao> porId = new HashMap<>();
+        for (Competicao competicao : competicoes) {
+            porId.put(competicao.getId(), competicao);
+        }
+
+        Map<Integer, Atleta> atletas = atletaDAO.listarPorId();
         consultar(SELECT_RESULTADOS + " ORDER BY r.colocacao IS NULL, r.colocacao", rs -> {
             Competicao competicao = porId.get(rs.getInt("competicao_id"));
             competicao.adicionarResultado(mapearResultado(rs, atletas));
             return null;
         });
-        Map<Integer, List<Tarefa>> tarefas = tarefaDAO.listarPorDono(TarefaDAO.Dono.COMPETICAO);
-        competicoes.forEach(c -> tarefas.getOrDefault(c.getId(), List.of()).forEach(c::adicionarTarefa));
+
+        Map<Integer, List<Tarefa>> tarefas = tarefaDAO.listarPorDono(TarefaRepository.Dono.COMPETICAO);
+        for (Competicao competicao : competicoes) {
+            List<Tarefa> daCompeticao = tarefas.get(competicao.getId());
+            if (daCompeticao != null) {
+                for (Tarefa tarefa : daCompeticao) {
+                    competicao.adicionarTarefa(tarefa);
+                }
+            }
+        }
         return competicoes;
     }
 
-    /** Preenche as modalidades inscritas e os atletas de cada uma. */
+    @Override
     public void carregarInscricoes(Competicao competicao) throws PersistenciaException {
-        Map<Integer, Atleta> atletas = atletasPorId();
-        Map<Integer, Modalidade> modalidades = new HashMap<>();
-        consultar("SELECT m.id AS modalidade_id, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
+        Map<Integer, Atleta> atletas = atletaDAO.listarPorId();
+        List<Modalidade> modalidadesInscritas = consultar(
+                "SELECT m.id AS modalidade_id, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
                 + " FROM competicao_modalidade cm JOIN modalidade m ON m.id = cm.modalidade_id"
-                + " WHERE cm.competicao_id = ? ORDER BY m.nome, m.genero", rs -> {
-                    Modalidade modalidade = mapearModalidade(rs);
-                    modalidades.put(modalidade.getId(), modalidade);
-                    competicao.adicionarModalidade(modalidade);
-                    return null;
-                }, competicao.getId());
+                + " WHERE cm.competicao_id = ? ORDER BY m.nome, m.genero", rs -> mapearModalidade(rs), competicao.getId());
+        Map<Integer, Modalidade> modalidades = new HashMap<>();
+        for (Modalidade modalidade : modalidadesInscritas) {
+            modalidades.put(modalidade.getId(), modalidade);
+            competicao.adicionarModalidade(modalidade);
+        }
         consultar("SELECT modalidade_id, atleta_id FROM competicao_atleta WHERE competicao_id = ?", rs -> {
             competicao.restaurarInscricao(modalidades.get(rs.getInt("modalidade_id")), atletas.get(rs.getInt("atleta_id")));
             return null;
@@ -101,10 +113,14 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
      * Grava as inscrições da competição em uma transação. Modalidades retiradas
      * levam junto (em cascata) seus atletas e resultados.
      */
+    @Override
     public void salvarInscricoes(Competicao competicao) throws PersistenciaException {
         emTransacao("salvar", con -> {
-            Set<Integer> gravadas = new HashSet<>(consultarIds(con, competicao.getId()));
-            Set<Integer> atuais = competicao.getModalidades().stream().map(Modalidade::getId).collect(Collectors.toSet());
+            Set<Integer> gravadas = new HashSet<>(consultarIdsDasModalidades(con, competicao.getId()));
+            Set<Integer> atuais = new HashSet<>();
+            for (Modalidade modalidade : competicao.getModalidades()) {
+                atuais.add(modalidade.getId());
+            }
             for (Integer removida : gravadas) {
                 if (!atuais.contains(removida)) {
                     atualizar(con, "DELETE FROM competicao_modalidade WHERE competicao_id = ? AND modalidade_id = ?",
@@ -128,12 +144,14 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         });
     }
 
+    @Override
     public List<Resultado> listarResultados(Competicao competicao) throws PersistenciaException {
-        Map<Integer, Atleta> atletas = atletasPorId();
-        return consultar(SELECT_RESULTADOS + " WHERE r.competicao_id = ? ORDER BY m.nome, m.genero, r.colocacao IS NULL, r.colocacao",
-                rs -> mapearResultado(rs, atletas), competicao.getId());
+        Map<Integer, Atleta> atletas = atletaDAO.listarPorId();
+        return consultar(SELECT_RESULTADOS + " WHERE r.competicao_id = ? ORDER BY m.nome, m.genero, r.colocacao IS NULL,"
+                + " r.colocacao", rs -> mapearResultado(rs, atletas), competicao.getId());
     }
 
+    @Override
     public void salvarResultado(Competicao competicao, Resultado resultado) throws PersistenciaException {
         Integer atletaId = resultado.getAtleta() == null ? null : resultado.getAtleta().getId();
         if (resultado.isNova()) {
@@ -147,31 +165,17 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         }
     }
 
-    public List<Tarefa> listarTarefas(Competicao competicao) throws PersistenciaException {
-        return tarefaDAO.listar(TarefaDAO.Dono.COMPETICAO, competicao.getId());
-    }
-
-    public void salvarTarefa(Competicao competicao, Tarefa tarefa) throws PersistenciaException {
-        tarefaDAO.salvar(TarefaDAO.Dono.COMPETICAO, competicao.getId(), tarefa);
-    }
-
-    public void excluirTarefa(Tarefa tarefa) throws PersistenciaException {
-        tarefaDAO.excluir(tarefa);
-    }
-
+    @Override
     public void excluirResultado(Resultado resultado) throws PersistenciaException {
         executarAtualizacao("DELETE FROM resultado WHERE id = ?", resultado.getId());
     }
 
-    private Map<Integer, Atleta> atletasPorId() throws PersistenciaException {
-        return atletaDAO.listarTodos().stream().collect(Collectors.toMap(Atleta::getId, Function.identity()));
-    }
-
-    private static List<Integer> consultarIds(Connection con, int competicaoId) throws SQLException {
-        try (var ps = con.prepareStatement("SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
+    private static List<Integer> consultarIdsDasModalidades(Connection con, int competicaoId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
             ps.setInt(1, competicaoId);
             try (ResultSet rs = ps.executeQuery()) {
-                List<Integer> ids = new java.util.ArrayList<>();
+                List<Integer> ids = new ArrayList<>();
                 while (rs.next()) {
                     ids.add(rs.getInt(1));
                 }

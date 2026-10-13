@@ -1,6 +1,6 @@
 package br.com.athletiza.model;
 
-import java.util.Comparator;
+import br.com.athletiza.exception.ValidacaoException;
 import java.util.Objects;
 
 /**
@@ -8,10 +8,6 @@ import java.util.Objects;
  * Duas modalidades são iguais quando têm o mesmo nome e gênero.
  */
 public class Modalidade extends Entidade implements Comparable<Modalidade> {
-
-    private static final Comparator<Modalidade> ORDEM_NATURAL = Comparator
-            .comparing(Modalidade::getNome, Textos.COMPARADOR)
-            .thenComparing(Modalidade::getGenero);
 
     private String nome;
     private Genero genero;
@@ -22,6 +18,15 @@ public class Modalidade extends Entidade implements Comparable<Modalidade> {
     public Modalidade(String nome, Genero genero) {
         this.nome = nome;
         this.genero = genero;
+    }
+
+    /** Regras de preenchimento do cadastro (CH-27). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(nome, "Nome")
+                .tamanhoMaximo(nome, 50, "Nome")
+                .obrigatorio(genero, "Gênero")
+                .validar();
     }
 
     public String getNome() {
@@ -40,9 +45,14 @@ public class Modalidade extends Entidade implements Comparable<Modalidade> {
         this.genero = genero;
     }
 
+    /** Ordem natural: pelo nome e, empatando, pelo gênero. */
     @Override
     public int compareTo(Modalidade outra) {
-        return ORDEM_NATURAL.compare(this, outra);
+        int resultado = Textos.comparar(nome, outra.nome);
+        if (resultado != 0) {
+            return resultado;
+        }
+        return Textos.compararNulosNoFim(genero, outra.genero);
     }
 
     @Override
@@ -50,9 +60,10 @@ public class Modalidade extends Entidade implements Comparable<Modalidade> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Modalidade outra) || nome == null) {
+        if (!(o instanceof Modalidade) || nome == null) {
             return false;
         }
+        Modalidade outra = (Modalidade) o;
         return nome.equalsIgnoreCase(outra.nome) && genero == outra.genero;
     }
 

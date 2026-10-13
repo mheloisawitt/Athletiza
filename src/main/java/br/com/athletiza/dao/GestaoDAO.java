@@ -4,17 +4,18 @@ import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Cargo;
 import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
+import br.com.athletiza.model.MembroCargo;
 import br.com.athletiza.model.SituacaoGestao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Acesso aos dados das gestões e de sua composição: quem ocupa cada cargo (CH-18).
  */
-public class GestaoDAO extends AbstractDAO<Gestao> {
+public class GestaoDAO extends AbstractDAO<Gestao> implements GestaoRepository {
 
     private final CargoDAO cargoDAO = new CargoDAO();
 
@@ -51,30 +52,35 @@ public class GestaoDAO extends AbstractDAO<Gestao> {
      * Preenche a composição da gestão (membro x cargo). Os cargos vêm com o
      * cargo superior, para o organograma.
      */
+    @Override
     public void carregarComposicao(Gestao gestao) throws PersistenciaException {
-        Map<Integer, Cargo> cargos = cargoDAO.listarTodos().stream()
-                .collect(Collectors.toMap(Cargo::getId, Function.identity()));
-        consultar("SELECT gmc.cargo_id, m.id AS membro_id, m.nome AS membro_nome, m.matricula AS membro_matricula,"
-                + " m.contato AS membro_contato, m.situacao AS membro_situacao"
-                + " FROM gestao_membro_cargo gmc JOIN membro m ON m.id = gmc.membro_id"
-                + " WHERE gmc.gestao_id = ?", rs -> {
-                    Membro membro = MembroDAO.mapearMembro(rs, "membro_");
-                    gestao.adicionarMembro(membro, cargos.get(rs.getInt("cargo_id")));
-                    return null;
-                }, gestao.getId());
+        Map<Integer, Cargo> cargos = new HashMap<>();
+        for (Cargo cargo : cargoDAO.listarTodos()) {
+            cargos.put(cargo.getId(), cargo);
+        }
+        List<MembroCargo> composicao = consultar("SELECT gmc.cargo_id, m.id AS membro_id, m.nome AS membro_nome,"
+                + " m.matricula AS membro_matricula, m.contato AS membro_contato, m.situacao AS membro_situacao"
+                + " FROM gestao_membro_cargo gmc JOIN membro m ON m.id = gmc.membro_id WHERE gmc.gestao_id = ?",
+                rs -> new MembroCargo(MembroDAO.mapearMembro(rs, "membro_"), cargos.get(rs.getInt("cargo_id"))),
+                gestao.getId());
+        for (MembroCargo ocupacao : composicao) {
+            gestao.adicionarMembro(ocupacao.getMembro(), ocupacao.getCargo());
+        }
     }
 
+    @Override
     public void adicionarMembro(Gestao gestao, Membro membro, Cargo cargo) throws PersistenciaException {
         executarAtualizacao("INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id) VALUES (?, ?, ?)",
                 gestao.getId(), membro.getId(), cargo.getId());
     }
 
+    @Override
     public void removerMembro(Gestao gestao, Membro membro, Cargo cargo) throws PersistenciaException {
         executarAtualizacao("DELETE FROM gestao_membro_cargo WHERE gestao_id = ? AND membro_id = ? AND cargo_id = ?",
                 gestao.getId(), membro.getId(), cargo.getId());
     }
 
-    /** Troca quem ocupa um cargo, em uma única transação. */
+    @Override
     public void trocarMembro(Gestao gestao, Cargo cargo, Membro atual, Membro novo) throws PersistenciaException {
         emTransacao("salvar", con -> {
             atualizar(con, "DELETE FROM gestao_membro_cargo WHERE gestao_id = ? AND membro_id = ? AND cargo_id = ?",

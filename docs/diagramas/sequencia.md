@@ -1,26 +1,33 @@
 # Diagramas de sequência (CH-48)
 
-Cada diagrama mostra **View → Controller → DAO → Banco**, com o fluxo principal e o fluxo de erro
-(bloco `alt`), como pede o CH-48. São 13 fluxos, para que cada integrante escolha pelo menos 2.
+Cada diagrama segue o MVC como visto em aula:
 
-Para exportar como imagem para os slides: cole o código de um diagrama em <https://mermaid.live>
-e use **Actions > PNG** (ou SVG).
+1. O **Controller** registra as ações dos botões da **View** com lambda (`view.adicionarAcaoSalvar(e -> salvar())`).
+2. O usuário clica; a View só avisa o Controller.
+3. O Controller lê os campos da View (`view.getNome()`), passa para o **Model** e chama `model.validar()`
+   (regra de negócio no Model).
+4. O Controller grava pelo **Repository** (interface); quem executa é o **DAO** (JDBC), que fala com o banco.
+5. Se algo der errado, a exceção (`ValidacaoException`, `RegraNegocioException` ou `PersistenciaException`)
+   **sobe** até o Controller (`throws`), que a trata no `catch` e pede à View para mostrar a mensagem.
+
+São 13 fluxos, para que cada integrante escolha pelo menos 2. As mesmas imagens estão em [`imagens`](imagens).
+Para exportar de novo: cole o código de um diagrama em <https://mermaid.live> e use **Actions > PNG** (ou SVG).
 
 | # | Fluxo | Telas / classes principais |
 |---|---|---|
-| 1 | Login | `TelaLogin`, `LoginController`, `UsuarioDAO` |
-| 2 | Exibir calendário | `PainelCalendario`, `CalendarioController`, `AtividadeDAO` |
-| 3 | Incluir compromisso | `DialogoCompromisso`, `CalendarioController`, `CompromissoDAO` |
-| 4 | Cadastrar gestão | `PainelCadastroGestao`, `GestaoController`, `GestaoDAO` |
-| 5 | Adicionar membro a um cargo | `PainelGerenciarGestao`, `GestaoController`, `GestaoDAO` |
-| 6 | Incluir atleta | `PainelCadastroAtleta`, `AtletaController`, `AtletaDAO` |
-| 7 | Excluir atleta com vínculos | `PainelConsultaAtletas`, `AtletaController`, `AtletaDAO` |
-| 8 | Gerenciar competição (inscrições) | `PainelGerenciarCompeticao`, `CompeticaoController`, `CompeticaoDAO` |
-| 9 | Lançar resultado | `PainelResultados`, `CompeticaoController`, `CompeticaoDAO` |
-| 10 | Cadastrar treino (conflito de horário) | `PainelCadastroTreino`, `TreinoController`, `TreinoDAO` |
-| 11 | Registrar presença | `PainelPresenca`, `TreinoController`, `TreinoDAO` |
-| 12 | Concluir tarefa de evento | `PainelGerenciarEvento`, `EventoController`, `EventoDAO` |
-| 13 | Adicionar fotos e vídeos aos registros | `PainelRegistros`, `GaleriaController`, `ArquivoDAO` |
+| 1 | Login | `TelaLogin`, `LoginController`, `UsuarioRepository` (`UsuarioDAO`) |
+| 2 | Exibir calendário | `PainelCalendario`, `CalendarioController`, `AtividadeRepository` (`AtividadeDAO`) |
+| 3 | Incluir compromisso | `PainelCompromisso`, `CompromissoController`, `CompromissoRepository` |
+| 4 | Cadastrar gestão | `PainelCadastroGestao`, `CadastroGestaoController`, `Gestao`, `GestaoRepository` |
+| 5 | Adicionar membro a um cargo | `PainelGerenciarGestao`, `GerenciarGestaoController`, `Gestao`, `GestaoRepository` |
+| 6 | Incluir atleta | `PainelCadastroAtleta`, `CadastroAtletaController`, `Atleta`, `AtletaRepository` |
+| 7 | Excluir atleta com vínculos | `PainelConsultaAtletas`, `ConsultaAtletasController`, `AtletaRepository` |
+| 8 | Gerenciar competição (inscrições) | `PainelGerenciarCompeticao`, `GerenciarCompeticaoController`, `Competicao`, `CompeticaoRepository` |
+| 9 | Lançar resultado | `PainelResultados`, `ResultadosController`, `Resultado`, `CompeticaoRepository` |
+| 10 | Cadastrar treino (conflito de horário) | `PainelCadastroTreino`, `CadastroTreinoController`, `Treino`, `TreinoRepository` |
+| 11 | Registrar presença | `PainelPresenca`, `PresencaController`, `Treino`, `TreinoRepository` |
+| 12 | Concluir tarefa de evento | `PainelTarefas`, `TarefasController`, `Tarefa`, `TarefaRepository` |
+| 13 | Adicionar fotos e vídeos aos registros | `PainelRegistros`, `RegistrosController`, `ArquivoRepository` |
 
 ---
 
@@ -29,31 +36,33 @@ e use **Actions > PNG** (ou SVG).
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as TelaLogin
+    participant V as TelaLogin (View)
     participant C as LoginController
-    participant D as UsuarioDAO
+    participant R as UsuarioRepository (UsuarioDAO)
     participant B as Banco
 
+    Note over C,V: no construtor: view.adicionarAcaoEntrar(e -> entrar())
     U->>V: digita usuário e senha, Enter
-    V->>V: SwingWorker (não trava a tela)
-    V->>C: autenticar(login, senha)
+    V->>C: entrar() (lambda do botão)
+    C->>V: getLogin(), getSenha()
+    C->>C: SwingWorker: autenticar() em segundo plano
     C->>C: Validador.obrigatorio(...).validar()
     alt campos vazios
-        C-->>V: ValidacaoException
-        V-->>U: Mensagens.erro("O campo Usuário é obrigatório")
+        C-->>C: throw ValidacaoException
+        C->>V: mostrarErro(e)
     end
-    C->>D: buscarPorLogin(login)
-    D->>B: SELECT * FROM usuario WHERE LOWER(login) = LOWER(?)
-    B-->>D: linha do usuário
-    D-->>C: Optional<Usuario>
+    C->>R: buscarPorLogin(login)
+    R->>B: SELECT * FROM usuario WHERE LOWER(login) = LOWER(?)
+    B-->>R: linha do usuário (ou nenhuma)
+    R-->>C: Usuario (ou null)
     C->>C: Senha.conferir(senha, hash)
-    alt usuário não existe ou senha errada
-        C-->>V: RegraNegocioException
-        V-->>U: "Usuário ou senha inválidos."
+    alt usuário null ou senha errada
+        C-->>C: throw RegraNegocioException("Usuário ou senha inválidos.")
+        C->>V: mostrarErro(e), limparSenha()
     else sucesso
         C->>C: Sessao.iniciar(usuario)
-        C-->>V: Usuario
-        V->>V: abre a TelaPrincipal e fecha o login
+        C->>C: new TelaPrincipal() + new PrincipalController(tela, usuario)
+        C->>V: dispose()
     end
 ```
 
@@ -63,27 +72,27 @@ sequenceDiagram
 sequenceDiagram
     actor U as Usuário
     participant T as TelaPrincipal
-    participant V as PainelCalendario
+    participant V as PainelCalendario (View)
     participant C as CalendarioController
-    participant D as AtividadeDAO
+    participant R as AtividadeRepository (AtividadeDAO)
     participant B as Banco
 
     U->>T: clica em "Início"
     T->>V: carregar()
-    V->>C: atividadesDoMes(YearMonth.now())
-    C->>D: listarPorPeriodo(1º dia, último dia)
-    D->>B: SELECT treinos / competições / eventos / compromissos do período
-    B-->>D: linhas
-    D-->>C: List<Atividade> (Treino, Amistoso, Competicao, Evento, Compromisso)
+    V->>C: ação "carregar" (lambda registrada pelo controller)
+    C->>V: getInicioDoPeriodo(), getFimDoPeriodo()
+    C->>R: listarPorPeriodo(1º dia, último dia)
+    R->>B: SELECT treinos / competições / eventos / compromissos do período
+    B-->>R: linhas
+    R-->>C: List<Atividade> (Treino, Amistoso, Competicao, Evento, Compromisso)
     loop cada atividade e cada dia do mês
         C->>C: atividade.ocorreEm(dia) (polimorfismo: Competicao cobre vários dias)
     end
-    C-->>V: Map<LocalDate, List<Atividade>> (TreeMap, listas ordenadas)
+    C->>V: exibir(Map<LocalDate, List<Atividade>>, próximos, alertas)
     V->>V: CelulaDia.atualizar(...) com getCorHex() e getRotuloCurto()
     alt banco fora do ar
-        D-->>C: PersistenciaException
-        C-->>V: PersistenciaException
-        V-->>U: Mensagens.erro("Não foi possível conectar ao banco de dados...")
+        R-->>C: throw PersistenciaException
+        C->>V: mostrarErro(e) ("Não foi possível conectar ao banco de dados...")
     end
 ```
 
@@ -92,28 +101,33 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelCalendario
-    participant F as DialogoCompromisso
-    participant C as CalendarioController
-    participant D as CompromissoDAO
+    participant V as PainelCalendario (View)
+    participant CC as CalendarioController
+    participant F as PainelCompromisso (View)
+    participant C as CompromissoController
+    participant M as Compromisso (Model)
+    participant R as CompromissoRepository
     participant B as Banco
 
     U->>V: clique duplo no dia
-    V->>F: DialogoCompromisso.abrir(compromisso com a data do dia)
+    V->>CC: ação "novo compromisso" (getDiaDoNovoCompromisso)
+    CC->>C: new CompromissoController(dialogo.getFormulario(), compromisso, repository, dialogo)
+    C->>F: preencherCampos(compromisso) e adicionarAcaoSalvar(e -> salvar())
     U->>F: preenche título e horário, Salvar
-    F->>F: Validador.converterData / converterHorario
-    F->>C: salvarCompromisso(compromisso)
-    C->>C: Validador (título e data obrigatórios)
+    F->>C: salvar()
+    C->>F: getTituloCompromisso(), getData(), getHorario()
+    C->>M: setTitulo(...), setData(Validador.converterData(...))
+    C->>M: validar()
     alt título vazio
-        C-->>F: ValidacaoException
-        F-->>U: Mensagens.erro (diálogo continua aberto)
+        M-->>C: throw ValidacaoException
+        C->>F: mostrarErro(e) (diálogo continua aberto)
     else válido
-        C->>D: inserir(compromisso)
-        D->>B: INSERT INTO compromisso ...
-        B-->>D: id gerado
-        F-->>U: "Compromisso salvo com sucesso."
-        F-->>V: true
-        V->>V: carregar() (atualiza o mês)
+        C->>R: inserir(compromisso)
+        R->>B: INSERT INTO compromisso ...
+        B-->>R: id gerado
+        C->>F: mostrarMensagem("Compromisso salvo com sucesso.")
+        C-->>CC: isSalvou() = true
+        CC->>V: irParaDia(data) e exibir(...) (atualiza o mês)
     end
 ```
 
@@ -122,27 +136,36 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelCadastroGestao
-    participant C as GestaoController
-    participant D as GestaoDAO
+    participant V as PainelCadastroGestao (View)
+    participant C as CadastroGestaoController
+    participant M as Gestao (Model)
+    participant R as GestaoRepository (GestaoDAO)
     participant B as Banco
 
     U->>V: preenche nome e período, Salvar
-    V->>V: Validador.converterData(início / fim)
-    V->>C: salvar(gestao)
-    C->>C: Validador (obrigatórios, fim >= início)
-    C->>D: listarTodos()
-    D->>B: SELECT * FROM gestao ORDER BY data_inicio
-    B-->>D: gestões
-    D-->>C: List<Gestao>
-    C->>C: outras.stream().filter(gestao::sobrepoe)
+    V->>C: salvar() (lambda do botão)
+    C->>V: getNome(), getDataInicio(), getDataFim()
+    C->>M: setNome(...), setDataInicio(Validador.converterData(...))
+    C->>M: validar() (obrigatórios, fim >= início)
+    alt dados inválidos
+        M-->>C: throw ValidacaoException
+        C->>V: mostrarErro(e)
+    end
+    C->>R: listarTodos()
+    R->>B: SELECT * FROM gestao ORDER BY data_inicio
+    B-->>R: gestões
+    R-->>C: List<Gestao>
+    loop cada outra gestão
+        C->>M: sobrepoe(outra)
+    end
     alt período sobreposto
-        C-->>V: RegraNegocioException("...se sobrepõe à Gestão 2025-2026...")
-        V-->>U: Mensagens.erro
-    else período livre
-        C->>D: inserir(gestao)
-        D->>B: INSERT INTO gestao ...
-        V-->>U: "Gestão salva com sucesso."
+        C-->>C: throw RegraNegocioException("...se sobrepõe à Gestão 2025-2026...")
+        C->>V: mostrarErro(e)
+    else válido
+        C->>R: inserir(gestao)
+        R->>B: INSERT INTO gestao ...
+        C->>V: mostrarMensagem("Gestão salva com sucesso.")
+        C->>C: navegador.voltar() (a consulta recarrega)
     end
 ```
 
@@ -151,25 +174,31 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelGerenciarGestao
-    participant C as GestaoController
-    participant M as Gestao (modelo)
-    participant D as GestaoDAO
+    participant V as PainelGerenciarGestao (View)
+    participant C as GerenciarGestaoController
+    participant M as Gestao (Model)
+    participant R as GestaoRepository (GestaoDAO)
     participant B as Banco
 
-    U->>V: "+ Adicionar membro", escolhe cargo e membro
-    V->>C: adicionarMembro(gestao, membro, cargo)
+    U->>V: "+ Adicionar membro"
+    V->>C: adicionarMembro() (lambda do botão)
+    C->>V: exibirFormularioAdicionar(nome, cargos, membros ativos)
+    U->>V: escolhe cargo e membro, OK
+    C->>V: getCargoEscolhido(), getMembroEscolhido()
     C->>M: adicionarMembro(membro, cargo)
-    M->>M: composicao.add(new MembroCargo(...)) (Set)
-    alt já ocupa o cargo (add retorna false)
-        M-->>C: false
-        C-->>V: RegraNegocioException("...já ocupa o cargo...")
-        V-->>U: Mensagens.erro
+    alt membro já ocupa o cargo
+        M-->>C: false (o Set<MembroCargo> não aceita repetição)
+        C-->>C: throw RegraNegocioException("... já ocupa o cargo ...")
+        C->>V: mostrarErro(e)
     else novo vínculo
-        M-->>C: true
-        C->>D: adicionarMembro(gestao, membro, cargo)
-        D->>B: INSERT INTO gestao_membro_cargo ...
-        V->>V: carregar() (tabela e organograma atualizados)
+        C->>R: adicionarMembro(gestao, membro, cargo)
+        R->>B: INSERT INTO gestao_membro_cargo ...
+        alt erro no banco
+            R-->>C: throw PersistenciaException
+            C->>M: removerMembro(membro, cargo) (desfaz e relança: throw e)
+        end
+        C->>R: carregarComposicao(gestao)
+        C->>V: exibir(gestao.getComposicaoOrdenada())
     end
 ```
 
@@ -178,32 +207,36 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelCadastroAtleta
-    participant C as AtletaController
-    participant D as AtletaDAO
+    participant V as PainelCadastroAtleta (View)
+    participant C as CadastroAtletaController
+    participant M as Atleta (Model)
+    participant R as AtletaRepository (AtletaDAO)
     participant B as Banco
 
-    U->>V: preenche dados, marca modalidades, Salvar
-    V->>V: atleta.vincularModalidade(m, situação) para cada marcada (Map)
-    V->>C: salvar(atleta)
-    C->>C: Validador (nome, matrícula numérica, contato, ao menos 1 modalidade)
-    C->>D: existeMatricula(matricula, id)
-    D->>B: SELECT COUNT(*) FROM atleta WHERE matricula = ?
-    alt matrícula já cadastrada
-        C-->>V: RegraNegocioException
-        V-->>U: "Já existe um atleta com a matrícula 202001."
-    else nova
-        C->>D: inserir(atleta)
-        D->>D: emTransacao(...)
-        D->>B: INSERT INTO atleta ...
-        D->>B: INSERT INTO atleta_modalidade ... (uma por modalidade)
-        alt erro em algum INSERT
-            D->>B: ROLLBACK (nada é gravado)
-            D-->>V: PersistenciaException
-        else
-            D->>B: COMMIT
-            V-->>U: "Atleta salvo com sucesso."
+    U->>V: preenche dados e marca modalidades, Salvar
+    V->>C: salvar() (lambda do botão)
+    C->>V: getNome(), getMatricula(), getModalidadesMarcadas()
+    C->>M: setNome(...), vincularModalidade(modalidade, situação)
+    C->>M: validar()
+    alt nome vazio ou nenhuma modalidade
+        M-->>C: throw ValidacaoException (todos os erros de uma vez)
+        C->>V: mostrarErro(e)
+    end
+    C->>R: existeMatricula(matricula, id)
+    R->>B: SELECT COUNT(*) FROM atleta WHERE matricula = ?
+    alt matrícula repetida
+        C-->>C: throw RegraNegocioException
+        C->>V: mostrarErro(e)
+    else ok
+        C->>R: inserir(atleta)
+        R->>B: transação: INSERT atleta + INSERT atleta_modalidade (cada uma)
+        alt falha no meio
+            R->>B: rollback (nada é gravado)
+            R-->>C: throw PersistenciaException
+            C->>V: mostrarErro(e)
         end
+        C->>V: mostrarMensagem("Atleta salvo com sucesso.")
+        C->>C: navegador.voltar()
     end
 ```
 
@@ -212,27 +245,29 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelConsultaAtletas
-    participant C as AtletaController
-    participant D as AtletaDAO
+    participant V as PainelConsultaAtletas (View)
+    participant C as ConsultaAtletasController
+    participant R as AtletaRepository (AtletaDAO)
     participant B as Banco
 
-    U->>V: seleciona atleta, Excluir
-    V-->>U: Mensagens.confirmar("Deseja realmente excluir...?")
-    U->>V: Sim
-    V->>C: excluir(atleta)
-    C->>D: listarVinculos(id)
-    D->>B: SELECT COUNT(*) em presenca_treino, competicao_atleta, resultado
-    D-->>C: ["1 registro(s) de presença...", "1 inscrição(ões)..."]
+    U->>V: seleciona um atleta, Excluir
+    V->>V: há linha selecionada? (senão: "Selecione um registro na tabela.")
+    V->>C: excluirSelecionado() (lambda do botão)
+    C->>V: getSelecionado()
+    C->>V: confirmar("Deseja realmente excluir ...?")
+    C->>R: listarVinculos(id)
+    R->>B: SELECT COUNT(*) presenças / inscrições / resultados
+    B-->>R: contagens
+    R-->>C: ["1 registro(s) de presença", ...]
     alt possui vínculos
-        C-->>V: RegraNegocioException(lista dos vínculos)
-        V-->>U: "Não é possível excluir Ana Souza, pois possui: ..."
+        C-->>C: throw RegraNegocioException("Não é possível excluir..., pois possui: ...")
+        C->>V: mostrarErro(e) (sugere alterar a situação para Inativo)
     else sem vínculos
-        C->>D: excluir(id)
-        D->>B: DELETE FROM atleta WHERE id = ? (modalidades em cascata)
-        V-->>U: "Atleta excluído."
+        C->>R: excluir(id)
+        R->>B: DELETE FROM atleta WHERE id = ? (modalidades em cascata)
+        C->>V: mostrarMensagem("Atleta excluído.")
     end
-    V->>V: carregar()
+    C->>C: carregar() (view.exibir(lista atualizada))
 ```
 
 ## 8. Gerenciar competição (inscrições)
@@ -240,59 +275,64 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelGerenciarCompeticao
-    participant M as Competicao (modelo)
-    participant C as CompeticaoController
-    participant D as CompeticaoDAO
+    participant V as PainelGerenciarCompeticao (View)
+    participant C as GerenciarCompeticaoController
+    participant M as Competicao (Model)
+    participant R as CompeticaoRepository (CompeticaoDAO)
     participant B as Banco
 
-    V->>C: carregarInscricoes(competicao)
-    C->>D: carregarInscricoes(competicao)
-    D->>B: SELECT competicao_modalidade / competicao_atleta
-    D-->>V: Map<Modalidade, Set<Atleta>> preenchido
-    U->>V: marca modalidade e atletas
-    V->>M: adicionarModalidade(m) / inscreverAtleta(m, atleta)
+    U->>V: abre "Gerenciar" na consulta
+    V->>C: carregar()
+    C->>R: carregarInscricoes(competicao)
+    R->>B: SELECT competicao_modalidade / competicao_atleta
+    C->>V: exibirInscricoes(competicao, modalidades, atletas)
+    U->>V: marca um atleta na modalidade
+    V->>C: marcarAtleta(modalidade, atleta, true) (lambda)
+    C->>M: inscreverAtleta(modalidade, atleta)
     alt atleta não pratica a modalidade
-        M-->>V: RegraNegocioException
-        V-->>U: Mensagens.erro
+        M-->>C: throw RegraNegocioException
+        C->>V: mostrarErro(e)
+    else ok
+        M->>M: Map<Modalidade, Set<Atleta>>: o Set impede repetição
+        C->>V: atualizarInscricoes(modalidade)
     end
-    U->>V: Salvar inscrições
-    V->>C: salvarInscricoes(competicao)
-    C->>D: salvarInscricoes(competicao)
-    D->>D: emTransacao(...)
-    D->>B: DELETE modalidades retiradas / INSERT novas
-    D->>B: DELETE e INSERT de competicao_atleta
-    alt falha
-        D->>B: ROLLBACK
-        D-->>V: PersistenciaException
-    else
-        D->>B: COMMIT
-        V-->>U: "Inscrições salvas com sucesso."
-    end
+    U->>V: "Salvar inscrições"
+    V->>C: salvar()
+    C->>R: salvarInscricoes(competicao)
+    R->>B: transação: DELETE/INSERT modalidades e atletas
+    C->>V: mostrarMensagem("Inscrições salvas com sucesso.")
 ```
 
-## 9. Lançar resultado de competição
+## 9. Lançar resultado
 
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelResultados
-    participant C as CompeticaoController
-    participant D as CompeticaoDAO
+    participant V as PainelResultados (View)
+    participant C as ResultadosController
+    participant M as Resultado / Competicao (Model)
+    participant R as CompeticaoRepository (CompeticaoDAO)
     participant B as Banco
 
-    U->>V: "+ Incluir", escolhe modalidade, equipe/atleta, colocação
-    V->>C: salvarResultado(competicao, resultado)
-    C->>C: Validador (modalidade, colocação > 0, colocação ou placar)
-    alt modalidade ou atleta não inscrito
-        C-->>V: RegraNegocioException
-        V-->>U: Mensagens.erro (diálogo reabre para correção)
-    else válido
-        C->>D: salvarResultado(competicao, resultado)
-        D->>B: INSERT INTO resultado ...
-        V->>V: carregar()
-        Note over V: a consulta passa a mostrar "1º - Futsal (F)"
+    U->>V: "+ Incluir" na aba Resultados
+    V->>C: editar(new Resultado()) (lambda)
+    C->>R: carregarInscricoes(cópia da competição)
+    C->>V: preencherFormulario(resultado, competição salva)
+    loop enquanto houver erro e o usuário clicar OK
+        V-->>U: exibirFormulario("Lançar resultado")
+        C->>V: getModalidade(), getAtleta(), getColocacao()
+        C->>C: converterColocacao(texto) (NumberFormatException vira ValidacaoException)
+        C->>M: resultado.validar() (colocação ou placar)
+        C->>M: competicao.verificarResultado(resultado)
+        alt modalidade/atleta não inscritos
+            M-->>C: throw RegraNegocioException
+            C->>V: mostrarErro(e) e reabre o formulário
+        else ok
+            C->>R: salvarResultado(competicao, resultado)
+            R->>B: INSERT INTO resultado ...
+        end
     end
+    C->>V: exibir(listarResultados)
 ```
 
 ## 10. Cadastrar treino (conflito de horário)
@@ -300,55 +340,58 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelCadastroTreino
-    participant C as TreinoController
-    participant D as TreinoDAO
+    participant V as PainelCadastroTreino (View)
+    participant C as CadastroTreinoController
+    participant M as Treino / Amistoso (Model)
+    participant R as TreinoRepository (TreinoDAO)
     participant B as Banco
 
-    U->>V: preenche modalidade, data, horário, local, Salvar
-    V->>C: salvar(treino)  (Treino ou Amistoso: polimorfismo)
-    C->>C: Validador (+ adversário, se for Amistoso)
-    C->>C: gera o título se estiver vazio
-    C->>D: listarNoMesmoDiaELocal(treino)
-    D->>B: SELECT ... WHERE data = ? AND LOWER(local) = LOWER(?)
-    D-->>C: treinos do dia no local
-    alt diferença menor que 1 hora
-        C-->>V: RegraNegocioException("Conflito de horário: ...")
-        V-->>U: Mensagens.erro
-    else sem conflito
-        C->>D: inserir(treino)
-        D->>B: INSERT INTO treino (tipo = TREINO ou AMISTOSO, ...)
-        V-->>U: "Treino salvo com sucesso. Ele já aparece no calendário."
+    U->>V: preenche modalidade, data, horário e local, Salvar
+    V->>C: salvar() (lambda)
+    C->>V: getModalidade(), getData(), getHorario(), getLocal()
+    C->>M: setters (no Amistoso, também setAdversario e setResultado)
+    C->>M: validar()
+    Note over M: Amistoso sobrescreve validarCampos: confere também o adversário (polimorfismo)
+    C->>M: gerarTituloSeVazio() (getTituloPadrao() de Treino ou de Amistoso)
+    C->>R: listarNoMesmoDiaELocal(treino)
+    R->>B: SELECT ... WHERE data = ? AND LOWER(local) = LOWER(?)
+    R-->>C: List<Treino>
+    alt outro treino a menos de 1 hora
+        C-->>C: throw RegraNegocioException("Conflito de horário: ...")
+        C->>V: mostrarErro(e)
+    else ok
+        C->>R: inserir(treino)
+        R->>B: INSERT INTO treino (tipo TREINO ou AMISTOSO) ...
+        C->>V: mostrarMensagem("Treino salvo com sucesso...")
     end
 ```
 
-## 11. Registrar presença em treino
+## 11. Registrar presença
 
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelPresenca
-    participant M as Treino (modelo)
-    participant C as TreinoController
-    participant D as TreinoDAO
+    participant V as PainelPresenca (View)
+    participant C as PresencaController
+    participant M as Treino (Model)
+    participant R as TreinoRepository (TreinoDAO)
     participant B as Banco
 
-    V->>C: carregarPresencas(treino) e atletasDaChamada(treino)
-    C->>D: carregarPresencas(treino)
-    D->>B: SELECT atleta_id, presente FROM presenca_treino
-    U->>V: marca presentes, Salvar
-    loop cada atleta da lista
-        V->>M: registrarPresenca(atleta, presente) (Map<Atleta, Boolean>)
+    Note over C: no construtor: carregarPresencas(treino) e atletasDaChamada()
+    C->>V: exibirChamada(treino, atletas)
+    U->>V: marca presentes (ou "Marcar todos"), Salvar
+    V->>C: salvar() (lambda)
+    C->>V: getPresencas()
+    loop cada atleta
+        C->>M: registrarPresenca(atleta, presente) (Map<Atleta, Boolean>)
     end
-    V->>C: salvarPresencas(treino)
-    alt treino ainda não aconteceu
-        C-->>V: RegraNegocioException
-        V-->>U: "Só é possível registrar presença em treinos que já aconteceram."
-    else
-        C->>D: salvarPresencas(treino)
-        D->>D: emTransacao: DELETE + INSERT de cada presença
-        D->>B: COMMIT
-        V-->>U: "Presença salva: 3 de 4 atleta(s) presente(s)."
+    alt treino no futuro
+        C-->>C: throw RegraNegocioException("Só é possível registrar presença...")
+        C->>V: mostrarErro(e)
+    else ok
+        C->>R: salvarPresencas(treino)
+        R->>B: transação: DELETE presenças do treino + INSERT cada uma
+        C->>V: mostrarMensagem("Presença salva: 3 de 4 atleta(s) presente(s).")
     end
 ```
 
@@ -357,26 +400,29 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelGerenciarEvento
-    participant C as EventoController
-    participant D as EventoDAO
+    participant V as PainelTarefas (View)
+    participant C as TarefasController
+    participant M as Tarefa (Model)
+    participant R as TarefaRepository (TarefaDAO)
     participant B as Banco
+    participant G as GerenciarEventoController
 
-    V->>C: carregarDetalhes(evento)
-    C->>D: carregarDetalhes(evento)
-    D->>B: SELECT responsáveis e tarefas do evento
-    V->>V: evento.getTarefasAtrasadas(hoje) → prazo em vermelho e alerta
-    U->>V: seleciona tarefa, Concluir
-    V->>C: salvarTarefa(evento, tarefa com situação CONCLUIDA)
-    C->>C: Validador (descrição e situação)
-    alt dados inválidos
-        C-->>V: ValidacaoException
-        V-->>U: Mensagens.erro
-    else
-        C->>D: salvarTarefa(evento, tarefa)
-        D->>B: UPDATE tarefa SET situacao = 'CONCLUIDA' ...
-        V->>V: carregar() (alerta de atraso some)
+    U->>V: seleciona a tarefa, "Concluir"
+    V->>V: há tarefa selecionada? (senão: aviso)
+    V->>C: concluirSelecionada() (lambda)
+    C->>V: getSelecionado()
+    C->>M: setSituacao(CONCLUIDA)
+    C->>M: validar()
+    C->>R: salvar(EVENTO, idEvento, tarefa)
+    R->>B: UPDATE tarefa SET situacao = 'CONCLUIDA' ...
+    alt erro no banco
+        R-->>C: throw PersistenciaException
+        C->>V: mostrarErro(e)
     end
+    C->>V: exibir(listar(EVENTO, idEvento))
+    C->>G: aoAlterar.run() (lambda)
+    G->>G: carregarEvento(): getTarefasAtrasadas(hoje)
+    G-->>U: aviso "Atenção: N tarefa(s) atrasada(s)" atualizado
 ```
 
 ## 13. Adicionar fotos e vídeos aos registros
@@ -384,31 +430,31 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant V as PainelRegistros
-    participant C as GaleriaController
+    participant V as PainelRegistros (View)
+    participant C as RegistrosController
     participant A as ArmazenamentoMidia
-    participant D as ArquivoDAO
+    participant R as ArquivoRepository (ArquivoDAO)
     participant B as Banco
 
-    U->>V: "+ Adicionar Arquivo" (ou arrasta arquivos para a tela)
-    V->>V: SwingWorker (cópia em segundo plano)
-    V->>C: adicionarArquivos(pasta, arquivos)
-    C->>C: Validador (tipo pela extensão e limite de 500 MB)
-    alt algum arquivo não é foto nem vídeo
-        C-->>V: ValidacaoException (nada é copiado)
-        V-->>U: Mensagens.erro
-    else todos válidos
+    U->>V: arrasta arquivos ou "+ Adicionar Arquivo"
+    V->>C: ação "adicionar arquivos" (getArquivosEscolhidos)
+    C->>C: SwingWorker (cópia em segundo plano)
+    C->>C: Validador: tipo aceito? até 500 MB?
+    alt arquivo .txt ou grande demais
+        C-->>C: throw ValidacaoException (nada é copiado)
+        C->>V: mostrarErro(e.getCause())
+    else ok
         loop cada arquivo
-            C->>A: copiar(origem, pastaId)
-            A-->>C: caminho relativo (nome único, sem acentos)
-            C->>D: inserir(arquivo)
-            D->>B: INSERT INTO arquivo ...
-            alt falha no banco
-                C->>A: apagar(caminho) (não deixa arquivo órfão no disco)
-                C-->>V: PersistenciaException
+            C->>A: copiar(origem, idPasta)
+            A-->>C: caminho relativo
+            C->>R: inserir(arquivo)
+            R->>B: INSERT INTO arquivo ...
+            alt erro no banco
+                R-->>C: throw PersistenciaException
+                C->>A: apagar(caminho) (não deixa arquivo sem registro) e relança
             end
         end
-        V->>V: carregar() e gera as miniaturas em segundo plano
-        V-->>U: "N arquivo(s) adicionado(s) à pasta Festas."
+        C->>V: exibirPastas / exibirArquivos (miniaturas)
+        C->>V: mostrarMensagem("2 arquivo(s) adicionado(s) à pasta Festas.")
     end
 ```

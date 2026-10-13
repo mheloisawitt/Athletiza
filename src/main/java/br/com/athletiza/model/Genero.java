@@ -21,11 +21,14 @@ public enum Genero {
 
     /** Nome por extenso, para combos e tabelas. */
     public String getNomeCompleto() {
-        return switch (this) {
-            case MASCULINO -> "Masculino";
-            case FEMININO -> "Feminino";
-            case MISTO -> "Misto";
-        };
+        switch (this) {
+            case MASCULINO:
+                return "Masculino";
+            case FEMININO:
+                return "Feminino";
+            default:
+                return "Misto";
+        }
     }
 
     @Override

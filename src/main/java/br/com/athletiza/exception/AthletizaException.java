@@ -4,6 +4,9 @@ package br.com.athletiza.exception;
  * Exceção base do sistema. Toda exceção personalizada estende esta classe,
  * permitindo que as telas tratem qualquer erro do sistema em um único catch.
  *
+ * Herda de Exception (e não de RuntimeException): é uma exceção verificada,
+ * então o compilador obriga a tratar (try/catch) ou propagar (throws).
+ *
  * A mensagem deve ser compreensível para o usuário final (RN12).
  */
 public abstract class AthletizaException extends Exception {

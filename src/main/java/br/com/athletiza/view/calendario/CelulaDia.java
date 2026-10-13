@@ -12,8 +12,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 
 /**
@@ -29,7 +29,7 @@ class CelulaDia extends JComponent {
     private boolean hoje;
     private boolean selecionada;
     private boolean mouseSobre;
-    private List<Atividade> atividades = List.of();
+    private List<Atividade> atividades = new ArrayList<>();
 
     CelulaDia() {
         setPreferredSize(new Dimension(110, 86));
@@ -42,9 +42,18 @@ class CelulaDia extends JComponent {
         this.hoje = hoje;
         this.selecionada = selecionada;
         this.atividades = atividades;
-        setToolTipText(atividades.isEmpty() ? null : "<html>" + atividades.stream()
-                .map(a -> a.getDescricaoCalendario().replace("<", "&lt;"))
-                .collect(Collectors.joining("<br>")) + "</html>");
+        if (atividades.isEmpty()) {
+            setToolTipText(null);
+        } else {
+            StringBuilder dica = new StringBuilder("<html>");
+            for (int i = 0; i < atividades.size(); i++) {
+                if (i > 0) {
+                    dica.append("<br>");
+                }
+                dica.append(atividades.get(i).getDescricaoCalendario().replace("<", "&lt;"));
+            }
+            setToolTipText(dica.append("</html>").toString());
+        }
         repaint();
     }
 
@@ -65,7 +74,13 @@ class CelulaDia extends JComponent {
         int w = getWidth();
         int h = getHeight();
 
-        g2.setColor(selecionada ? Cores.VERDE_SELECAO : mouseSobre ? new Color(0x2C2C2C) : Cores.FUNDO_CARTAO);
+        if (selecionada) {
+            g2.setColor(Cores.VERDE_SELECAO);
+        } else if (mouseSobre) {
+            g2.setColor(new Color(0x2C2C2C));
+        } else {
+            g2.setColor(Cores.FUNDO_CARTAO);
+        }
         g2.fillRect(0, 0, w, h);
         g2.setColor(Cores.CINZA_ESCURO);
         g2.drawLine(w - 1, 0, w - 1, h);

@@ -1,17 +1,20 @@
 package br.com.athletiza.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.exception.RegraNegocioException;
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 class ModeloTest {
@@ -21,12 +24,13 @@ class ModeloTest {
 
     @Test
     void atletasOrdenadosPorNomeRespeitandoAcentos() {
-        List<Atleta> atletas = new ArrayList<>(List.of(
+        List<Atleta> atletas = new ArrayList<>(Arrays.asList(
                 new Atleta("Beatriz", "2", null), new Atleta("álvaro", "3", null), new Atleta("Ana", "1", null)));
 
         Collections.sort(atletas);
 
-        assertEquals(List.of("álvaro", "Ana", "Beatriz"), atletas.stream().map(Pessoa::getNome).toList());
+        assertEquals(Arrays.asList("álvaro", "Ana", "Beatriz"),
+                Arrays.asList(atletas.get(0).getNome(), atletas.get(1).getNome(), atletas.get(2).getNome()));
     }
 
     @Test
@@ -37,10 +41,10 @@ class ModeloTest {
         bia.vincularModalidade(futsalF, SituacaoAtleta.ATIVO);
         Atleta semModalidade = new Atleta("Carla", "3", null);
 
-        List<Atleta> atletas = new ArrayList<>(List.of(semModalidade, ana, bia));
+        List<Atleta> atletas = new ArrayList<>(Arrays.asList(semModalidade, ana, bia));
         atletas.sort(Atleta.POR_MODALIDADE);
 
-        assertEquals(List.of(bia, ana, semModalidade), atletas);
+        assertEquals(Arrays.asList(bia, ana, semModalidade), atletas);
     }
 
     @Test
@@ -73,8 +77,8 @@ class ModeloTest {
         assertFalse(gestao.adicionarMembro(new Membro("Mariana", "1", null), presidente));
 
         Map<Cargo, List<Membro>> organograma = gestao.getOrganograma();
-        assertEquals(List.of(presidente, tesoureiro), new ArrayList<>(organograma.keySet()));
-        assertEquals(List.of(mariana), organograma.get(presidente));
+        assertEquals(Arrays.asList(presidente, tesoureiro), new ArrayList<>(organograma.keySet()));
+        assertEquals(Arrays.asList(mariana), organograma.get(presidente));
     }
 
     @Test
@@ -96,13 +100,19 @@ class ModeloTest {
     @Test
     void atividadesSaoTratadasDeFormaPolimorficaNoCalendario() {
         LocalDate dia31 = LocalDate.of(2026, 10, 31);
-        List<Atividade> atividades = new ArrayList<>(List.of(
+        List<Atividade> atividades = new ArrayList<>(Arrays.asList(
                 new Competicao("JIUDESC", LocalDate.of(2026, 10, 30), LocalDate.of(2026, 11, 2), null, "Blumenau"),
                 new Evento("Festa", TipoEvento.FESTA, dia31, LocalTime.of(22, 0), "Ibirama"),
                 new Treino(futsalF, dia31, LocalTime.of(19, 0), "Quadra 1"),
                 new Compromisso("Reunião", LocalDate.of(2026, 10, 8), LocalTime.of(14, 0), "Sala")));
 
-        List<Atividade> doDia = atividades.stream().filter(a -> a.ocorreEm(dia31)).sorted().toList();
+        List<Atividade> doDia = new ArrayList<>();
+        for (Atividade atividade : atividades) {
+            if (atividade.ocorreEm(dia31)) {
+                doDia.add(atividade);
+            }
+        }
+        Collections.sort(doDia);
 
         assertEquals(3, doDia.size());
         assertEquals(TipoAtividade.TREINO, doDia.get(1).getTipo());
@@ -129,6 +139,45 @@ class ModeloTest {
         festa.adicionarTarefa(concluida);
         festa.adicionarTarefa(new Tarefa("Vender ingressos", null, LocalDate.of(2026, 10, 11)));
 
-        assertEquals(List.of(atrasada), festa.getTarefasAtrasadas(hoje));
+        assertEquals(Arrays.asList(atrasada), festa.getTarefasAtrasadas(hoje));
+        assertEquals("1 de 3 concluídas · 1 atrasada(s)", Tarefa.resumir(festa.getTarefas(), hoje));
+    }
+
+    @Test
+    void regrasDePreenchimentoFicamNoModelo() {
+        Modalidade semNome = new Modalidade(" ", null);
+        ValidacaoException erro = assertThrows(ValidacaoException.class, () -> semNome.validar());
+        assertEquals(2, erro.getErros().size(), erro.getMessage());
+
+        Gestao invertida = new Gestao("Gestão", LocalDate.of(2026, 12, 31), LocalDate.of(2026, 1, 1));
+        assertThrows(ValidacaoException.class, () -> invertida.validar());
+
+        Atleta semModalidade = new Atleta("Ana", "202001", "(47) 99999-1000");
+        ValidacaoException doAtleta = assertThrows(ValidacaoException.class, () -> semModalidade.validar());
+        assertEquals(Arrays.asList("Selecione ao menos uma modalidade."), doAtleta.getErros());
+    }
+
+    @Test
+    void cargoNaoPodeTerSuperiorDeNivelIgualOuMaior() {
+        Cargo presidente = new Cargo("Presidente", 1, null);
+        Cargo conselheiro = new Cargo("Conselheiro", 1, presidente);
+
+        assertThrows(RegraNegocioException.class, () -> conselheiro.verificarHierarquia());
+        conselheiro.setOrdem(2);
+        assertDoesNotThrow(() -> conselheiro.verificarHierarquia());
+    }
+
+    @Test
+    void competicaoMostraOsAtletasDisponiveisParaInscricao() throws RegraNegocioException {
+        Atleta ana = new Atleta("Ana", "1", null);
+        ana.vincularModalidade(futsalF, SituacaoAtleta.ATIVO);
+        Atleta bia = new Atleta("Bia", "2", null);
+        bia.vincularModalidade(voleiF, SituacaoAtleta.ATIVO);
+        Competicao jiudesc = new Competicao("JIUDESC", LocalDate.of(2026, 10, 30), null, null, null);
+        jiudesc.adicionarModalidade(futsalF);
+
+        assertEquals(Arrays.asList(ana), jiudesc.getAtletasDisponiveis(futsalF, Arrays.asList(ana, bia)));
+        assertEquals(LocalDate.of(2026, 10, 30), jiudesc.getTermino());
+        assertEquals("JIUDESC", jiudesc.copiarDados().getTitulo());
     }
 }

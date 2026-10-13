@@ -2,7 +2,7 @@ package br.com.athletiza.view.registros;
 
 import br.com.athletiza.model.Arquivo;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.Tema;
 import java.awt.BasicStroke;
 import java.awt.Color;

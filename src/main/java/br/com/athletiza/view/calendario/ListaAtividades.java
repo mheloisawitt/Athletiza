@@ -3,7 +3,7 @@ package br.com.athletiza.view.calendario;
 import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Compromisso;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.Tema;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
@@ -12,9 +12,10 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.Font;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -33,14 +34,20 @@ class ListaAtividades extends JPanel {
         setOpaque(false);
     }
 
+    /** Comandos enviados no ActionEvent quando o usuário clica em um link do cartão. */
+    static final String EDITAR = "editar";
+    static final String EXCLUIR = "excluir";
+    static final String ABRIR = "abrir";
+
     /**
-     * @param mostrarData exibe a data em cada cartão (desligado quando todos são do mesmo dia)
-     * @param editar      ação de edição dos compromissos (null para não exibir os botões)
-     * @param excluir     ação de exclusão dos compromissos (null para não exibir os botões)
-     * @param abrir       abre treinos, competições e eventos na tela de edição (null para não exibir)
+     * @param mostrarData        exibe a data em cada cartão (desligado quando todos são do mesmo dia)
+     * @param mostrarCompromisso exibe "Editar" e "Excluir" nos compromissos
+     * @param mostrarAbrir       exibe "Abrir" nos treinos, competições e eventos
+     * @param aoClicar           recebe o clique: a atividade vem em getSource() e o link
+     *                           (EDITAR, EXCLUIR ou ABRIR) em getActionCommand()
      */
-    void mostrar(List<Atividade> atividades, boolean mostrarData, Consumer<Compromisso> editar,
-            Consumer<Compromisso> excluir, Consumer<Atividade> abrir) {
+    void mostrar(List<Atividade> atividades, boolean mostrarData, boolean mostrarCompromisso, boolean mostrarAbrir,
+            ActionListener aoClicar) {
         removeAll();
         if (atividades.isEmpty()) {
             JLabel vazio = new JLabel("Nenhuma atividade.");
@@ -50,7 +57,7 @@ class ListaAtividades extends JPanel {
             add(vazio);
         }
         for (Atividade atividade : atividades) {
-            Component cartao = criarCartao(atividade, mostrarData, editar, excluir, abrir);
+            Component cartao = criarCartao(atividade, mostrarData, mostrarCompromisso, mostrarAbrir, aoClicar);
             add(cartao);
             add(Box.createVerticalStrut(10));
         }
@@ -58,8 +65,8 @@ class ListaAtividades extends JPanel {
         repaint();
     }
 
-    private Component criarCartao(Atividade atividade, boolean mostrarData, Consumer<Compromisso> editar,
-            Consumer<Compromisso> excluir, Consumer<Atividade> abrir) {
+    private Component criarCartao(Atividade atividade, boolean mostrarData, boolean mostrarCompromisso,
+            boolean mostrarAbrir, ActionListener aoClicar) {
         Color cor = Color.decode(atividade.getCorHex());
 
         StringBuilder quando = new StringBuilder();
@@ -99,16 +106,17 @@ class ListaAtividades extends JPanel {
         cartao.add(textos, BorderLayout.CENTER);
         cartao.setToolTipText(atividade.getObservacoes());
 
-        if (atividade instanceof Compromisso compromisso && editar != null && excluir != null) {
+        boolean compromisso = atividade instanceof Compromisso;
+        if (compromisso && mostrarCompromisso) {
             JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
             acoes.setOpaque(false);
-            acoes.add(link("Editar", Cores.TEXTO_SECUNDARIO, () -> editar.accept(compromisso)));
-            acoes.add(link("Excluir", Cores.VERMELHO, () -> excluir.accept(compromisso)));
+            acoes.add(link("Editar", Cores.TEXTO_SECUNDARIO, atividade, EDITAR, aoClicar));
+            acoes.add(link("Excluir", Cores.VERMELHO, atividade, EXCLUIR, aoClicar));
             cartao.add(acoes, BorderLayout.SOUTH);
-        } else if (!(atividade instanceof Compromisso) && abrir != null) {
+        } else if (!compromisso && mostrarAbrir) {
             JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
             acoes.setOpaque(false);
-            acoes.add(link("Abrir", Cores.TEXTO_SECUNDARIO, () -> abrir.accept(atividade)));
+            acoes.add(link("Abrir", Cores.TEXTO_SECUNDARIO, atividade, ABRIR, aoClicar));
             cartao.add(acoes, BorderLayout.SOUTH);
         }
         cartao.setAlignmentX(LEFT_ALIGNMENT);
@@ -116,12 +124,14 @@ class ListaAtividades extends JPanel {
         return cartao;
     }
 
-    private static JButton link(String texto, Color cor, Runnable acao) {
+    /** Link do cartão: ao clicar, avisa aoClicar com a atividade e o comando. */
+    private static JButton link(String texto, Color cor, Atividade atividade, String comando, ActionListener aoClicar) {
         JButton botao = new JButton(texto);
         botao.putClientProperty(FlatClientProperties.STYLE,
                 "buttonType:borderless; foreground:" + Cores.hex(cor) + "; font:-2; margin:2,6,2,6");
         botao.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        botao.addActionListener(e -> acao.run());
+        botao.addActionListener(e -> aoClicar.actionPerformed(
+                new ActionEvent(atividade, ActionEvent.ACTION_PERFORMED, comando)));
         return botao;
     }
 }

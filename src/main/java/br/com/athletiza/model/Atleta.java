@@ -1,11 +1,11 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,18 +17,21 @@ import java.util.TreeSet;
  */
 public class Atleta extends Pessoa implements Comparable<Atleta> {
 
-    public static final Comparator<Atleta> POR_NOME = Comparator.comparing(Atleta::getNome, Textos.COMPARADOR);
+    public static final Comparator<Atleta> POR_NOME = (a, b) -> Textos.comparar(a.getNome(), b.getNome());
 
-    public static final Comparator<Atleta> POR_MATRICULA = Comparator.comparing(Atleta::getMatricula,
-            Comparator.nullsLast(Comparator.naturalOrder()));
+    public static final Comparator<Atleta> POR_MATRICULA =
+            (a, b) -> Textos.compararNulosNoFim(a.getMatricula(), b.getMatricula());
 
-    public static final Comparator<Atleta> POR_SITUACAO = Comparator.comparing(Atleta::getSituacao,
-            Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(POR_NOME);
+    public static final Comparator<Atleta> POR_SITUACAO = (a, b) -> {
+        int resultado = Textos.compararNulosNoFim(a.getSituacao(), b.getSituacao());
+        return resultado != 0 ? resultado : POR_NOME.compare(a, b);
+    };
 
     /** Pela primeira modalidade (em ordem alfabética); atletas sem modalidade ficam no final. */
-    public static final Comparator<Atleta> POR_MODALIDADE = Comparator.comparing(
-            (Atleta a) -> a.getModalidadePrincipal().orElse(null),
-            Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(POR_NOME);
+    public static final Comparator<Atleta> POR_MODALIDADE = (a, b) -> {
+        int resultado = Textos.compararNulosNoFim(a.getModalidadePrincipal(), b.getModalidadePrincipal());
+        return resultado != 0 ? resultado : POR_NOME.compare(a, b);
+    };
 
     private LocalDate dataNascimento;
     private Situacao situacao = Situacao.ATIVO;
@@ -40,6 +43,24 @@ public class Atleta extends Pessoa implements Comparable<Atleta> {
 
     public Atleta(String nome, String matricula, String contato) {
         super(nome, matricula, contato);
+    }
+
+    /** Regras de preenchimento do cadastro (CH-26). Lança ValidacaoException com todos os erros. */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(getNome(), "Nome")
+                .tamanhoMaximo(getNome(), 100, "Nome")
+                .obrigatorio(getMatricula(), "Matrícula")
+                .apenasNumeros(getMatricula(), "Matrícula")
+                .tamanhoMaximo(getMatricula(), 20, "Matrícula")
+                .contato(getContato(), "Contato")
+                .tamanhoMaximo(getContato(), 100, "Contato")
+                .obrigatorio(situacao, "Situação")
+                .regra(dataNascimento == null || dataNascimento.isBefore(LocalDate.now()),
+                        "A \"Data de nascimento\" deve ser anterior a hoje.")
+                .regra(!modalidades.isEmpty(), "Selecione ao menos uma modalidade.")
+                .tamanhoMaximo(observacoes, 500, "Observações")
+                .validar();
     }
 
     public LocalDate getDataNascimento() {
@@ -75,12 +96,18 @@ public class Atleta extends Pessoa implements Comparable<Atleta> {
         modalidades.remove(modalidade);
     }
 
+    /** Remove todos os vínculos (usado antes de gravar as modalidades marcadas na tela). */
+    public void desvincularTodas() {
+        modalidades.clear();
+    }
+
     public boolean praticaModalidade(Modalidade modalidade) {
         return modalidades.containsKey(modalidade);
     }
 
-    public Optional<SituacaoAtleta> getSituacaoNaModalidade(Modalidade modalidade) {
-        return Optional.ofNullable(modalidades.get(modalidade));
+    /** Situação do atleta na modalidade, ou null se ele não estiver vinculado a ela. */
+    public SituacaoAtleta getSituacaoNaModalidade(Modalidade modalidade) {
+        return modalidades.get(modalidade);
     }
 
     /** Modalidades do atleta, sem repetição e em ordem alfabética. */
@@ -88,12 +115,29 @@ public class Atleta extends Pessoa implements Comparable<Atleta> {
         return Collections.unmodifiableSet(new TreeSet<>(modalidades.keySet()));
     }
 
+    /** Nomes das modalidades separados por vírgula, para as tabelas (ex.: "Futsal (F), Vôlei (F)"). */
+    public String getModalidadesTexto() {
+        StringBuilder texto = new StringBuilder();
+        for (Modalidade modalidade : getModalidades()) {
+            if (texto.length() > 0) {
+                texto.append(", ");
+            }
+            texto.append(modalidade);
+        }
+        return texto.toString();
+    }
+
     public Map<Modalidade, SituacaoAtleta> getVinculos() {
         return Collections.unmodifiableMap(modalidades);
     }
 
-    public Optional<Modalidade> getModalidadePrincipal() {
-        return modalidades.keySet().stream().min(Comparator.naturalOrder());
+    /** Primeira modalidade em ordem alfabética, ou null se o atleta não tiver nenhuma. */
+    public Modalidade getModalidadePrincipal() {
+        Set<Modalidade> ordenadas = getModalidades();
+        if (ordenadas.isEmpty()) {
+            return null;
+        }
+        return ordenadas.iterator().next();
     }
 
     @Override

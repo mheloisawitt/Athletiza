@@ -1,7 +1,7 @@
 package br.com.athletiza.view.componentes;
 
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
+import br.com.athletiza.model.Validador;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -41,10 +41,10 @@ public final class Renderizadores {
         TableCellRenderer padrao = tabela.getTableHeader().getDefaultRenderer();
         tabela.getTableHeader().setDefaultRenderer((tab, valor, selecionado, foco, linha, coluna) -> {
             Component componente = padrao.getTableCellRendererComponent(tab, valor, selecionado, foco, linha, coluna);
-            if (componente instanceof JLabel rotulo) {
+            if (componente instanceof JLabel) {
                 Class<?> tipo = tab.getColumnClass(coluna);
                 boolean centralizar = Enum.class.isAssignableFrom(tipo) || tipo == Boolean.class;
-                rotulo.setHorizontalAlignment(centralizar ? SwingConstants.CENTER : SwingConstants.LEFT);
+                ((JLabel) componente).setHorizontalAlignment(centralizar ? SwingConstants.CENTER : SwingConstants.LEFT);
             }
             return componente;
         });
@@ -67,11 +67,11 @@ public final class Renderizadores {
         if (valor == null) {
             return "";
         }
-        if (valor instanceof LocalDate data) {
-            return Validador.FORMATO_DATA.format(data);
+        if (valor instanceof LocalDate) {
+            return Validador.FORMATO_DATA.format((LocalDate) valor);
         }
-        if (valor instanceof LocalTime hora) {
-            return Validador.FORMATO_HORARIO.format(hora);
+        if (valor instanceof LocalTime) {
+            return Validador.FORMATO_HORARIO.format((LocalTime) valor);
         }
         return valor.toString();
     }
@@ -92,7 +92,7 @@ public final class Renderizadores {
         public Component getTableCellRendererComponent(JTable tabela, Object valor, boolean selecionado,
                 boolean foco, int linha, int coluna) {
             JLabel rotulo = (JLabel) super.getTableCellRendererComponent(tabela, valor, selecionado, false, linha, coluna);
-            corEtiqueta = valor instanceof Enum<?> constante ? corDa(constante) : null;
+            corEtiqueta = valor instanceof Enum ? corDa((Enum<?>) valor) : null;
             rotulo.setForeground(corEtiqueta == null ? Cores.TEXTO : corEtiqueta);
             rotulo.setFont(rotulo.getFont().deriveFont(12f));
             return rotulo;

@@ -1,25 +1,20 @@
 package br.com.athletiza.model;
 
+import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /**
  * Gestão da atlética em um período, com seus cargos e membros (RF06 a RF08).
  * Ordem natural: pela data de início (CH-11).
  */
 public class Gestao extends Entidade implements Comparable<Gestao> {
-
-    public static final Comparator<Gestao> POR_PERIODO = Comparator.comparing(Gestao::getDataInicio,
-            Comparator.nullsLast(Comparator.naturalOrder()));
-
-    public static final Comparator<Gestao> POR_PERIODO_DECRESCENTE = POR_PERIODO.reversed();
 
     private String nome;
     private LocalDate dataInicio;
@@ -35,6 +30,19 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         this.nome = nome;
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
+    }
+
+    /** Regras de preenchimento do cadastro (CH-20). */
+    public void validar() throws ValidacaoException {
+        new Validador()
+                .obrigatorio(nome, "Nome da gestão")
+                .tamanhoMaximo(nome, 100, "Nome da gestão")
+                .obrigatorio(dataInicio, "Data de início")
+                .obrigatorio(dataFim, "Data de fim")
+                .periodo(dataInicio, dataFim, "Data de início", "Data de fim")
+                .obrigatorio(situacao, "Situação")
+                .tamanhoMaximo(descricao, 500, "Descrição")
+                .validar();
     }
 
     public String getNome() {
@@ -106,19 +114,39 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         return composicao.remove(new MembroCargo(membro, cargo));
     }
 
+    /** Indica se o membro já ocupa o cargo nesta gestão. */
+    public boolean ocupa(Membro membro, Cargo cargo) {
+        return composicao.contains(new MembroCargo(membro, cargo));
+    }
+
     public Set<MembroCargo> getComposicao() {
         return Collections.unmodifiableSet(composicao);
     }
 
+    /** Composição em ordem de cargo (nível) e, no mesmo cargo, pelo nome do membro. */
+    public List<MembroCargo> getComposicaoOrdenada() {
+        List<MembroCargo> ordenada = new ArrayList<>(composicao);
+        Collections.sort(ordenada);
+        return ordenada;
+    }
+
     /** Organograma: cargos em ordem hierárquica com os membros de cada um (RF08). */
     public Map<Cargo, List<Membro>> getOrganograma() {
-        return composicao.stream().collect(Collectors.groupingBy(MembroCargo::cargo, TreeMap::new,
-                Collectors.mapping(MembroCargo::membro, Collectors.toList())));
+        Map<Cargo, List<Membro>> organograma = new TreeMap<>();
+        for (MembroCargo ocupacao : composicao) {
+            List<Membro> membros = organograma.get(ocupacao.getCargo());
+            if (membros == null) {
+                membros = new ArrayList<>();
+                organograma.put(ocupacao.getCargo(), membros);
+            }
+            membros.add(ocupacao.getMembro());
+        }
+        return organograma;
     }
 
     @Override
     public int compareTo(Gestao outra) {
-        return POR_PERIODO.compare(this, outra);
+        return Textos.compararNulosNoFim(dataInicio, outra.dataInicio);
     }
 
     @Override

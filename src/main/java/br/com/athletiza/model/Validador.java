@@ -1,4 +1,4 @@
-package br.com.athletiza.util;
+package br.com.athletiza.model;
 
 import br.com.athletiza.exception.ValidacaoException;
 import java.time.LocalDate;

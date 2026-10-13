@@ -1,16 +1,11 @@
 package br.com.athletiza.view.treinos;
 
-import br.com.athletiza.controller.ModalidadeController;
-import br.com.athletiza.controller.TreinoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Combos;
-import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
@@ -18,10 +13,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,11 +30,12 @@ import javax.swing.table.TableCellRenderer;
 /**
  * Histórico de frequência dos atletas nos treinos (CH-37), com filtro de
  * modalidade e período. A busca por texto filtra pelo nome do atleta.
+ * As ações ficam no FrequenciaController.
  */
 public class PainelFrequencia extends PainelConsulta<Frequencia> {
 
     /** Períodos do filtro. */
-    private enum Periodo {
+    public enum Periodo {
         TRINTA_DIAS("Últimos 30 dias", 30), NOVENTA_DIAS("Últimos 90 dias", 90),
         ESTE_ANO("Este ano", -1), TUDO("Todo o período", 0);
 
@@ -48,8 +47,15 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
             this.dias = dias;
         }
 
-        LocalDate inicio(LocalDate hoje) {
-            return dias > 0 ? hoje.minusDays(dias) : dias < 0 ? hoje.withDayOfYear(1) : null;
+        /** Primeiro dia do período, ou null para "Todo o período". */
+        public LocalDate inicio(LocalDate hoje) {
+            if (dias > 0) {
+                return hoje.minusDays(dias);
+            }
+            if (dias < 0) {
+                return hoje.withDayOfYear(1); // este ano
+            }
+            return null;
         }
 
         @Override
@@ -58,58 +64,76 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
         }
     }
 
-    private final TreinoController controller = new TreinoController();
-    private final JComboBox<Modalidade> filtroModalidade = Combos.comOpcaoTodos(List.of(), "Todas as modalidades");
+    private final JComboBox<Modalidade> filtroModalidade =
+            Combos.comOpcaoTodos(new ArrayList<Modalidade>(), "Todas as modalidades");
     private final JComboBox<Periodo> filtroPeriodo = new JComboBox<>(Periodo.values());
+    private final JButton btnHistorico = Botoes.contornoVerde("Ver treinos do atleta", null);
+    private ActionListener acaoFiltrar;
     private boolean atualizandoFiltros;
 
-    private final Navegador navegador;
-
-    public PainelFrequencia(Navegador navegador) {
+    public PainelFrequencia() {
         super("Frequência nos treinos", new ModeloTabela<Frequencia>()
-                .coluna("Atleta", String.class, f -> f.atleta().getNome())
-                .coluna("Treinos", Integer.class, Frequencia::treinos)
-                .coluna("Presenças", Integer.class, Frequencia::presencas)
-                .coluna("Faltas", Integer.class, Frequencia::getFaltas)
-                .coluna("Frequência", Integer.class, Frequencia::getPercentual),
+                .coluna("Atleta", String.class, f -> f.getAtleta().getNome())
+                .coluna("Treinos", Integer.class, f -> f.getTreinos())
+                .coluna("Presenças", Integer.class, f -> f.getPresencas())
+                .coluna("Faltas", Integer.class, f -> f.getFaltas())
+                .coluna("Frequência", Integer.class, f -> f.getPercentual()),
                 EnumSet.noneOf(Acao.class));
-        this.navegador = navegador;
-        exibirVoltar(navegador::voltar);
-        adicionarBotao(Botoes.contornoVerde("Ver treinos do atleta", e -> getSelecionado().ifPresentOrElse(
-                this::aoClicarDuasVezes, () -> Mensagens.aviso(this, "Selecione um atleta na tabela."))));
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
+        exibirVoltar();
+        adicionarBotao(btnHistorico);
         filtroPeriodo.setSelectedItem(Periodo.ESTE_ANO);
         adicionarFiltro(filtroModalidade);
         adicionarFiltro(filtroPeriodo);
-        filtroModalidade.addActionListener(e -> {
-            if (!atualizandoFiltros) {
-                carregar();
-            }
-        });
-        filtroPeriodo.addActionListener(e -> carregar());
+        filtroModalidade.addActionListener(e -> filtrar());
+        filtroPeriodo.addActionListener(e -> filtrar());
         tabela.getColumnModel().getColumn(4).setCellRenderer(new BarraPercentual());
         larguraColuna(0, 260);
         larguraColuna(4, 260);
     }
 
-    @Override
-    protected List<Frequencia> buscarDados() throws AthletizaException {
+    public void adicionarAcaoFiltrar(ActionListener acao) {
+        this.acaoFiltrar = acao;
+    }
+
+    /** "Ver treinos do atleta" e o clique duplo abrem o histórico do atleta selecionado. */
+    public void adicionarAcaoVerHistorico(ActionListener acao) {
+        btnHistorico.addActionListener(e -> {
+            if (getSelecionado() == null) {
+                mostrarAviso("Selecione um atleta na tabela.");
+            } else {
+                acao.actionPerformed(e);
+            }
+        });
+        adicionarAcaoClicarDuasVezes(acao);
+    }
+
+    /** Troca as opções do filtro de modalidade, mantendo a selecionada (sem disparar o filtro). */
+    public void setModalidades(List<Modalidade> modalidades) {
         atualizandoFiltros = true;
         try {
-            Combos.atualizarItens(filtroModalidade, new ModalidadeController().listar());
+            Combos.atualizarItens(filtroModalidade, modalidades);
         } finally {
             atualizandoFiltros = false;
         }
-        Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
-        return controller.frequencia((Modalidade) filtroModalidade.getSelectedItem(),
-                periodo.inicio(LocalDate.now()), null);
     }
 
-    /** Clique duplo (ou "Ver treinos do atleta") abre em quais treinos o atleta esteve presente ou ausente. */
-    @Override
-    protected void aoClicarDuasVezes(Frequencia frequencia) {
-        Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
-        navegador.abrir(new PainelHistoricoAtleta(frequencia.atleta(), (Modalidade) filtroModalidade.getSelectedItem(),
-                periodo.inicio(LocalDate.now()), navegador));
+    /** Modalidade escolhida, ou null para todas. */
+    public Modalidade getModalidade() {
+        return (Modalidade) filtroModalidade.getSelectedItem();
+    }
+
+    public Periodo getPeriodo() {
+        return (Periodo) filtroPeriodo.getSelectedItem();
+    }
+
+    private void filtrar() {
+        if (!atualizandoFiltros && acaoFiltrar != null) {
+            acaoFiltrar.actionPerformed(null);
+        }
     }
 
     /** Percentual exibido como barra: verde a partir de 75%, amarelo a partir de 50%, vermelho abaixo. */
@@ -134,7 +158,14 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
         public Component getTableCellRendererComponent(JTable tabela, Object valor, boolean selecionado, boolean foco,
                 int linha, int coluna) {
             int percentual = valor == null ? 0 : (Integer) valor;
-            Color cor = percentual >= 75 ? Cores.VERDE : percentual >= 50 ? Cores.AMARELO : Cores.VERMELHO;
+            Color cor;
+            if (percentual >= 75) {
+                cor = Cores.VERDE;
+            } else if (percentual >= 50) {
+                cor = Cores.AMARELO;
+            } else {
+                cor = Cores.VERMELHO;
+            }
             barra.setValue(percentual);
             barra.putClientProperty(FlatClientProperties.STYLE, "foreground:" + Cores.hex(cor)
                     + "; background:" + Cores.hex(Cores.CINZA_ESCURO) + "; arc:8");

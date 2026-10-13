@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 
 class LoginControllerTest {
 
-    private final LoginController controller = new LoginController();
+    /** Sem tela: o teste chama direto a autenticação. */
+    private final LoginController controller = new LoginController(null, new UsuarioDAO());
 
     @BeforeEach
     void prepararBanco() throws Exception {

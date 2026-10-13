@@ -11,13 +11,24 @@ import javax.swing.table.AbstractTableModel;
  *
  * <pre>
  * ModeloTabela&lt;Atleta&gt; modelo = new ModeloTabela&lt;Atleta&gt;()
- *         .coluna("Nome", String.class, Atleta::getNome)
- *         .coluna("Matrícula", String.class, Atleta::getMatricula);
+ *         .coluna("Nome", String.class, a -&gt; a.getNome())
+ *         .coluna("Matrícula", String.class, a -&gt; a.getMatricula());
  * </pre>
  */
 public class ModeloTabela<T> extends AbstractTableModel {
 
-    private record Coluna<T>(String titulo, Class<?> tipo, Function<T, ?> valor) {
+    /** Título, tipo (usado na ordenação) e função que lê o valor de cada coluna. */
+    private static class Coluna<T> {
+
+        final String titulo;
+        final Class<?> tipo;
+        final Function<T, ?> valor;
+
+        Coluna(String titulo, Class<?> tipo, Function<T, ?> valor) {
+            this.titulo = titulo;
+            this.tipo = tipo;
+            this.valor = valor;
+        }
     }
 
     private final List<Coluna<T>> colunas = new ArrayList<>();
@@ -38,7 +49,7 @@ public class ModeloTabela<T> extends AbstractTableModel {
     }
 
     public List<T> getLinhas() {
-        return List.copyOf(linhas);
+        return new ArrayList<>(linhas);
     }
 
     /** Objeto da linha, pelo índice do modelo (use convertRowIndexToModel antes, se a tabela estiver ordenada). */
@@ -58,16 +69,16 @@ public class ModeloTabela<T> extends AbstractTableModel {
 
     @Override
     public String getColumnName(int coluna) {
-        return colunas.get(coluna).titulo();
+        return colunas.get(coluna).titulo;
     }
 
     @Override
     public Class<?> getColumnClass(int coluna) {
-        return colunas.get(coluna).tipo();
+        return colunas.get(coluna).tipo;
     }
 
     @Override
     public Object getValueAt(int linha, int coluna) {
-        return colunas.get(coluna).valor().apply(linhas.get(linha));
+        return colunas.get(coluna).valor.apply(linhas.get(linha));
     }
 }

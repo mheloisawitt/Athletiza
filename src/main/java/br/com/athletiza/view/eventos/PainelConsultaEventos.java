@@ -1,30 +1,28 @@
 package br.com.athletiza.view.eventos;
 
-import br.com.athletiza.controller.EventoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.SituacaoEvento;
+import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.model.TipoEvento;
 import br.com.athletiza.view.componentes.Combos;
-import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
-import br.com.athletiza.view.componentes.PainelTarefas;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
 import javax.swing.JComboBox;
 
 /**
  * Consulta dos eventos organizados pela atlética (CH-39), com filtro por tipo e período.
  * A coluna "Tarefas" resume o andamento e avisa sobre tarefas atrasadas.
+ * As ações ficam no ConsultaEventosController.
  */
 public class PainelConsultaEventos extends PainelConsulta<Evento> {
 
     /** Filtro de período. */
-    private enum Periodo {
+    public enum Periodo {
         TODOS("Todas as datas"), PROXIMOS("Próximos"), REALIZADOS("Já realizados");
 
         private final String texto;
@@ -39,69 +37,43 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
         }
     }
 
-    private final EventoController controller = new EventoController();
-    private final Navegador navegador;
-    private final JComboBox<TipoEvento> filtroTipo = Combos.comOpcaoTodos(List.of(TipoEvento.values()), "Todos os tipos");
+    private final JComboBox<TipoEvento> filtroTipo =
+            Combos.comOpcaoTodos(Arrays.asList(TipoEvento.values()), "Todos os tipos");
     private final JComboBox<Periodo> filtroPeriodo = new JComboBox<>(Periodo.values());
 
-    public PainelConsultaEventos(Navegador navegador) {
+    public PainelConsultaEventos() {
         super("Eventos", new ModeloTabela<Evento>()
-                .coluna("Evento", String.class, Evento::getTitulo)
+                .coluna("Evento", String.class, e -> e.getTitulo())
                 .coluna("Tipo", String.class, e -> e.getTipoEvento().getDescricao())
-                .coluna("Data", LocalDate.class, Evento::getData)
-                .coluna("Horário", LocalTime.class, Evento::getHorario)
-                .coluna("Local", String.class, Evento::getLocal)
-                .coluna("Situação", SituacaoEvento.class, Evento::getSituacao)
-                .coluna("Tarefas", String.class, e -> PainelTarefas.resumir(e.getTarefas())),
+                .coluna("Data", LocalDate.class, e -> e.getData())
+                .coluna("Horário", LocalTime.class, e -> e.getHorario())
+                .coluna("Local", String.class, e -> e.getLocal())
+                .coluna("Situação", SituacaoEvento.class, e -> e.getSituacao())
+                .coluna("Tarefas", String.class, e -> Tarefa.resumir(e.getTarefas(), LocalDate.now())),
                 EnumSet.allOf(Acao.class));
-        this.navegador = navegador;
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
         renomearBotao(Acao.GERENCIAR, "Responsáveis e tarefas");
         larguraColuna(0, 190);
         tabela.getColumnModel().getColumn(1).setMinWidth(95);
         larguraColuna(6, 240);
         adicionarFiltro(filtroTipo);
         adicionarFiltro(filtroPeriodo);
-        filtroTipo.addActionListener(e -> carregar());
-        filtroPeriodo.addActionListener(e -> carregar());
     }
 
-    @Override
-    protected List<Evento> buscarDados() throws AthletizaException {
-        LocalDate hoje = LocalDate.now();
-        Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
-        return controller.pesquisar((TipoEvento) filtroTipo.getSelectedItem(),
-                periodo == Periodo.PROXIMOS ? hoje : null,
-                periodo == Periodo.REALIZADOS ? hoje.minusDays(1) : null);
+    public void adicionarAcaoFiltrar(ActionListener acao) {
+        filtroTipo.addActionListener(acao);
+        filtroPeriodo.addActionListener(acao);
     }
 
-    @Override
-    protected void incluir() {
-        navegador.abrir(new PainelCadastroEvento(new Evento(), navegador));
+    /** Tipo escolhido no filtro, ou null para todos. */
+    public TipoEvento getTipo() {
+        return (TipoEvento) filtroTipo.getSelectedItem();
     }
 
-    @Override
-    protected void editar(Evento evento) {
-        navegador.abrir(new PainelCadastroEvento(evento, navegador));
-    }
-
-    @Override
-    protected void gerenciar(Evento evento) {
-        navegador.abrir(new PainelGerenciarEvento(evento, navegador));
-    }
-
-    @Override
-    protected void excluir(Evento evento) {
-        if (!evento.getTarefas().isEmpty() && !Mensagens.confirmar(this, evento.getTitulo() + " possui "
-                + evento.getTarefas().size() + " tarefa(s), que também serão excluídas, assim como os responsáveis."
-                + " Continuar?")) {
-            return;
-        }
-        try {
-            controller.excluir(evento);
-            Mensagens.sucesso(this, "Evento excluído.");
-        } catch (AthletizaException e) {
-            Mensagens.erro(this, e);
-        }
-        carregar();
+    public Periodo getPeriodo() {
+        return (Periodo) filtroPeriodo.getSelectedItem();
     }
 }

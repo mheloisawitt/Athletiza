@@ -1,5 +1,7 @@
 package br.com.athletiza;
 
+import br.com.athletiza.controller.LoginController;
+import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.util.Log;
 import br.com.athletiza.view.Tema;
 import br.com.athletiza.view.TelaLogin;
@@ -19,7 +21,9 @@ public class Athletiza {
 
         SwingUtilities.invokeLater(() -> {
             Tema.aplicar();
-            new TelaLogin().setVisible(true);
+            TelaLogin login = new TelaLogin();
+            new LoginController(login, new UsuarioDAO());
+            login.setVisible(true);
         });
     }
 }

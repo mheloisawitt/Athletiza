@@ -6,6 +6,7 @@ import com.formdev.flatlaf.FlatLaf;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.UIManager;
 
@@ -19,10 +20,11 @@ public final class Tema {
     }
 
     public static void aplicar() {
-        FlatLaf.setGlobalExtraDefaults(Map.of(
-                "@accentColor", Cores.hex(Cores.VERDE),
-                "@background", Cores.hex(Cores.FUNDO),
-                "@foreground", "#FFFFFF"));
+        Map<String, String> cores = new HashMap<>();
+        cores.put("@accentColor", Cores.hex(Cores.VERDE));
+        cores.put("@background", Cores.hex(Cores.FUNDO));
+        cores.put("@foreground", "#FFFFFF");
+        FlatLaf.setGlobalExtraDefaults(cores);
         FlatDarkLaf.setup();
 
         UIManager.put("Component.arc", 10);
@@ -66,7 +68,12 @@ public final class Tema {
     }
 
     public static Font fonte(int estilo, float tamanho) {
-        return UIManager.getFont("defaultFont").deriveFont(estilo, tamanho);
+        Font padrao = UIManager.getFont("defaultFont");
+        if (padrao == null) {
+            // Tema ainda não aplicado (ex.: nos testes): usa a fonte padrão do Swing
+            padrao = UIManager.getFont("Label.font");
+        }
+        return padrao.deriveFont(estilo, tamanho);
     }
 
     public static Font fonteTitulo() {

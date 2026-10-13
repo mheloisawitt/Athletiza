@@ -3,10 +3,11 @@ package br.com.athletiza.dao;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Entidade;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Contrato comum de todos os DAOs do sistema (CH-06).
+ * Contrato comum de todos os DAOs do sistema (CH-06): as operações de
+ * cadastro que toda entidade tem. Cada entidade tem a sua interface
+ * (ex.: ModalidadeRepository), que estende esta e acrescenta o que é específico.
  *
  * @param <T> entidade gravada pelo DAO
  */
@@ -19,7 +20,8 @@ public interface GenericDAO<T extends Entidade> {
 
     void excluir(int id) throws PersistenciaException;
 
-    Optional<T> buscarPorId(int id) throws PersistenciaException;
+    /** Busca pelo id. Retorna null se não existir. */
+    T buscarPorId(int id) throws PersistenciaException;
 
     List<T> listarTodos() throws PersistenciaException;
 }

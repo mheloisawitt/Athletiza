@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Acesso aos dados das pastas da galeria de registros.
  */
-public class PastaDAO extends AbstractDAO<Pasta> {
+public class PastaDAO extends AbstractDAO<Pasta> implements PastaRepository {
 
     @Override
     protected String getTabela() {

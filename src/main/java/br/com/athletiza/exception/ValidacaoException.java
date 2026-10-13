@@ -12,15 +12,20 @@ import java.util.List;
  */
 public class ValidacaoException extends AthletizaException {
 
-    private final List<String> erros;
+    private final List<String> erros = new ArrayList<>();
+
+    public ValidacaoException() {
+        this("Há dados inválidos. Confira os campos e tente novamente.");
+    }
 
     public ValidacaoException(String erro) {
-        this(List.of(erro));
+        super(erro);
+        erros.add(erro);
     }
 
     public ValidacaoException(List<String> erros) {
         super(String.join("\n", erros));
-        this.erros = new ArrayList<>(erros);
+        this.erros.addAll(erros);
     }
 
     public List<String> getErros() {

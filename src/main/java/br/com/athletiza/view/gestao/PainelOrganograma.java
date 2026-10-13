@@ -1,14 +1,10 @@
 package br.com.athletiza.view.gestao;
 
-import br.com.athletiza.controller.GestaoController;
-import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Cargo;
-import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.view.Tema;
 import br.com.athletiza.view.componentes.Mensagens;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.Recarregavel;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BasicStroke;
@@ -20,6 +16,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,23 +32,26 @@ import javax.swing.JScrollPane;
 /**
  * Organograma da gestão (CH-23, RF08): cada cargo ocupado é uma caixa com seus
  * membros, ligada ao cargo superior. Atualiza sempre que a tela é aberta.
+ * As ações ficam no OrganogramaController.
  */
 public class PainelOrganograma extends JPanel implements Recarregavel {
 
-    private final Gestao gestao;
-    private final GestaoController controller = new GestaoController();
     private final Desenho desenho = new Desenho();
+    private final JButton btnVoltar = new JButton("‹ Voltar");
+    private final JLabel titulo = new JLabel();
+    private ActionListener acaoCarregar;
 
-    public PainelOrganograma(Gestao gestao, Navegador navegador) {
+    public PainelOrganograma() {
         super(new BorderLayout(0, 20));
-        this.gestao = gestao;
+        inicializarComponentes();
+    }
+
+    private void inicializarComponentes() {
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
-        JButton voltar = new JButton("‹ Voltar");
+        JButton voltar = btnVoltar;
         voltar.putClientProperty(FlatClientProperties.STYLE,
                 "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> navegador.voltar());
-        JLabel titulo = new JLabel("Organograma · " + gestao.getNome());
         titulo.setFont(Tema.fonteTitulo());
         JPanel cabecalho = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         cabecalho.setOpaque(false);
@@ -64,16 +65,33 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
         add(rolagem, BorderLayout.CENTER);
     }
 
+    public void setNomeGestao(String nome) {
+        titulo.setText("Organograma · " + nome);
+    }
+
+    public void adicionarAcaoVoltar(ActionListener acao) {
+        btnVoltar.addActionListener(acao);
+    }
+
+    public void adicionarAcaoCarregar(ActionListener acao) {
+        this.acaoCarregar = acao;
+    }
+
+    /** Busca os dados de novo: dispara a ação registrada pelo Controller. */
     @Override
     public void carregar() {
-        Gestao atualizada = new Gestao(gestao.getNome(), gestao.getDataInicio(), gestao.getDataFim());
-        atualizada.setId(gestao.getId());
-        try {
-            controller.carregarComposicao(atualizada);
-        } catch (PersistenciaException e) {
-            Mensagens.erro(this, e);
+        if (acaoCarregar != null) {
+            acaoCarregar.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "carregar"));
         }
-        desenho.montar(atualizada.getOrganograma());
+    }
+
+    /** Desenha o organograma: cargos em ordem hierárquica com os membros de cada um. */
+    public void exibir(Map<Cargo, List<Membro>> organograma) {
+        desenho.montar(organograma);
+    }
+
+    public void mostrarErro(Exception erro) {
+        Mensagens.erro(this, erro);
     }
 
     /** Caixa de um cargo no desenho, com os cargos subordinados a ele. */
@@ -111,7 +129,9 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
             raizes.clear();
             alturaDosNiveis.clear();
             Map<Cargo, No> nos = new HashMap<>();
-            organograma.forEach((cargo, membros) -> nos.put(cargo, new No(cargo, membros)));
+            for (Map.Entry<Cargo, List<Membro>> item : organograma.entrySet()) {
+                nos.put(item.getKey(), new No(item.getKey(), item.getValue()));
+            }
 
             // Cada cargo fica abaixo do superior mais próximo que esteja ocupado nesta gestão
             for (Cargo cargo : organograma.keySet()) {
@@ -119,7 +139,11 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
                 while (acima != null && !nos.containsKey(acima)) {
                     acima = acima.getCargoSuperior();
                 }
-                (acima == null ? raizes : nos.get(acima).filhos).add(nos.get(cargo));
+                if (acima == null) {
+                    raizes.add(nos.get(cargo));
+                } else {
+                    nos.get(acima).filhos.add(nos.get(cargo));
+                }
             }
 
             int x = MARGEM;
@@ -131,8 +155,11 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
                 posicionar(raiz, x, 0);
                 x += raiz.larguraSubarvore + ESPACO_HORIZONTAL;
             }
-            int alturaTotal = MARGEM * 2 + alturaDosNiveis.stream().mapToInt(Integer::intValue).sum()
-                    + Math.max(0, alturaDosNiveis.size() - 1) * ESPACO_VERTICAL;
+            int somaDasAlturas = 0;
+            for (int altura : alturaDosNiveis) {
+                somaDasAlturas += altura;
+            }
+            int alturaTotal = MARGEM * 2 + somaDasAlturas + Math.max(0, alturaDosNiveis.size() - 1) * ESPACO_VERTICAL;
             setPreferredSize(new Dimension(Math.max(x - ESPACO_HORIZONTAL + MARGEM, 400), Math.max(alturaTotal, 200)));
             revalidate();
             repaint();
@@ -143,7 +170,9 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
                 alturaDosNiveis.add(0);
             }
             alturaDosNiveis.set(nivel, Math.max(alturaDosNiveis.get(nivel), no.altura()));
-            no.filhos.forEach(filho -> calcularAlturas(filho, nivel + 1));
+            for (No filho : no.filhos) {
+                calcularAlturas(filho, nivel + 1);
+            }
         }
 
         private int calcularLargura(No no) {
@@ -163,8 +192,10 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
             for (int i = 0; i < nivel; i++) {
                 no.y += alturaDosNiveis.get(i) + ESPACO_VERTICAL;
             }
-            int larguraFilhos = no.filhos.stream().mapToInt(f -> f.larguraSubarvore).sum()
-                    + Math.max(0, no.filhos.size() - 1) * ESPACO_HORIZONTAL;
+            int larguraFilhos = Math.max(0, no.filhos.size() - 1) * ESPACO_HORIZONTAL;
+            for (No filho : no.filhos) {
+                larguraFilhos += filho.larguraSubarvore;
+            }
             int x = inicio + (no.larguraSubarvore - larguraFilhos) / 2;
             for (No filho : no.filhos) {
                 posicionar(filho, x, nivel + 1);
@@ -185,8 +216,12 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
                 g2.setFont(Tema.fonte(Font.PLAIN, 14f));
                 g2.drawString("Nenhum membro em cargos nesta gestão. Use \"Adicionar membro\" na tela anterior.", MARGEM, MARGEM + 10);
             }
-            raizes.forEach(raiz -> desenharLigacoes(g2, raiz));
-            raizes.forEach(raiz -> desenharCaixas(g2, raiz, true));
+            for (No raiz : raizes) {
+                desenharLigacoes(g2, raiz);
+            }
+            for (No raiz : raizes) {
+                desenharCaixas(g2, raiz, true);
+            }
             g2.dispose();
         }
 
@@ -225,7 +260,9 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
                 centralizar(g2, membro.getNome(), no.x, y, metricas);
                 y += 18;
             }
-            no.filhos.forEach(filho -> desenharCaixas(g2, filho, false));
+            for (No filho : no.filhos) {
+                desenharCaixas(g2, filho, false);
+            }
         }
 
         private static void centralizar(Graphics2D g2, String texto, int xCaixa, int y, FontMetrics metricas) {

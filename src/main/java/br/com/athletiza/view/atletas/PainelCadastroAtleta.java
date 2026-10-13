@@ -1,17 +1,11 @@
 package br.com.athletiza.view.atletas;
 
-import br.com.athletiza.controller.AtletaController;
-import br.com.athletiza.controller.ModalidadeController;
-import br.com.athletiza.exception.AthletizaException;
-import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Situacao;
 import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.util.Cores;
-import br.com.athletiza.util.Validador;
-import br.com.athletiza.view.componentes.Mensagens;
-import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import br.com.athletiza.view.componentes.Renderizadores;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -32,11 +26,10 @@ import javax.swing.table.AbstractTableModel;
 /**
  * Cadastro e edição de atleta (CH-26). As modalidades são escolhidas em uma
  * tabela com marcação e a situação do atleta em cada uma (RF04).
+ * As ações ficam no CadastroAtletaController.
  */
 public class PainelCadastroAtleta extends PainelFormulario {
 
-    private final Atleta atleta;
-    private final AtletaController controller = new AtletaController();
     private final JTextField nome = new JTextField();
     private final JTextField matricula = new JTextField();
     private final JTextField nascimento = new JTextField();
@@ -46,10 +39,11 @@ public class PainelCadastroAtleta extends PainelFormulario {
     private final ModeloModalidades modeloModalidades = new ModeloModalidades();
     private final JTable tabelaModalidades = new JTable(modeloModalidades);
 
-    public PainelCadastroAtleta(Atleta atleta, Navegador navegador) {
-        super(atleta.isNova() ? "Novo Atleta" : "Editar Atleta", navegador);
-        this.atleta = atleta;
+    public PainelCadastroAtleta() {
+        inicializarComponentes();
+    }
 
+    private void inicializarComponentes() {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nome completo");
         matricula.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: 202001");
         nascimento.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
@@ -63,8 +57,6 @@ public class PainelCadastroAtleta extends PainelFormulario {
         adicionarCampoLinhaInteira("Contato", contato, false);
         adicionarCampoLinhaInteira("Modalidades (marque e informe a situação em cada uma)", criarTabelaModalidades(), true);
         adicionarCampoLinhaInteira("Observações", areaTexto(observacoes), false);
-
-        preencherCampos();
     }
 
     private JScrollPane criarTabelaModalidades() {
@@ -82,45 +74,57 @@ public class PainelCadastroAtleta extends PainelFormulario {
         return rolagem;
     }
 
-    private void preencherCampos() {
+    /**
+     * Mostra os dados do atleta. A tabela lista todas as modalidades,
+     * marcando as que o atleta pratica.
+     */
+    public void preencherCampos(Atleta atleta, List<Modalidade> todasModalidades) {
+        setTitulo(atleta.isNova() ? "Novo Atleta" : "Editar Atleta");
         nome.setText(atleta.getNome());
         matricula.setText(atleta.getMatricula());
         nascimento.setText(atleta.getDataNascimento() == null ? "" : Validador.FORMATO_DATA.format(atleta.getDataNascimento()));
         situacao.setSelectedItem(atleta.getSituacao());
         contato.setText(atleta.getContato());
         observacoes.setText(atleta.getObservacoes());
-        try {
-            modeloModalidades.carregar(new ModalidadeController().listar(), atleta);
-        } catch (PersistenciaException e) {
-            Mensagens.erro(this, e);
-        }
+        modeloModalidades.carregar(todasModalidades, atleta);
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
+    public String getNome() {
+        return nome.getText().trim();
+    }
+
+    public String getMatricula() {
+        return matricula.getText().trim();
+    }
+
+    /** Data digitada (dd/mm/aaaa); a conversão é feita pelo Controller. */
+    public String getDataNascimento() {
+        return nascimento.getText();
+    }
+
+    public Situacao getSituacao() {
+        return (Situacao) situacao.getSelectedItem();
+    }
+
+    public String getContato() {
+        return textoOuNulo(contato.getText());
+    }
+
+    public String getObservacoes() {
+        return textoOuNulo(observacoes.getText());
+    }
+
+    /** Modalidades marcadas na tabela, com a situação do atleta em cada uma. */
+    public Map<Modalidade, SituacaoAtleta> getModalidadesMarcadas() {
         if (tabelaModalidades.isEditing()) {
             tabelaModalidades.getCellEditor().stopCellEditing();
         }
-        atleta.setNome(nome.getText().trim());
-        atleta.setMatricula(matricula.getText().trim());
-        atleta.setDataNascimento(Validador.converterData(nascimento.getText(), "Data de nascimento"));
-        atleta.setSituacao((Situacao) situacao.getSelectedItem());
-        atleta.setContato(textoOuNulo(contato.getText()));
-        atleta.setObservacoes(textoOuNulo(observacoes.getText()));
-
-        new ArrayList<>(atleta.getVinculos().keySet()).forEach(atleta::desvincularModalidade);
-        modeloModalidades.getMarcadas().forEach(atleta::vincularModalidade);
-
-        controller.salvar(atleta);
+        return modeloModalidades.getMarcadas();
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Atleta salvo com sucesso.";
-    }
-
-    private static String textoOuNulo(String texto) {
-        return texto == null || texto.isBlank() ? null : texto.trim();
+    /** Marca ou desmarca uma modalidade da tabela (usado também nos testes). */
+    public void marcarModalidade(Modalidade modalidade, SituacaoAtleta situacaoNaModalidade) {
+        modeloModalidades.marcar(modalidade, situacaoNaModalidade);
     }
 
     /** Tabela de modalidades: [marcada] [modalidade] [situação do atleta nela]. */
@@ -133,12 +137,27 @@ public class PainelCadastroAtleta extends PainelFormulario {
         private final List<SituacaoAtleta> situacoes = new ArrayList<>();
 
         void carregar(List<Modalidade> todas, Atleta atleta) {
+            modalidades.clear();
+            marcadas.clear();
+            situacoes.clear();
             for (Modalidade modalidade : todas) {
+                SituacaoAtleta situacaoNela = atleta.getSituacaoNaModalidade(modalidade);
                 modalidades.add(modalidade);
-                marcadas.add(atleta.praticaModalidade(modalidade));
-                situacoes.add(atleta.getSituacaoNaModalidade(modalidade).orElse(SituacaoAtleta.ATIVO));
+                marcadas.add(situacaoNela != null);
+                situacoes.add(situacaoNela == null ? SituacaoAtleta.ATIVO : situacaoNela);
             }
             fireTableDataChanged();
+        }
+
+        void marcar(Modalidade modalidade, SituacaoAtleta situacaoNaModalidade) {
+            int linha = modalidades.indexOf(modalidade);
+            if (linha >= 0) {
+                marcadas.set(linha, situacaoNaModalidade != null);
+                if (situacaoNaModalidade != null) {
+                    situacoes.set(linha, situacaoNaModalidade);
+                }
+                fireTableRowsUpdated(linha, linha);
+            }
         }
 
         Map<Modalidade, SituacaoAtleta> getMarcadas() {
@@ -168,11 +187,13 @@ public class PainelCadastroAtleta extends PainelFormulario {
 
         @Override
         public Class<?> getColumnClass(int coluna) {
-            return switch (coluna) {
-                case 0 -> Boolean.class;
-                case 2 -> SituacaoAtleta.class;
-                default -> String.class;
-            };
+            if (coluna == 0) {
+                return Boolean.class;
+            }
+            if (coluna == 2) {
+                return SituacaoAtleta.class;
+            }
+            return String.class;
         }
 
         @Override
@@ -182,11 +203,13 @@ public class PainelCadastroAtleta extends PainelFormulario {
 
         @Override
         public Object getValueAt(int linha, int coluna) {
-            return switch (coluna) {
-                case 0 -> marcadas.get(linha);
-                case 1 -> modalidades.get(linha).toString();
-                default -> marcadas.get(linha) ? situacoes.get(linha) : null;
-            };
+            if (coluna == 0) {
+                return marcadas.get(linha);
+            }
+            if (coluna == 1) {
+                return modalidades.get(linha).toString();
+            }
+            return marcadas.get(linha) ? situacoes.get(linha) : null;
         }
 
         @Override

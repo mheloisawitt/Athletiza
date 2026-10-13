@@ -23,7 +23,7 @@ import java.util.List;
  *
  * Apenas consulta; o cadastro de cada tipo fica no DAO do seu módulo.
  */
-public class AtividadeDAO extends DAOBase {
+public class AtividadeDAO extends DAOBase implements AtividadeRepository {
 
     private final CompromissoDAO compromissoDAO = new CompromissoDAO();
 
@@ -32,16 +32,16 @@ public class AtividadeDAO extends DAOBase {
         return "as atividades do calendário";
     }
 
-    /** Atividades que acontecem, ao menos em parte, entre as duas datas (inclusive). */
+    @Override
     public List<Atividade> listarPorPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Atividade> atividades = new ArrayList<>();
         atividades.addAll(consultar("SELECT t.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
                 + " FROM treino t JOIN modalidade m ON m.id = t.modalidade_id"
-                + " WHERE t.data BETWEEN ? AND ?", this::mapearTreino, inicio, fim));
+                + " WHERE t.data BETWEEN ? AND ?", rs -> mapearTreino(rs), inicio, fim));
         atividades.addAll(consultar("SELECT * FROM competicao WHERE data <= ? AND COALESCE(data_fim, data) >= ?",
-                this::mapearCompeticao, fim, inicio));
+                rs -> mapearCompeticao(rs), fim, inicio));
         atividades.addAll(consultar("SELECT * FROM evento WHERE data BETWEEN ? AND ?",
-                this::mapearEvento, inicio, fim));
+                rs -> mapearEvento(rs), inicio, fim));
         atividades.addAll(compromissoDAO.listarPorPeriodo(inicio, fim));
         return atividades;
     }

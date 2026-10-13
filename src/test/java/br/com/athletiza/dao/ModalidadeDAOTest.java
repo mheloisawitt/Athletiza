@@ -1,6 +1,7 @@
 package br.com.athletiza.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,7 +39,7 @@ class ModalidadeDAOTest {
         dao.inserir(xadrez);
 
         assertNotNull(xadrez.getId());
-        Modalidade lida = dao.buscarPorId(xadrez.getId()).orElseThrow();
+        Modalidade lida = dao.buscarPorId(xadrez.getId());
         assertEquals(xadrez, lida);
         assertEquals(Genero.MISTO, lida.getGenero());
     }
@@ -51,7 +52,7 @@ class ModalidadeDAOTest {
         xadrez.setNome("Xadrez Rápido");
         dao.atualizar(xadrez);
 
-        assertEquals("Xadrez Rápido", dao.buscarPorId(xadrez.getId()).orElseThrow().getNome());
+        assertEquals("Xadrez Rápido", dao.buscarPorId(xadrez.getId()).getNome());
     }
 
     @Test
@@ -79,12 +80,16 @@ class ModalidadeDAOTest {
         assertFalse(dao.possuiVinculos(basquete.getId()));
         dao.excluir(basquete.getId());
 
-        assertTrue(dao.buscarPorId(basquete.getId()).isEmpty());
+        assertNull(dao.buscarPorId(basquete.getId()));
     }
 
     private Modalidade buscar(String nome, Genero genero) throws PersistenciaException {
-        return dao.listarTodos().stream()
-                .filter(m -> m.equals(new Modalidade(nome, genero)))
-                .findFirst().orElseThrow();
+        Modalidade procurada = new Modalidade(nome, genero);
+        for (Modalidade modalidade : dao.listarTodos()) {
+            if (modalidade.equals(procurada)) {
+                return modalidade;
+            }
+        }
+        throw new AssertionError("Modalidade não encontrada: " + procurada);
     }
 }

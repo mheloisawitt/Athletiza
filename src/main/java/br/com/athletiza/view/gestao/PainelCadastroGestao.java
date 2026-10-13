@@ -1,11 +1,8 @@
 package br.com.athletiza.view.gestao;
 
-import br.com.athletiza.controller.GestaoController;
-import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.SituacaoGestao;
-import br.com.athletiza.util.Validador;
-import br.com.athletiza.view.componentes.Navegador;
+import br.com.athletiza.model.Validador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.time.LocalDate;
@@ -14,22 +11,21 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 /**
- * Cadastro e edição de gestão (CH-20). Períodos sobrepostos são recusados.
+ * Cadastro e edição de gestão (CH-20). As ações ficam no CadastroGestaoController.
  */
 public class PainelCadastroGestao extends PainelFormulario {
 
-    private final Gestao gestao;
-    private final GestaoController controller = new GestaoController();
     private final JTextField nome = new JTextField();
     private final JTextField inicio = new JTextField();
     private final JTextField fim = new JTextField();
     private final JComboBox<SituacaoGestao> situacao = new JComboBox<>(SituacaoGestao.values());
     private final JTextArea descricao = new JTextArea();
 
-    public PainelCadastroGestao(Gestao gestao, Navegador navegador) {
-        super(gestao.isNova() ? "Nova Gestão" : "Editar Gestão", navegador);
-        this.gestao = gestao;
+    public PainelCadastroGestao() {
+        inicializarComponentes();
+    }
 
+    private void inicializarComponentes() {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: Gestão 2025-2026");
         inicio.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
         fim.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
@@ -40,7 +36,10 @@ public class PainelCadastroGestao extends PainelFormulario {
         adicionarCampo("Data de fim", fim, true);
         adicionarCampo("Situação", situacao, true);
         adicionarCampoLinhaInteira("Descrição", areaTexto(descricao), false);
+    }
 
+    public void preencherCampos(Gestao gestao) {
+        setTitulo(gestao.isNova() ? "Nova Gestão" : "Editar Gestão");
         nome.setText(gestao.getNome());
         inicio.setText(formatar(gestao.getDataInicio()));
         fim.setText(formatar(gestao.getDataFim()));
@@ -48,19 +47,24 @@ public class PainelCadastroGestao extends PainelFormulario {
         descricao.setText(gestao.getDescricao());
     }
 
-    @Override
-    protected void salvar() throws AthletizaException {
-        gestao.setNome(nome.getText().trim());
-        gestao.setDataInicio(Validador.converterData(inicio.getText(), "Data de início"));
-        gestao.setDataFim(Validador.converterData(fim.getText(), "Data de fim"));
-        gestao.setSituacao((SituacaoGestao) situacao.getSelectedItem());
-        gestao.setDescricao(descricao.getText().isBlank() ? null : descricao.getText().trim());
-        controller.salvar(gestao);
+    public String getNome() {
+        return nome.getText().trim();
     }
 
-    @Override
-    protected String getMensagemSucesso() {
-        return "Gestão salva com sucesso.";
+    public String getDataInicio() {
+        return inicio.getText();
+    }
+
+    public String getDataFim() {
+        return fim.getText();
+    }
+
+    public SituacaoGestao getSituacao() {
+        return (SituacaoGestao) situacao.getSelectedItem();
+    }
+
+    public String getDescricao() {
+        return textoOuNulo(descricao.getText());
     }
 
     private static String formatar(LocalDate data) {

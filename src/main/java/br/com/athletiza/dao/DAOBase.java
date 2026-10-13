@@ -75,7 +75,11 @@ public abstract class DAOBase {
                 R resultado = transacao.executar(con);
                 con.commit();
                 return resultado;
-            } catch (SQLException | RuntimeException e) {
+            } catch (SQLException e) {
+                // Desfaz tudo o que a transação já tinha gravado e relança o erro
+                con.rollback();
+                throw e;
+            } catch (RuntimeException e) {
                 con.rollback();
                 throw e;
             }
@@ -123,22 +127,38 @@ public abstract class DAOBase {
         }
     }
 
+    /** Executa um SELECT COUNT(*) e devolve o número contado. */
+    protected int contar(String sqlContagem, Object... parametros) throws PersistenciaException {
+        return consultar(sqlContagem, rs -> rs.getInt(1), parametros).get(0);
+    }
+
     /** Verifica se a consulta (um SELECT COUNT) retorna valor maior que zero. */
     protected boolean existe(String sqlContagem, Object... parametros) throws PersistenciaException {
-        return consultar(sqlContagem, rs -> rs.getInt(1), parametros).get(0) > 0;
+        return contar(sqlContagem, parametros) > 0;
     }
 
     /** Converte o erro técnico em uma mensagem que o usuário entende. */
     protected PersistenciaException traduzir(SQLException e, String operacao) {
         LOG.log(Level.SEVERE, "Erro ao " + operacao + " " + getNomeEntidade(), e);
-        String mensagem = switch (violacao(e)) {
-            case CHAVE_ESTRANGEIRA -> "excluir".equals(operacao)
-                    ? "Não é possível excluir " + getNomeEntidade() + ": existem outros registros vinculados."
-                    : "Não é possível salvar " + getNomeEntidade() + ": um dos registros relacionados não existe mais.";
-            case UNICIDADE -> "Não é possível salvar " + getNomeEntidade() + ": já existe um cadastro com esses dados.";
-            case CHECK -> "Não é possível salvar " + getNomeEntidade() + ": há dados inválidos.";
-            case OUTRA -> "Erro ao " + operacao + " " + getNomeEntidade() + ". Tente novamente.";
-        };
+        String mensagem;
+        switch (violacao(e)) {
+            case CHAVE_ESTRANGEIRA:
+                if ("excluir".equals(operacao)) {
+                    mensagem = "Não é possível excluir " + getNomeEntidade() + ": existem outros registros vinculados.";
+                } else {
+                    mensagem = "Não é possível salvar " + getNomeEntidade()
+                            + ": um dos registros relacionados não existe mais.";
+                }
+                break;
+            case UNICIDADE:
+                mensagem = "Não é possível salvar " + getNomeEntidade() + ": já existe um cadastro com esses dados.";
+                break;
+            case CHECK:
+                mensagem = "Não é possível salvar " + getNomeEntidade() + ": há dados inválidos.";
+                break;
+            default:
+                mensagem = "Erro ao " + operacao + " " + getNomeEntidade() + ". Tente novamente.";
+        }
         return new PersistenciaException(mensagem, e);
     }
 
@@ -148,32 +168,32 @@ public abstract class DAOBase {
      * o H2 dos testes, pelo SQLState padrão (23505, 23503, 23513).
      */
     static Violacao violacao(SQLException e) {
+        int codigo = e.getErrorCode();
         String estado = e.getSQLState() == null ? "" : e.getSQLState();
-        return switch (e.getErrorCode()) {
-            case 1062 -> Violacao.UNICIDADE;
-            case 1451, 1452 -> Violacao.CHAVE_ESTRANGEIRA;
-            case 3819 -> Violacao.CHECK;
-            default -> switch (estado) {
-                case "23505" -> Violacao.UNICIDADE;
-                case "23503", "23506" -> Violacao.CHAVE_ESTRANGEIRA;
-                case "23513", "23514" -> Violacao.CHECK;
-                default -> Violacao.OUTRA;
-            };
-        };
+        if (codigo == 1062 || estado.equals("23505")) {
+            return Violacao.UNICIDADE;
+        }
+        if (codigo == 1451 || codigo == 1452 || estado.equals("23503") || estado.equals("23506")) {
+            return Violacao.CHAVE_ESTRANGEIRA;
+        }
+        if (codigo == 3819 || estado.equals("23513") || estado.equals("23514")) {
+            return Violacao.CHECK;
+        }
+        return Violacao.OUTRA;
     }
 
     private static void preencherParametros(PreparedStatement ps, Object... parametros) throws SQLException {
         for (int i = 0; i < parametros.length; i++) {
             Object valor = parametros[i];
             int posicao = i + 1;
-            if (valor instanceof LocalDate data) {
-                ps.setDate(posicao, Date.valueOf(data));
-            } else if (valor instanceof LocalTime hora) {
-                ps.setTime(posicao, Time.valueOf(hora));
-            } else if (valor instanceof LocalDateTime dataHora) {
-                ps.setTimestamp(posicao, Timestamp.valueOf(dataHora));
-            } else if (valor instanceof Enum<?> constante) {
-                ps.setString(posicao, constante.name());
+            if (valor instanceof LocalDate) {
+                ps.setDate(posicao, Date.valueOf((LocalDate) valor));
+            } else if (valor instanceof LocalTime) {
+                ps.setTime(posicao, Time.valueOf((LocalTime) valor));
+            } else if (valor instanceof LocalDateTime) {
+                ps.setTimestamp(posicao, Timestamp.valueOf((LocalDateTime) valor));
+            } else if (valor instanceof Enum) {
+                ps.setString(posicao, ((Enum<?>) valor).name());
             } else {
                 ps.setObject(posicao, valor);
             }
