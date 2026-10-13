@@ -43,7 +43,8 @@ classDiagram
     class Usuario {
         -String login
         -String senhaHash
-        -Perfil perfil
+        -boolean administrador
+        -Membro membro
         -boolean ativo
     }
 
@@ -180,7 +181,10 @@ classDiagram
     Pasta "1" o-- "*" Arquivo : contém
 ```
 
-Enums do modelo: `Situacao`, `SituacaoAtleta`, `Genero`, `Perfil`, `TipoAtividade`, `TipoEvento`,
+`Acesso` reúne as regras de permissão (RN19): é calculado no login a partir do cargo do membro na
+gestão em andamento (`Cargo.setor` e hierarquia) e consultado pelas telas via `Sessao.getAcesso()`.
+
+Enums do modelo: `Situacao`, `SituacaoAtleta`, `Genero`, `Perfil`, `Setor`, `Modulo`, `TipoAtividade`, `TipoEvento`,
 `SituacaoGestao`, `SituacaoCompeticao`, `SituacaoEvento`, `SituacaoTarefa`, `TipoArquivo`.
 
 ## 2. Persistência (`br.com.athletiza.dao`) e exceções

@@ -4,11 +4,14 @@ import br.com.athletiza.controller.DemandaController;
 import br.com.athletiza.controller.MembroController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.model.Acesso;
 import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Demanda;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.PrioridadeDemanda;
 import br.com.athletiza.model.SituacaoDemanda;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.util.Validador;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.ListaMarcavel;
@@ -19,6 +22,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -65,7 +69,13 @@ public class PainelCadastroDemanda extends PainelFormulario {
     /** Eventos e competições para relacionar e membros da gestão em andamento (mais os já responsáveis). */
     private void carregarOpcoes() {
         try {
-            Combos.atualizarItens(relacionada, controller.listarRelacionaveis());
+            Acesso acesso = Sessao.getAcesso();
+            Combos.atualizarItens(relacionada, controller.listarRelacionaveis().stream()
+                    .filter(acesso::podeAlterar).toList());
+            if (!acesso.isAcessoTotal()) {
+                // diretores só registram demandas ligadas a um evento ou competição da sua área
+                ((DefaultComboBoxModel<Atividade>) relacionada.getModel()).removeElementAt(0);
+            }
             List<Membro> membros = new ArrayList<>(new MembroController().listarDaGestaoEmAndamento());
             demanda.getResponsaveis().stream().filter(m -> !membros.contains(m)).forEach(membros::add);
             responsaveis.setItens(membros, Membro::getNome);
@@ -80,6 +90,9 @@ public class PainelCadastroDemanda extends PainelFormulario {
         prioridade.setSelectedItem(demanda.getPrioridade());
         prazo.setText(demanda.getPrazo() == null ? "" : Validador.FORMATO_DATA.format(demanda.getPrazo()));
         relacionada.setSelectedItem(opcaoRelacionada(demanda.getRelacionada()));
+        if (relacionada.getSelectedItem() == null && relacionada.getItemCount() > 0 && !Sessao.getAcesso().isAcessoTotal()) {
+            relacionada.setSelectedIndex(0);
+        }
         responsaveis.setMarcados(demanda.getResponsaveis());
         descricao.setText(demanda.getDescricao());
     }
@@ -107,6 +120,9 @@ public class PainelCadastroDemanda extends PainelFormulario {
         demanda.setRelacionada((Atividade) relacionada.getSelectedItem());
         demanda.definirResponsaveis(responsaveis.getMarcados());
         demanda.setDescricao(descricao.getText() == null || descricao.getText().isBlank() ? null : descricao.getText().trim());
+        if (!Sessao.getAcesso().podeAlterar(demanda)) {
+            throw new ValidacaoException("Relacione a demanda a um evento ou competição da sua área.");
+        }
         controller.salvar(demanda);
     }
 

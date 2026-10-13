@@ -5,22 +5,25 @@ import java.util.Objects;
 /**
  * Usuário que acessa o sistema (RF01). A senha nunca é guardada em texto
  * puro, apenas o hash.
+ *
+ * O administrador tem acesso total. Os demais usuários são ligados a um membro:
+ * o que podem fazer vem do cargo dele na gestão em andamento (ver Acesso).
  */
 public class Usuario extends Pessoa {
 
     private String login;
     private String senhaHash;
-    private Perfil perfil = Perfil.CONSULTA;
+    private boolean administrador;
+    private Membro membro;
     private boolean ativo = true;
     private boolean deveTrocarSenha;
 
     public Usuario() {
     }
 
-    public Usuario(String nome, String login, Perfil perfil) {
+    public Usuario(String nome, String login) {
         setNome(nome);
         this.login = login;
-        this.perfil = perfil;
     }
 
     public String getLogin() {
@@ -39,12 +42,21 @@ public class Usuario extends Pessoa {
         this.senhaHash = senhaHash;
     }
 
-    public Perfil getPerfil() {
-        return perfil;
+    public boolean isAdministrador() {
+        return administrador;
     }
 
-    public void setPerfil(Perfil perfil) {
-        this.perfil = perfil;
+    public void setAdministrador(boolean administrador) {
+        this.administrador = administrador;
+    }
+
+    /** Membro da atlética que usa este login (null = nenhum; obrigatório para quem não é administrador). */
+    public Membro getMembro() {
+        return membro;
+    }
+
+    public void setMembro(Membro membro) {
+        this.membro = membro;
     }
 
     public boolean isAtivo() {

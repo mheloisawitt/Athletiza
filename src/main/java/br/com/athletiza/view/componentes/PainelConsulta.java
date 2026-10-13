@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -58,6 +59,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     private final JPanel linhaTitulo = new JPanel(new BorderLayout());
     private final Map<Acao, JButton> botoesPadrao = new EnumMap<>(Acao.class);
     private final JLabel rotuloTitulo = new JLabel();
+    /** Se o usuário pode incluir, editar e excluir nesta tela. Padrão: só presidência e administrador. */
+    private BooleanSupplier permissao = () -> Sessao.getAcesso().isAcessoTotal();
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo, Set<Acao> acoes) {
         super(new BorderLayout(0, 16));
@@ -68,6 +71,7 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
         add(criarCabecalho(titulo, acoes), BorderLayout.NORTH);
         add(criarTabela(), BorderLayout.CENTER);
+        atualizarPermissoes();
     }
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo) {
@@ -91,14 +95,35 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
     /** Clique duplo numa linha: por padrão, edita (se o perfil permitir). */
     protected void aoClicarDuasVezes(T selecionado) {
-        if (Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados()) {
+        if (podeAlterar(selecionado)) {
             editar(selecionado);
         }
+    }
+
+    /**
+     * Define quem pode incluir, editar e excluir nesta tela (RN19), por exemplo
+     * {@code definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.ATLETAS))}.
+     * É conferido de novo a cada carregar().
+     */
+    public void definirPermissao(BooleanSupplier permissao) {
+        this.permissao = permissao;
+        atualizarPermissoes();
+    }
+
+    /** Se pode incluir registros. */
+    protected boolean podeIncluir() {
+        return permissao.getAsBoolean();
+    }
+
+    /** Se pode editar e excluir o registro. As telas com regra por registro (ex.: eventos) sobrescrevem. */
+    protected boolean podeAlterar(T registro) {
+        return podeIncluir();
     }
 
     /** Recarrega os dados da tabela. Chamado ao abrir a tela e após cada alteração. */
     @Override
     public void carregar() {
+        atualizarPermissoes();
         try {
             modelo.setLinhas(buscarDados());
         } catch (AthletizaException e) {
@@ -172,18 +197,18 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         rotuloTitulo.setText(titulo);
         rotuloTitulo.setFont(Tema.fonteTitulo());
 
-        boolean podeAlterar = Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
         if (acoes.contains(Acao.EXCLUIR)) {
-            adicionarBotao(Acao.EXCLUIR, Botoes.contornoVermelho("Excluir", e -> comSelecionado(this::confirmarExclusao)), podeAlterar);
+            adicionarBotao(Acao.EXCLUIR, Botoes.contornoVermelho("Excluir",
+                    e -> comSelecionado(seAlteravel(this::confirmarExclusao))));
         }
         if (acoes.contains(Acao.EDITAR)) {
-            adicionarBotao(Acao.EDITAR, Botoes.contorno("Editar", e -> comSelecionado(this::editar)), podeAlterar);
+            adicionarBotao(Acao.EDITAR, Botoes.contorno("Editar", e -> comSelecionado(seAlteravel(this::editar))));
         }
         if (acoes.contains(Acao.GERENCIAR)) {
-            adicionarBotao(Acao.GERENCIAR, Botoes.contornoVerde("Gerenciar", e -> comSelecionado(this::gerenciar)), true);
+            adicionarBotao(Acao.GERENCIAR, Botoes.contornoVerde("Gerenciar", e -> comSelecionado(this::gerenciar)));
         }
         if (acoes.contains(Acao.INCLUIR)) {
-            adicionarBotao(Acao.INCLUIR, Botoes.destaque("+ Incluir", e -> incluir()), podeAlterar);
+            adicionarBotao(Acao.INCLUIR, Botoes.destaque("+ Incluir", e -> incluir()));
         }
 
         linhaTitulo.setOpaque(false);
@@ -258,13 +283,31 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         }
     }
 
-    private void adicionarBotao(Acao acao, JButton botao, boolean habilitado) {
+    private void adicionarBotao(Acao acao, JButton botao) {
         botoesPadrao.put(acao, botao);
-        botao.setEnabled(habilitado);
-        if (!habilitado) {
-            botao.setToolTipText("Seu perfil não permite esta ação.");
-        }
         barraBotoes.add(botao);
+    }
+
+    /** Habilita Incluir, Editar e Excluir conforme o perfil do usuário (Gerenciar fica sempre disponível). */
+    private void atualizarPermissoes() {
+        boolean habilitado = podeIncluir();
+        botoesPadrao.forEach((acao, botao) -> {
+            if (acao != Acao.GERENCIAR) {
+                botao.setEnabled(habilitado);
+                botao.setToolTipText(habilitado ? null : "Seu perfil não permite esta ação.");
+            }
+        });
+    }
+
+    /** Executa a ação só se o perfil permitir alterar o registro selecionado. */
+    private java.util.function.Consumer<T> seAlteravel(java.util.function.Consumer<T> acao) {
+        return selecionado -> {
+            if (podeAlterar(selecionado)) {
+                acao.accept(selecionado);
+            } else {
+                Mensagens.aviso(this, "Seu perfil não permite alterar este registro: ele é de outra área.");
+            }
+        };
     }
 
     private void comSelecionado(java.util.function.Consumer<T> acao) {

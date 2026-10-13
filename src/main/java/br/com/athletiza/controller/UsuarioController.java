@@ -4,7 +4,6 @@ import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.exception.ValidacaoException;
-import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Senha;
 import br.com.athletiza.util.Sessao;
@@ -42,7 +41,8 @@ public class UsuarioController {
                 .obrigatorio(usuario.getLogin(), "Login")
                 .regra(usuario.getLogin() == null || usuario.getLogin().isBlank() || LOGIN.matcher(usuario.getLogin()).matches(),
                         "O \"Login\" deve ter de 3 a 50 caracteres, sem espaços (letras, números, ponto, hífen ou _).")
-                .obrigatorio(usuario.getPerfil(), "Perfil")
+                .regra(usuario.isAdministrador() || usuario.getMembro() != null,
+                        "Escolha o membro da gestão que usará este login (ou marque como administrador).")
                 .regra(!usuario.isNova() || informouSenha, "O campo \"Senha\" é obrigatório para novos usuários.");
         if (informouSenha) {
             validarNovaSenha(validador, senha, confirmacao);
@@ -52,7 +52,7 @@ public class UsuarioController {
         if (dao.existeLogin(usuario.getLogin(), usuario.getId())) {
             throw new RegraNegocioException("O login \"" + usuario.getLogin() + "\" já está em uso.");
         }
-        boolean deixaDeSerAdministradorAtivo = usuario.getPerfil() != Perfil.ADMINISTRADOR || !usuario.isAtivo();
+        boolean deixaDeSerAdministradorAtivo = !usuario.isAdministrador() || !usuario.isAtivo();
         if (!usuario.isNova() && deixaDeSerAdministradorAtivo && dao.contarOutrosAdministradoresAtivos(usuario.getId()) == 0) {
             throw new RegraNegocioException("O sistema precisa de pelo menos um administrador ativo.");
         }
@@ -96,7 +96,7 @@ public class UsuarioController {
         if (usuario.equals(Sessao.getUsuarioLogado())) {
             throw new RegraNegocioException("Você não pode excluir o seu próprio usuário.");
         }
-        if (usuario.getPerfil() == Perfil.ADMINISTRADOR && dao.contarOutrosAdministradoresAtivos(usuario.getId()) == 0) {
+        if (usuario.isAdministrador() && dao.contarOutrosAdministradoresAtivos(usuario.getId()) == 0) {
             throw new RegraNegocioException("O sistema precisa de pelo menos um administrador ativo.");
         }
         dao.excluir(usuario.getId());

@@ -7,8 +7,24 @@
 2. Marque **Lembrar de mim** para o sistema guardar o seu usuário neste computador.
 3. Para trocar a sua senha, clique no seu nome, no rodapé do menu.
 
-**Perfis:** *Administrador* faz tudo, inclusive cadastrar usuários. *Diretoria* inclui, edita e exclui
-registros. *Consulta* apenas visualiza (os botões de alteração ficam desabilitados).
+**Perfis.** Fora o administrador, o perfil vem do cargo que o membro ligado ao seu usuário ocupa na
+gestão em andamento (o setor de cada cargo é definido em **Gestão → Cargos**):
+
+| Perfil | Quem | O que pode fazer |
+|---|---|---|
+| Administrador | Usuário marcado como administrador | Tudo, inclusive cadastrar usuários e liberar acessos |
+| Presidência | Presidente ou Vice-presidente | Inclui, edita e exclui em todos os módulos, menos usuários |
+| Diretor | Cargo que dirige um setor (ex.: Diretor de Esportes) | Consulta tudo, inclusive o calendário completo; inclui e edita só a área da sua diretoria |
+| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora |
+
+Área de cada diretoria: **Esportes** cuida de Atletas, Treinos, Competições e dos eventos do tipo
+Competição; **Eventos**, das festas e eventos "Outro"; **Ações sociais** e **Ações ambientais**, dos
+eventos desses tipos. Em **Demandas**, o diretor só registra as ligadas a um evento ou competição da sua
+área. Gestão, compromissos do calendário e Registros ficam com a presidência. Os botões que o perfil
+não permite ficam desabilitados.
+
+Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (Diretora de Esportes),
+`rafael` (Diretor de Eventos) e `bruno` (Assessor de Esportes).
 
 ## Padrão das telas
 
@@ -91,7 +107,11 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 
 ## Usuários (administradores)
 
-- Crie usuários com login, perfil e senha (mínimo de 6 caracteres).
+- Crie usuários com login e senha (mínimo de 6 caracteres) e escolha o **membro da gestão** que vai usá-lo:
+  o acesso dele aparece na hora, calculado pelo cargo na gestão em andamento. Marque **Administrador**
+  apenas para quem deve ter acesso total.
+- Quem não tem cargo com setor na gestão em andamento não consegue entrar. Ao trocar de gestão, o
+  acesso muda sozinho conforme os novos cargos.
 - Na edição, deixe a senha em branco para mantê-la.
 - O sistema sempre mantém pelo menos um administrador ativo.
 - A senha que o administrador define para outra pessoa é provisória: ela troca no primeiro acesso.

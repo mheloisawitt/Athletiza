@@ -4,6 +4,7 @@ import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.model.Acesso;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Senha;
 import br.com.athletiza.util.Sessao;
@@ -46,7 +47,9 @@ public class LoginController {
         if (!usuario.isAtivo()) {
             throw new RegraNegocioException("Este usuário está desativado. Procure um administrador.");
         }
-        Sessao.iniciar(usuario);
+        Acesso acesso = new AcessoController().calcular(usuario).orElseThrow(() -> new RegraNegocioException(
+                "Seu usuário não está ligado a um cargo da gestão em andamento. Procure um administrador."));
+        Sessao.iniciar(usuario, acesso);
         return usuario;
     }
 

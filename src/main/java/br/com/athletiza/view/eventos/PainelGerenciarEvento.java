@@ -8,6 +8,7 @@ import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.util.Cores;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.util.Validador;
 import br.com.athletiza.view.Tema;
 import br.com.athletiza.view.componentes.Botoes;
@@ -65,6 +66,9 @@ public class PainelGerenciarEvento extends JPanel implements Recarregavel {
                 controller.excluirTarefa(tarefa);
             }
         });
+        // só o diretor da área do evento (ou a presidência) altera responsáveis e tarefas
+        tarefas.definirPermissao(() -> Sessao.getAcesso().podeAlterar(original));
+        responsaveis.definirPermissao(() -> Sessao.getAcesso().podeAlterar(original));
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         JButton voltar = Botoes.voltar(e -> navegador.voltar());

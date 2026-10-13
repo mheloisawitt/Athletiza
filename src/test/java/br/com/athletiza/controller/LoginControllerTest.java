@@ -3,11 +3,13 @@ package br.com.athletiza.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
 import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Senha;
@@ -30,7 +32,7 @@ class LoginControllerTest {
         Usuario usuario = controller.autenticar("ADMIN", "admin123".toCharArray());
 
         assertEquals("Administrador", usuario.getNome());
-        assertEquals(Perfil.ADMINISTRADOR, usuario.getPerfil());
+        assertEquals(Perfil.ADMINISTRADOR, Sessao.getAcesso().getPerfil());
         assertEquals(usuario, Sessao.getUsuarioLogado());
     }
 
@@ -56,11 +58,40 @@ class LoginControllerTest {
 
     @Test
     void bloqueiaUsuarioDesativado() throws Exception {
-        Usuario consulta = new Usuario("Fulano", "fulano", Perfil.CONSULTA);
+        Usuario consulta = new Usuario("Fulano", "fulano");
+        consulta.setAdministrador(true);
         consulta.setSenhaHash(Senha.gerarHash("123456".toCharArray()));
         consulta.setAtivo(false);
         new UsuarioDAO().inserir(consulta);
 
         assertThrows(RegraNegocioException.class, () -> controller.autenticar("fulano", "123456".toCharArray()));
+    }
+
+    @Test
+    void perfilVemDoCargoNaGestaoEmAndamento() throws Exception {
+        assertEquals("Presidência", acessoDe("mariana"));
+        assertEquals("Diretor · Esportes", acessoDe("juliana"));
+        assertEquals("Diretor · Eventos", acessoDe("rafael"));
+        assertEquals("Assessor · Esportes", acessoDe("bruno"));
+    }
+
+    @Test
+    void membroSemCargoNaGestaoEmAndamentoNaoEntra() throws Exception {
+        Membro semCargo = new Membro("Carlos Souza", "202199", null);
+        new MembroController().salvar(semCargo);
+        Usuario usuario = new Usuario("Carlos Souza", "carlos");
+        usuario.setMembro(semCargo);
+        usuario.setSenhaHash(Senha.gerarHash("123456".toCharArray()));
+        new UsuarioDAO().inserir(usuario);
+
+        RegraNegocioException erro = assertThrows(RegraNegocioException.class,
+                () -> controller.autenticar("carlos", "123456".toCharArray()));
+        assertTrue(erro.getMessage().contains("gestão em andamento"), erro.getMessage());
+        assertNull(Sessao.getUsuarioLogado());
+    }
+
+    private String acessoDe(String login) throws Exception {
+        controller.autenticar(login, "athletiza".toCharArray());
+        return Sessao.getAcesso().getDescricao();
     }
 }

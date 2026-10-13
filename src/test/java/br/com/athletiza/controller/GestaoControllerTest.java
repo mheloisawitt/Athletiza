@@ -69,7 +69,7 @@ class GestaoControllerTest {
 
         Map<Cargo, List<Membro>> organograma = atual.getOrganograma();
 
-        assertEquals(5, atual.getComposicao().size());
+        assertEquals(6, atual.getComposicao().size());
         Cargo primeiro = organograma.keySet().iterator().next();
         assertEquals("Presidente", primeiro.getNome());
         assertEquals("Mariana Rocha", organograma.get(primeiro).get(0).getNome());
@@ -86,19 +86,19 @@ class GestaoControllerTest {
 
         controller.adicionarMembro(atual, paula, secretario);
         assertThrows(RegraNegocioException.class, () -> controller.adicionarMembro(atual, paula, secretario));
-        assertEquals(6, atual().getComposicao().size());
+        assertEquals(7, atual().getComposicao().size());
 
         controller.trocarMembro(atual, secretario, paula, lucas);
         assertTrue(atual().getOrganograma().get(secretario).contains(lucas));
 
         controller.removerMembro(atual, lucas, secretario);
-        assertEquals(5, atual().getComposicao().size());
+        assertEquals(6, atual().getComposicao().size());
     }
 
     @Test
     void excluiGestaoJuntoComAComposicao() throws Exception {
         Gestao atual = atual();
-        assertEquals(5, controller.contarMembros(atual));
+        assertEquals(6, controller.contarMembros(atual));
 
         controller.excluir(atual);
 
