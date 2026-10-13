@@ -50,6 +50,8 @@ public final class BancoDeTeste {
             String texto = new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
             return texto.lines()
                     .filter(linha -> !linha.trim().startsWith("--"))
+                    // os testes usam o banco da URL acima; o USE athletiza dos scripts trocaria de banco
+                    .filter(linha -> !linha.trim().toUpperCase().startsWith("USE "))
                     .collect(Collectors.joining("\n"));
         } catch (IOException e) {
             throw new UncheckedIOException(e);

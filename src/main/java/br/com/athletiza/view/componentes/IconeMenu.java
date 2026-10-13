@@ -90,6 +90,15 @@ public enum IconeMenu implements Icon {
             new Line2D.Double(16, 2.5, 16, 6.5),
             estrela(12, 15.3, 3.6, 1.6))),
 
+    /** Prancheta com marcação: as demandas e quem cuida delas. */
+    DEMANDAS(() -> List.of(
+            new RoundRectangle2D.Double(4.5, 4, 15, 17.5, 3, 3),
+            new RoundRectangle2D.Double(9, 2.5, 6, 3.5, 1.5, 1.5),
+            caminho(8, 11.5, 9.5, 13, 12, 10.5),
+            new Line2D.Double(13.5, 12, 16.5, 12),
+            caminho(8, 17, 9.5, 18.5, 12, 16),
+            new Line2D.Double(13.5, 17.5, 16.5, 17.5))),
+
     /** Câmera: a galeria de fotos e vídeos. */
     REGISTROS(() -> List.of(
             new RoundRectangle2D.Double(2.5, 7, 19, 13, 4, 4),
@@ -132,6 +141,7 @@ public enum IconeMenu implements Icon {
             case "Competições" -> COMPETICOES;
             case "Treinos" -> TREINOS;
             case "Eventos" -> EVENTOS;
+            case "Demandas" -> DEMANDAS;
             case "Registros" -> REGISTROS;
             case "Usuários" -> USUARIOS;
             default -> null;

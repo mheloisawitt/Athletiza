@@ -137,7 +137,7 @@ public class MenuLateral extends JPanel {
             ImageIcon icone = new ImageIcon(imagem);
             logo = new JLabel(new ImageIcon(icone.getImage().getScaledInstance(-1, 56, java.awt.Image.SCALE_SMOOTH)));
         } else {
-            logo = new JLabel("ATLÉTICA");
+            logo = new JLabel("ATHLETIZA");
             logo.setFont(Tema.fonte(Font.BOLD | Font.ITALIC, 24f));
             logo.setForeground(Cores.VERDE);
         }

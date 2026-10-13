@@ -1,6 +1,8 @@
 -- Athletiza - dados de exemplo (baseados no protótipo das telas) - MySQL 8
--- Execute depois do 01_estrutura.sql, com o banco athletiza selecionado.
+-- Execute depois do 01_estrutura.sql. O USE abaixo seleciona o banco athletiza.
 -- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
+
+USE athletiza;
 
 -- Usuário administrador inicial: login "admin", senha "admin123".
 -- A senha é provisória: o sistema exige a troca no primeiro acesso.
@@ -131,6 +133,28 @@ INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
              UNION ALL SELECT 'Vender ingressos', '202010', '2026-10-11', 'PENDENTE') AS v,
          evento e, membro m
     WHERE e.titulo = 'Festa Atlética' AND m.matricula = v.matricula;
+
+-- Demandas (a primeira sem relação, as outras ligadas a um evento ou a uma competição)
+INSERT INTO demanda (titulo, descricao, prioridade, situacao, prazo) VALUES
+    ('Renovar o estoque de camisetas', 'Orçar com dois fornecedores antes de comprar.', 'MEDIA', 'ABERTA', '2026-11-10');
+
+INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id)
+    SELECT 'Arrecadar alimentos', 'ALTA', 'EM_ANDAMENTO', '2026-10-20', id FROM evento WHERE titulo = 'Ação Social';
+
+INSERT INTO demanda (titulo, prioridade, situacao, prazo, competicao_id)
+    SELECT 'Reservar ônibus para os atletas', 'ALTA', 'ABERTA', '2026-10-25', id FROM competicao WHERE titulo = 'JIUDESC 2026';
+
+-- Responsáveis: somente membros com cargo na gestão em andamento (Gestão 2025-2026)
+INSERT INTO demanda_responsavel (demanda_id, membro_id)
+    SELECT d.id, m.id
+    FROM (SELECT 'Renovar o estoque de camisetas' AS titulo, '202010' AS matricula
+             UNION ALL SELECT 'Arrecadar alimentos', '201933'
+             UNION ALL SELECT 'Arrecadar alimentos', '201801'
+             UNION ALL SELECT 'Reservar ônibus para os atletas', '201902') AS v,
+         demanda d, membro m
+    WHERE d.titulo = v.titulo AND m.matricula = v.matricula
+      AND EXISTS (SELECT 1 FROM gestao_membro_cargo gmc JOIN gestao g ON g.id = gmc.gestao_id
+                  WHERE gmc.membro_id = m.id AND g.situacao = 'EM_ANDAMENTO');
 
 -- Compromissos
 INSERT INTO compromisso (titulo, data, horario, local) VALUES

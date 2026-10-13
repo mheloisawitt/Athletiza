@@ -10,13 +10,13 @@ import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.util.Validador;
 import br.com.athletiza.view.Tema;
+import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import br.com.athletiza.view.componentes.PainelTarefas;
 import br.com.athletiza.view.componentes.Recarregavel;
-import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -66,15 +67,13 @@ public class PainelGerenciarEvento extends JPanel implements Recarregavel {
         });
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
-        JButton voltar = new JButton("‹ Voltar");
-        voltar.putClientProperty(FlatClientProperties.STYLE,
-                "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> navegador.voltar());
+        JButton voltar = Botoes.voltar(e -> navegador.voltar());
         JLabel titulo = new JLabel("Responsáveis e tarefas");
         titulo.setFont(Tema.fonteTitulo());
         JPanel linha = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         linha.setOpaque(false);
         linha.add(voltar);
+        linha.add(Box.createHorizontalStrut(12));
         linha.add(titulo);
 
         JLabel detalhe = new JLabel(evento.getTitulo() + "  ·  " + evento.getTipoEvento().getDescricao() + "  ·  "
