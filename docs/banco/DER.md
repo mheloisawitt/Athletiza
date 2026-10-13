@@ -12,7 +12,8 @@ erDiagram
         varchar nome
         varchar login UK
         varchar senha_hash
-        varchar perfil
+        boolean administrador
+        int membro_id FK "obrigatório se não for administrador"
         boolean ativo
     }
 
@@ -57,6 +58,7 @@ erDiagram
         int id PK
         varchar nome UK
         int ordem
+        varchar setor "define o acesso de quem ocupa o cargo"
         int cargo_superior_id FK
     }
 
@@ -177,6 +179,7 @@ erDiagram
     modalidade ||--o{ atleta_modalidade : tem
     gestao ||--o{ gestao_membro_cargo : compoe
     membro ||--o{ gestao_membro_cargo : ocupa
+    membro |o--o{ usuario : "usa o login"
     cargo ||--o{ gestao_membro_cargo : "é ocupado"
     cargo |o--o{ cargo : "subordinado a"
     modalidade ||--o{ treino : tem
@@ -206,7 +209,7 @@ erDiagram
 | Situação | Regra |
 |---|---|
 | Excluir modalidade com atletas, treinos ou competições | **Bloqueado** (RESTRICT) |
-| Excluir membro que ocupa cargo, é responsável por evento, tarefa ou demanda | **Bloqueado** |
+| Excluir membro que ocupa cargo, é responsável por evento, tarefa ou demanda, ou tem usuário | **Bloqueado** |
 | Excluir atleta com presença ou inscrição em competição | **Bloqueado** |
 | Excluir atleta | Apaga junto seus vínculos com modalidades |
 | Excluir treino | Apaga junto as presenças |

@@ -31,23 +31,10 @@ DROP TABLE IF EXISTS gestao;
 DROP TABLE IF EXISTS atleta_modalidade;
 DROP TABLE IF EXISTS atleta;
 DROP TABLE IF EXISTS modalidade;
-DROP TABLE IF EXISTS membro;
 DROP TABLE IF EXISTS usuario;
+DROP TABLE IF EXISTS membro;
 
 -- ===================== Pessoas =====================
-
-CREATE TABLE usuario (
-    id          INTEGER AUTO_INCREMENT PRIMARY KEY,
-    nome        VARCHAR(100) NOT NULL,
-    matricula   VARCHAR(20),
-    contato     VARCHAR(100),
-    login       VARCHAR(50)  NOT NULL UNIQUE,
-    senha_hash  VARCHAR(255) NOT NULL,
-    perfil      VARCHAR(20)  NOT NULL CHECK (perfil IN ('ADMINISTRADOR', 'DIRETORIA', 'CONSULTA')),
-    ativo       BOOLEAN      NOT NULL DEFAULT TRUE,
-    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
-    deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE
-);
 
 CREATE TABLE membro (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -55,6 +42,23 @@ CREATE TABLE membro (
     matricula   VARCHAR(20)  NOT NULL UNIQUE,
     contato     VARCHAR(100),
     situacao    VARCHAR(20)  NOT NULL DEFAULT 'ATIVO' CHECK (situacao IN ('ATIVO', 'INATIVO'))
+);
+
+-- Usuários do sistema. O administrador tem acesso total; os demais são ligados a um membro e
+-- o que podem fazer vem do setor do cargo dele na gestão em andamento (Presidência, Diretor, Assessor).
+CREATE TABLE usuario (
+    id            INTEGER AUTO_INCREMENT PRIMARY KEY,
+    nome          VARCHAR(100) NOT NULL,
+    matricula     VARCHAR(20),
+    contato       VARCHAR(100),
+    login         VARCHAR(50)  NOT NULL UNIQUE,
+    senha_hash    VARCHAR(255) NOT NULL,
+    administrador BOOLEAN      NOT NULL DEFAULT FALSE,
+    membro_id     INTEGER,
+    ativo         BOOLEAN      NOT NULL DEFAULT TRUE,
+    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
+    deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT
 );
 
 CREATE TABLE modalidade (
@@ -96,10 +100,16 @@ CREATE TABLE gestao (
     CHECK (data_fim >= data_inicio)
 );
 
+-- setor: define o acesso de quem ocupa o cargo. PRESIDENCIA = presidência; nos demais setores, o cargo
+-- que não responde a ninguém do mesmo setor é o diretor e os subordinados a ele são assessores.
+-- Sem setor, o cargo não dá acesso ao sistema.
 CREATE TABLE cargo (
     id                INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome              VARCHAR(60) NOT NULL UNIQUE,
     ordem             INTEGER     NOT NULL DEFAULT 1,
+    setor             VARCHAR(20)
+                      CHECK (setor IS NULL OR setor IN ('PRESIDENCIA', 'ESPORTES', 'EVENTOS', 'SOCIAL', 'AMBIENTAL',
+                                                        'FINANCEIRO', 'SECRETARIA')),
     cargo_superior_id INTEGER,
     FOREIGN KEY (cargo_superior_id) REFERENCES cargo (id) ON DELETE SET NULL
 );

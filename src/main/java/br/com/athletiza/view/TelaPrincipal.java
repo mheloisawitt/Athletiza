@@ -1,5 +1,7 @@
 package br.com.athletiza.view;
 
+import br.com.athletiza.model.Acesso;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.Usuario;
 import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.MenuLateral;
@@ -51,19 +53,19 @@ public class TelaPrincipal extends JFrame implements Navegador {
         super("Athletiza - Sistema de Gerenciamento");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        modulos.put("Início", () -> new PainelCalendario(this));
-        modulos.put("Gestão", () -> new PainelConsultaGestoes(this));
-        modulos.put("Atletas", () -> new PainelConsultaAtletas(this));
-        modulos.put("Competições", () -> new PainelConsultaCompeticoes(this));
-        modulos.put("Treinos", () -> new PainelTreinos(this));
-        modulos.put("Eventos", () -> new PainelConsultaEventos(this));
-        modulos.put("Demandas", () -> new PainelConsultaDemandas(this));
-        modulos.put("Registros", PainelRegistros::new);
-        if (Sessao.podeGerenciarUsuarios()) {
-            modulos.put("Usuários", () -> new PainelConsultaUsuarios(this));
-        }
+        // Cada perfil vê só os módulos a que tem acesso (RN19)
+        Acesso acesso = Sessao.getAcesso();
+        adicionarModulo(acesso, Modulo.INICIO, () -> new PainelCalendario(this));
+        adicionarModulo(acesso, Modulo.GESTAO, () -> new PainelConsultaGestoes(this));
+        adicionarModulo(acesso, Modulo.ATLETAS, () -> new PainelConsultaAtletas(this));
+        adicionarModulo(acesso, Modulo.COMPETICOES, () -> new PainelConsultaCompeticoes(this));
+        adicionarModulo(acesso, Modulo.TREINOS, () -> new PainelTreinos(this));
+        adicionarModulo(acesso, Modulo.EVENTOS, () -> new PainelConsultaEventos(this));
+        adicionarModulo(acesso, Modulo.DEMANDAS, () -> new PainelConsultaDemandas(this));
+        adicionarModulo(acesso, Modulo.REGISTROS, PainelRegistros::new);
+        adicionarModulo(acesso, Modulo.USUARIOS, () -> new PainelConsultaUsuarios(this));
         modulos.keySet().forEach(menu::adicionarItem);
-        menu.definirUsuario(usuario.getNome(), usuario.getPerfil().getDescricao(),
+        menu.definirUsuario(usuario.getNome(), acesso.getDescricao(),
                 () -> DialogoAlterarSenha.abrir(this, usuario), this::sair);
 
         setLayout(new BorderLayout());
@@ -73,7 +75,13 @@ public class TelaPrincipal extends JFrame implements Navegador {
         setSize(1280, 800);
         setMinimumSize(new Dimension(1000, 620));
         setLocationRelativeTo(null);
-        menu.selecionar("Início");
+        menu.selecionar(Modulo.INICIO.getNome());
+    }
+
+    private void adicionarModulo(Acesso acesso, Modulo modulo, Supplier<JComponent> criar) {
+        if (acesso.veModulo(modulo)) {
+            modulos.put(modulo.getNome(), criar);
+        }
     }
 
     private void mostrarModulo(String nome) {

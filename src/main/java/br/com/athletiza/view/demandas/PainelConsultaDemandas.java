@@ -5,8 +5,10 @@ import br.com.athletiza.controller.MembroController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Demanda;
 import br.com.athletiza.model.Membro;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.PrioridadeDemanda;
 import br.com.athletiza.model.SituacaoDemanda;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
@@ -37,6 +39,7 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
                 .coluna("Prioridade", PrioridadeDemanda.class, Demanda::getPrioridade)
                 .coluna("Situação", SituacaoDemanda.class, Demanda::getSituacao));
         this.navegador = navegador;
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.DEMANDAS));
         larguraColuna(0, 220);
         larguraColuna(1, 230);
         larguraColuna(2, 200);
@@ -54,6 +57,12 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
         Combos.atualizarItens(filtroResponsavel, new MembroController().listar());
         return controller.pesquisar((SituacaoDemanda) filtroSituacao.getSelectedItem(),
                 (Membro) filtroResponsavel.getSelectedItem());
+    }
+
+    /** Diretores só alteram demandas ligadas a um evento ou competição da sua área. */
+    @Override
+    protected boolean podeAlterar(Demanda demanda) {
+        return Sessao.getAcesso().podeAlterar(demanda);
     }
 
     @Override

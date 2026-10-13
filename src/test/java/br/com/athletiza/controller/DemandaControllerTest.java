@@ -88,7 +88,7 @@ class DemandaControllerTest {
         Membro semCargo = new Membro("Carlos Souza", "202199", null);
         membros.salvar(semCargo);
         assertFalse(membros.listarDaGestaoEmAndamento().contains(semCargo));
-        assertEquals(5, membros.listarDaGestaoEmAndamento().size());
+        assertEquals(6, membros.listarDaGestaoEmAndamento().size());
 
         Demanda demanda = new Demanda("Organizar o almoxarifado", PrioridadeDemanda.BAIXA, null);
         demanda.definirResponsaveis(List.of(membro("Paula Ribeiro"), semCargo));

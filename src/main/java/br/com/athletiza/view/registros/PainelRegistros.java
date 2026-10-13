@@ -72,7 +72,8 @@ public class PainelRegistros extends JPanel implements Recarregavel {
     private final JPanel grade = new JPanel();
     private final JScrollPane rolagemGrade = new JScrollPane();
     private final List<CartaoArquivo> cartoes = new ArrayList<>();
-    private final boolean podeAlterar = Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
+    /** A galeria é organizada pela presidência; os demais perfis só consultam. */
+    private final boolean podeAlterar = Sessao.getAcesso().isAcessoTotal();
     private CartaoArquivo selecionado;
     private boolean atualizandoPastas;
 

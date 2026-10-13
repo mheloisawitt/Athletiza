@@ -3,8 +3,10 @@ package br.com.athletiza.view.eventos;
 import br.com.athletiza.controller.EventoController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Evento;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.SituacaoEvento;
 import br.com.athletiza.model.TipoEvento;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
@@ -55,6 +57,7 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
                 .coluna("Tarefas", String.class, e -> PainelTarefas.resumir(e.getTarefas())),
                 EnumSet.allOf(Acao.class));
         this.navegador = navegador;
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.EVENTOS));
         renomearBotao(Acao.GERENCIAR, "Responsáveis e tarefas");
         larguraColuna(0, 190);
         tabela.getColumnModel().getColumn(1).setMinWidth(95);
@@ -71,7 +74,14 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
         Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
         return controller.pesquisar((TipoEvento) filtroTipo.getSelectedItem(),
                 periodo == Periodo.PROXIMOS ? hoje : null,
-                periodo == Periodo.REALIZADOS ? hoje.minusDays(1) : null);
+                periodo == Periodo.REALIZADOS ? hoje.minusDays(1) : null)
+                .stream().filter(Sessao.getAcesso()::ve).toList();
+    }
+
+    /** Cada diretor só altera os eventos do tipo da sua área (ex.: Esportes, os de competição). */
+    @Override
+    protected boolean podeAlterar(Evento evento) {
+        return Sessao.getAcesso().podeAlterar(evento);
     }
 
     @Override
