@@ -79,6 +79,14 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         return competicoes;
     }
 
+    /** Quantos atletas diferentes estão inscritos em cada competição (id da competição -> total). */
+    public Map<Integer, Integer> contarInscritos() throws PersistenciaException {
+        Map<Integer, Integer> inscritos = new HashMap<>();
+        consultar("SELECT competicao_id, COUNT(DISTINCT atleta_id) AS total FROM competicao_atleta GROUP BY competicao_id",
+                rs -> inscritos.put(rs.getInt("competicao_id"), rs.getInt("total")));
+        return inscritos;
+    }
+
     /** Preenche as modalidades inscritas e os atletas de cada uma. */
     public void carregarInscricoes(Competicao competicao) throws PersistenciaException {
         Map<Integer, Atleta> atletas = atletasPorId();

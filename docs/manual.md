@@ -31,6 +31,23 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 - **Alertas** (topo da lateral): tarefas atrasadas (vermelho), treinos dos últimos 30 dias sem lista de presença
   (amarelo) e competições que começam nos próximos 7 dias (verde).
 
+## Dashboard
+
+- Abre na **Visão geral**: cartões com atletas ativos, modalidades, competições e eventos do ano
+  (cancelados não contam) e a **linha do tempo do mês**, com treinos, competições e eventos nas cores do calendário.
+  **<** e **>** trocam de mês. Passe o mouse sobre um ponto para ver as atividades do dia.
+- As abas no topo mostram os demais gráficos. Passe o mouse sobre barras, fatias e pontos para ver os valores.
+  - **Atletas:** por modalidade, por curso, por fase e novos cadastros por mês (últimos 12 meses).
+  - **Treinos:** realizados por mês (treinos e amistosos), por modalidade, presença média por modalidade
+    (só treinos com lista de presença) e os treinos dos próximos 7 dias.
+  - **Competições:** futuras, em andamento e encerradas; atletas inscritos em cada competição do ano;
+    vitórias, empates e derrotas por modalidade e medalhas (1º a 3º lugar).
+  - **Eventos:** próximo evento com contagem regressiva, eventos realizados por mês e eventos do ano por tipo
+    (os amistosos entram como mais um tipo).
+  - **Gestão:** membros da gestão atual por cargo e comparativo de treinos, competições e eventos entre as gestões.
+- Vitórias, empates e derrotas vêm do **placar** dos resultados: digite primeiro os gols/pontos da atlética (ex.: `3 x 1`).
+- Para curso e fase aparecerem nos gráficos, preencha esses campos no cadastro do atleta.
+
 ## Gestão
 
 - **Gestões:** períodos não podem se sobrepor. **Gerenciar** mostra quem ocupa cada cargo, com
@@ -42,6 +59,7 @@ registros. *Consulta* apenas visualiza (os botões de alteração ficam desabili
 
 - Filtre por modalidade e situação e escolha a ordenação.
 - No cadastro, marque as modalidades do atleta e a situação em cada uma (Ativo, Lesionado, Afastado, Inativo).
+  Curso e fase (1 a 12) são opcionais e alimentam os gráficos do Dashboard.
 - **Modalidades** abre o cadastro de modalidades (ex.: Futsal Feminino).
 
 ## Treinos

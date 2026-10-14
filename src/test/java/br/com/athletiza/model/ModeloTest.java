@@ -131,4 +131,20 @@ class ModeloTest {
 
         assertEquals(List.of(atrasada), festa.getTarefasAtrasadas(hoje));
     }
+
+    @Test
+    void desfechoDoResultadoVemDoPlacar() {
+        assertEquals(Desfecho.VITORIA, new Resultado(futsalF, null, 1, "3 x 1").getDesfecho().orElseThrow());
+        assertEquals(Desfecho.EMPATE, new Resultado(futsalF, null, null, "2x2").getDesfecho().orElseThrow());
+        assertEquals(Desfecho.DERROTA, new Resultado(futsalF, null, 2, " 58 - 66 ").getDesfecho().orElseThrow());
+        assertTrue(new Resultado(futsalF, null, 1, null).getDesfecho().isEmpty());
+        assertTrue(new Resultado(futsalF, null, 1, "WO").getDesfecho().isEmpty());
+    }
+
+    @Test
+    void medalhaSoAteOTerceiroLugar() {
+        assertTrue(new Resultado(futsalF, null, 3, null).isMedalha());
+        assertFalse(new Resultado(futsalF, null, 4, null).isMedalha());
+        assertFalse(new Resultado(futsalF, null, null, "1 x 0").isMedalha());
+    }
 }

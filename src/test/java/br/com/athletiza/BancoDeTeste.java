@@ -32,8 +32,17 @@ public final class BancoDeTeste {
         config.setProperty("db.senha", System.getProperty("teste.db.senha", ""));
         ConnectionFactory.configurar(config);
 
+        executar("01_estrutura.sql", "02_dados_exemplo.sql");
+    }
+
+    /** Acrescenta o histórico opcional usado pelo dashboard (03_dados_dashboard.sql). Chame depois de recriar(). */
+    public static void carregarHistoricoDoDashboard() throws SQLException {
+        executar("03_dados_dashboard.sql");
+    }
+
+    private static void executar(String... scripts) throws SQLException {
         try (Connection con = ConnectionFactory.getConnection(); Statement st = con.createStatement()) {
-            for (String script : new String[]{"01_estrutura.sql", "02_dados_exemplo.sql"}) {
+            for (String script : scripts) {
                 for (String comando : lerScript(script).split(";")) {
                     if (!comando.isBlank()) {
                         st.execute(comando);

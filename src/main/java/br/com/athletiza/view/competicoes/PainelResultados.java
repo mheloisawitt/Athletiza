@@ -88,7 +88,7 @@ class PainelResultados extends PainelConsulta<Resultado> {
             campos.add(atleta);
             campos.add(new JLabel("Colocação (1, 2, 3...)"));
             campos.add(colocacao);
-            campos.add(new JLabel("Placar"));
+            campos.add(new JLabel("Placar (atlética primeiro, ex.: 3 x 1)"));
             campos.add(placar);
             campos.add(new JLabel("Observação"));
             campos.add(observacao);

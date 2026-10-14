@@ -57,14 +57,14 @@ INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id)
     WHERE g.nome = 'Gestão 2025-2026' AND m.matricula = v.matricula AND c.nome = v.cargo;
 
 -- Atletas
-INSERT INTO atleta (nome, matricula, contato, data_nascimento) VALUES
-    ('Ana Souza', '202001', 'ana.souza@email.com', '2003-05-12'),
-    ('Beatriz Lima', '202034', '(47) 98888-2001', '2002-11-03'),
-    ('Carlos Mendes', '202067', 'carlos.mendes@email.com', '2001-08-25'),
-    ('Daniela Costa', '202102', '(47) 98888-2002', '2004-01-17'),
-    ('Eduardo Silva', '202145', 'eduardo.silva@email.com', '2003-09-30'),
-    ('Fernanda Alves', '202178', '(47) 98888-2003', '2004-04-08'),
-    ('Carla Oliveira', '202190', 'carla.oliveira@email.com', '2005-02-21');
+INSERT INTO atleta (nome, matricula, contato, data_nascimento, curso, fase, data_cadastro) VALUES
+    ('Ana Souza', '202001', 'ana.souza@email.com', '2003-05-12', 'Engenharia Civil', 7, '2025-11-10'),
+    ('Beatriz Lima', '202034', '(47) 98888-2001', '2002-11-03', 'Administração', 5, '2026-02-18'),
+    ('Carlos Mendes', '202067', 'carlos.mendes@email.com', '2001-08-25', 'Engenharia Civil', 3, '2026-03-04'),
+    ('Daniela Costa', '202102', '(47) 98888-2002', '2004-01-17', 'Sistemas de Informação', 3, '2026-03-11'),
+    ('Eduardo Silva', '202145', 'eduardo.silva@email.com', '2003-09-30', 'Administração', 1, '2026-05-20'),
+    ('Fernanda Alves', '202178', '(47) 98888-2003', '2004-04-08', 'Sistemas de Informação', 5, '2026-08-07'),
+    ('Carla Oliveira', '202190', 'carla.oliveira@email.com', '2005-02-21', 'Pedagogia', 1, '2026-08-25');
 
 INSERT INTO atleta_modalidade (atleta_id, modalidade_id, situacao)
     SELECT a.id, m.id, 'ATIVO'

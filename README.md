@@ -41,11 +41,17 @@ Para a apresentação:
    - [`00_criar_banco.sql`](src/main/resources/sql/00_criar_banco.sql): cria o banco `athletiza` (em utf8mb4) e o seleciona
    - [`01_estrutura.sql`](src/main/resources/sql/01_estrutura.sql): cria as tabelas (pode ser executado de novo para zerar o banco)
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
+   - [`03_dados_dashboard.sql`](src/main/resources/sql/03_dados_dashboard.sql) (opcional): histórico de treinos,
+     competições, resultados e eventos dos meses anteriores, para os gráficos do **Dashboard** terem o que mostrar
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
 Pelo terminal, com o `mysql` no PATH: `mysql -u root -p < src/main/resources/sql/00_criar_banco.sql`, depois
 `mysql -u root -p athletiza < .../01_estrutura.sql` e o mesmo para o `02_dados_exemplo.sql`.
+
+**Banco criado antes do Dashboard:** a tabela `atleta` ganhou as colunas `curso`, `fase` e `data_cadastro`.
+Execute os scripts de novo (o `01_estrutura.sql` recria as tabelas e apaga os dados) ou, para manter os dados:
+`ALTER TABLE atleta ADD COLUMN curso VARCHAR(60), ADD COLUMN fase INTEGER CHECK (fase IS NULL OR fase BETWEEN 1 AND 12), ADD COLUMN data_cadastro DATE;`
 
 **Log de erros:** detalhes técnicos de erros inesperados ficam em `Documentos/Athletiza-logs/athletiza-0.log`
 (até 5 arquivos de 1 MB). Para usar outra pasta: `-Dathletiza.logs=CAMINHO`.
@@ -89,6 +95,7 @@ br.com.athletiza
 ├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
+│   ├── dashboard    indicadores em abas e gráficos desenhados com Graphics2D (barras, colunas, linha, rosca)
 │   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
 │   ├── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
 │   ├── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
@@ -169,6 +176,7 @@ Principais classes do modelo:
 | CH-42 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
 | CH-43 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
 | CH-01 | Validar requisitos com a diretoria | Registros definido como galeria de fotos e vídeos |
+| Dashboard | Menu Dashboard: visão geral e abas de Atletas, Treinos, Competições, Eventos e Gestão com gráficos | Concluído |
 
 ## Como criar uma tela nova
 

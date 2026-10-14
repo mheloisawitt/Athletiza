@@ -4,6 +4,7 @@ import br.com.athletiza.controller.AtletaController;
 import br.com.athletiza.controller.ModalidadeController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.model.Situacao;
@@ -41,6 +42,8 @@ public class PainelCadastroAtleta extends PainelFormulario {
     private final JTextField matricula = new JTextField();
     private final JTextField nascimento = new JTextField();
     private final JComboBox<Situacao> situacao = new JComboBox<>(Situacao.values());
+    private final JTextField curso = new JTextField();
+    private final JTextField fase = new JTextField();
     private final JTextField contato = new JTextField();
     private final JTextArea observacoes = new JTextArea();
     private final ModeloModalidades modeloModalidades = new ModeloModalidades();
@@ -53,6 +56,8 @@ public class PainelCadastroAtleta extends PainelFormulario {
         nome.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nome completo");
         matricula.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: 202001");
         nascimento.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/mm/aaaa");
+        curso.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ex: Engenharia Civil");
+        fase.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Período ou fase atual (1 a 12)");
         contato.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Telefone ou e-mail");
         observacoes.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Informações adicionais...");
 
@@ -60,6 +65,8 @@ public class PainelCadastroAtleta extends PainelFormulario {
         adicionarCampo("Matrícula", matricula, true);
         adicionarCampo("Data de nascimento", nascimento, false);
         adicionarCampo("Situação", situacao, true);
+        adicionarCampo("Curso", curso, false);
+        adicionarCampo("Fase", fase, false);
         adicionarCampoLinhaInteira("Contato", contato, false);
         adicionarCampoLinhaInteira("Modalidades (marque e informe a situação em cada uma)", criarTabelaModalidades(), true);
         adicionarCampoLinhaInteira("Observações", areaTexto(observacoes), false);
@@ -87,6 +94,8 @@ public class PainelCadastroAtleta extends PainelFormulario {
         matricula.setText(atleta.getMatricula());
         nascimento.setText(atleta.getDataNascimento() == null ? "" : Validador.FORMATO_DATA.format(atleta.getDataNascimento()));
         situacao.setSelectedItem(atleta.getSituacao());
+        curso.setText(atleta.getCurso());
+        fase.setText(atleta.getFase() == null ? "" : atleta.getFase().toString());
         contato.setText(atleta.getContato());
         observacoes.setText(atleta.getObservacoes());
         try {
@@ -105,6 +114,8 @@ public class PainelCadastroAtleta extends PainelFormulario {
         atleta.setMatricula(matricula.getText().trim());
         atleta.setDataNascimento(Validador.converterData(nascimento.getText(), "Data de nascimento"));
         atleta.setSituacao((Situacao) situacao.getSelectedItem());
+        atleta.setCurso(textoOuNulo(curso.getText()));
+        atleta.setFase(converterFase(fase.getText()));
         atleta.setContato(textoOuNulo(contato.getText()));
         atleta.setObservacoes(textoOuNulo(observacoes.getText()));
 
@@ -117,6 +128,15 @@ public class PainelCadastroAtleta extends PainelFormulario {
     @Override
     protected String getMensagemSucesso() {
         return "Atleta salvo com sucesso.";
+    }
+
+    /** Fase digitada: vazia = não informada; precisa ser um número. */
+    private static Integer converterFase(String texto) throws ValidacaoException {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        new Validador().apenasNumeros(texto.trim(), "Fase").tamanhoMaximo(texto.trim(), 2, "Fase").validar();
+        return Integer.valueOf(texto.trim());
     }
 
     private static String textoOuNulo(String texto) {

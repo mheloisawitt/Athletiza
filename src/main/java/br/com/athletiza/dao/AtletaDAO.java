@@ -47,10 +47,11 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
     @Override
     public void inserir(Atleta atleta) throws PersistenciaException {
         int id = emTransacao("incluir", con -> {
-            int novoId = inserir(con, "INSERT INTO atleta (nome, matricula, contato, data_nascimento, situacao, observacoes)"
-                    + " VALUES (?, ?, ?, ?, ?, ?)",
+            int novoId = inserir(con, "INSERT INTO atleta (nome, matricula, contato, data_nascimento, situacao, curso, fase,"
+                    + " data_cadastro, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     atleta.getNome(), atleta.getMatricula(), atleta.getContato(), atleta.getDataNascimento(),
-                    atleta.getSituacao(), atleta.getObservacoes());
+                    atleta.getSituacao(), atleta.getCurso(), atleta.getFase(), atleta.getDataCadastro(),
+                    atleta.getObservacoes());
             gravarVinculos(con, novoId, atleta);
             return novoId;
         });
@@ -61,9 +62,9 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
     public void atualizar(Atleta atleta) throws PersistenciaException {
         emTransacao("salvar", con -> {
             atualizar(con, "UPDATE atleta SET nome = ?, matricula = ?, contato = ?, data_nascimento = ?, situacao = ?,"
-                    + " observacoes = ? WHERE id = ?",
+                    + " curso = ?, fase = ?, observacoes = ? WHERE id = ?",
                     atleta.getNome(), atleta.getMatricula(), atleta.getContato(), atleta.getDataNascimento(),
-                    atleta.getSituacao(), atleta.getObservacoes(), atleta.getId());
+                    atleta.getSituacao(), atleta.getCurso(), atleta.getFase(), atleta.getObservacoes(), atleta.getId());
             atualizar(con, "DELETE FROM atleta_modalidade WHERE atleta_id = ?", atleta.getId());
             gravarVinculos(con, atleta.getId(), atleta);
             return null;
@@ -139,6 +140,9 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
         atleta.setId(rs.getInt("id"));
         atleta.setDataNascimento(lerData(rs, "data_nascimento"));
         atleta.setSituacao(lerEnum(rs, "situacao", Situacao.class));
+        atleta.setCurso(rs.getString("curso"));
+        atleta.setFase(lerInteiro(rs, "fase"));
+        atleta.setDataCadastro(lerData(rs, "data_cadastro"));
         atleta.setObservacoes(rs.getString("observacoes"));
         return atleta;
     }
