@@ -9,6 +9,7 @@ import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Compromisso;
 import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
+import br.com.athletiza.model.Situacao;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -48,28 +49,18 @@ class DashboardControllerTest {
     }
 
     @Test
-    void atletasPorModalidadeCursoEFase() throws Exception {
+    void atletasPorModalidadeSituacaoEFaixaEtaria() throws Exception {
         Map<String, Integer> porModalidade = controller.atletasPorModalidade();
         assertEquals("Futsal (F)", porModalidade.keySet().iterator().next());
         assertEquals(4, porModalidade.get("Futsal (F)"));
         assertEquals(2, porModalidade.get("Vôlei (F)"));
 
-        assertEquals(Map.of("Engenharia Civil", 2, "Administração", 2, "Sistemas de Informação", 2, "Pedagogia", 1),
-                controller.atletasPorCurso());
-        assertEquals(List.of("1ª", "3ª", "5ª", "7ª"), List.copyOf(controller.atletasPorFase().keySet()));
-    }
+        assertEquals(Map.of(Situacao.ATIVO, 7, Situacao.INATIVO, 0), controller.atletasPorSituacao());
+        assertEquals(Map.of("Ativo", 8), controller.situacaoNasModalidades());
 
-    @Test
-    void novosCadastrosNosUltimos12Meses() throws Exception {
-        Map<String, Integer> porMes = controller.novosCadastrosPorMes(HOJE);
-
-        assertEquals(12, porMes.size());
-        assertEquals("nov/25", porMes.keySet().iterator().next());
-        assertEquals(1, porMes.get("nov/25"));
-        assertEquals(2, porMes.get("mar/26"));
-        assertEquals(2, porMes.get("ago/26"));
-        assertEquals(0, porMes.get("out/26"));
-        assertEquals(6, controller.novosCadastrosNoAno(HOJE));
+        Map<String, Integer> porIdade = controller.atletasPorFaixaEtaria(HOJE);
+        assertEquals(List.of("Até 18", "19-20", "21-22", "23-24", "25+"), List.copyOf(porIdade.keySet()));
+        assertEquals(List.of(0, 0, 3, 3, 1), List.copyOf(porIdade.values()));
     }
 
     @Test
@@ -133,6 +124,8 @@ class DashboardControllerTest {
         assertArrayEquals(new int[]{1, 1, 1}, controller.medalhasPorModalidade().get("Atletismo (M)"));
 
         assertEquals(11, controller.totais(HOJE).atletasAtivos());
+        assertEquals(1, controller.atletasPorFaixaEtaria(HOJE).get("Até 18"));
+        assertEquals(1, controller.situacaoNasModalidades().get("Lesionado"));
         assertEquals(4, controller.treinosDaSemana(HOJE).size());
         assertTrue(controller.comparativoGestoes().get("Gestão 2022-2023")[0] > 0);
         assertTrue(controller.frequenciaPorModalidade().size() > 1);

@@ -67,9 +67,6 @@ CREATE TABLE atleta (
     contato         VARCHAR(100),
     data_nascimento DATE,
     situacao        VARCHAR(20)  NOT NULL DEFAULT 'ATIVO' CHECK (situacao IN ('ATIVO', 'INATIVO')),
-    curso           VARCHAR(60),
-    fase            INTEGER      CHECK (fase IS NULL OR fase BETWEEN 1 AND 12),
-    data_cadastro   DATE,
     observacoes     VARCHAR(500)
 );
 

@@ -32,11 +32,6 @@ public class Atleta extends Pessoa implements Comparable<Atleta> {
 
     private LocalDate dataNascimento;
     private Situacao situacao = Situacao.ATIVO;
-    private String curso;
-    /** Período ou fase do curso (1 a 12). */
-    private Integer fase;
-    /** Dia em que o atleta foi cadastrado no sistema (usado no dashboard). */
-    private LocalDate dataCadastro;
     private String observacoes;
     private final Map<Modalidade, SituacaoAtleta> modalidades = new LinkedHashMap<>();
 
@@ -61,30 +56,6 @@ public class Atleta extends Pessoa implements Comparable<Atleta> {
 
     public void setSituacao(Situacao situacao) {
         this.situacao = situacao;
-    }
-
-    public String getCurso() {
-        return curso;
-    }
-
-    public void setCurso(String curso) {
-        this.curso = curso;
-    }
-
-    public Integer getFase() {
-        return fase;
-    }
-
-    public void setFase(Integer fase) {
-        this.fase = fase;
-    }
-
-    public LocalDate getDataCadastro() {
-        return dataCadastro;
-    }
-
-    public void setDataCadastro(LocalDate dataCadastro) {
-        this.dataCadastro = dataCadastro;
     }
 
     public String getObservacoes() {

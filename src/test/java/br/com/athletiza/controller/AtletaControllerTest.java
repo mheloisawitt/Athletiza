@@ -79,24 +79,6 @@ class AtletaControllerTest {
     }
 
     @Test
-    void gravaCursoFaseEDataDeCadastro() throws Exception {
-        Atleta novo = new Atleta("Lara Pires", "202260", null);
-        novo.setCurso("Psicologia");
-        novo.setFase(2);
-        novo.vincularModalidade(modalidade("Vôlei", Genero.FEMININO), SituacaoAtleta.ATIVO);
-
-        controller.salvar(novo);
-        Atleta lido = buscar("Lara Pires");
-        assertEquals("Psicologia", lido.getCurso());
-        assertEquals(2, lido.getFase());
-        assertEquals(LocalDate.now(), lido.getDataCadastro(), "a data de cadastro é preenchida ao incluir");
-
-        lido.setFase(13);
-        ValidacaoException erro = assertThrows(ValidacaoException.class, () -> controller.salvar(lido));
-        assertEquals(List.of("A \"Fase\" deve ser um número de 1 a 12."), erro.getErros());
-    }
-
-    @Test
     void validaCamposObrigatoriosEModalidade() {
         Atleta invalido = new Atleta(" ", "12a", "contato inválido");
 

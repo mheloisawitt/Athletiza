@@ -24,6 +24,7 @@ import br.com.athletiza.model.TipoEvento;
 import br.com.athletiza.model.Treino;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -105,49 +106,62 @@ public class DashboardController {
         return ordenarDoMaiorParaOMenor(contagem);
     }
 
-    /** Atletas ativos por curso, do maior para o menor. */
-    public Map<String, Integer> atletasPorCurso() throws PersistenciaException {
+    /** Atletas ativos e inativos (situação no cadastro do atleta). */
+    public Map<Situacao, Integer> atletasPorSituacao() throws PersistenciaException {
+        Map<Situacao, Integer> contagem = new LinkedHashMap<>();
+        for (Situacao situacao : Situacao.values()) {
+            contagem.put(situacao, 0);
+        }
+        atletaDAO.listarTodos().forEach(a -> somar(contagem, a.getSituacao(), 1));
+        return contagem;
+    }
+
+    /**
+     * Situação dos atletas ativos em cada vínculo com modalidade
+     * (ativo, lesionado, afastado ou inativo naquela modalidade).
+     */
+    public Map<String, Integer> situacaoNasModalidades() throws PersistenciaException {
         Map<String, Integer> contagem = new LinkedHashMap<>();
         for (Atleta atleta : atletasAtivos()) {
-            somar(contagem, atleta.getCurso() == null ? "Não informado" : atleta.getCurso(), 1);
+            atleta.getVinculos().values().forEach(situacao -> somar(contagem, situacao.getDescricao(), 1));
         }
         return ordenarDoMaiorParaOMenor(contagem);
     }
 
-    /** Atletas ativos por fase do curso (1ª, 2ª...), em ordem de fase. */
-    public Map<String, Integer> atletasPorFase() throws PersistenciaException {
-        Map<Integer, Integer> porFase = new TreeMap<>();
-        int semFase = 0;
+    /** Atletas ativos por faixa de idade, calculada pela data de nascimento. */
+    public Map<String, Integer> atletasPorFaixaEtaria(LocalDate hoje) throws PersistenciaException {
+        Map<String, Integer> contagem = new LinkedHashMap<>();
+        for (String faixa : FAIXAS_ETARIAS) {
+            contagem.put(faixa, 0);
+        }
+        int semData = 0;
         for (Atleta atleta : atletasAtivos()) {
-            if (atleta.getFase() == null) {
-                semFase++;
+            if (atleta.getDataNascimento() == null) {
+                semData++;
             } else {
-                somar(porFase, atleta.getFase(), 1);
+                int idade = Period.between(atleta.getDataNascimento(), hoje).getYears();
+                somar(contagem, faixaEtaria(idade), 1);
             }
         }
-        Map<String, Integer> resultado = new LinkedHashMap<>();
-        porFase.forEach((fase, total) -> resultado.put(fase + "ª", total));
-        if (semFase > 0) {
-            resultado.put("N/I", semFase);
+        if (semData > 0) {
+            contagem.put("N/I", semData);
         }
-        return resultado;
+        return contagem;
     }
 
-    /** Atletas cadastrados em cada um dos últimos 12 meses. */
-    public Map<String, Integer> novosCadastrosPorMes(LocalDate hoje) throws PersistenciaException {
-        Map<YearMonth, Integer> porMes = mesesVazios(hoje);
-        for (Atleta atleta : atletaDAO.listarTodos()) {
-            if (atleta.getDataCadastro() != null) {
-                somarSeExistir(porMes, YearMonth.from(atleta.getDataCadastro()), 1);
-            }
-        }
-        return comRotulos(porMes);
-    }
+    private static final String[] FAIXAS_ETARIAS = {"Até 18", "19-20", "21-22", "23-24", "25+"};
 
-    /** Atletas cadastrados no ano de hoje. */
-    public int novosCadastrosNoAno(LocalDate hoje) throws PersistenciaException {
-        return (int) atletaDAO.listarTodos().stream()
-                .filter(a -> a.getDataCadastro() != null && a.getDataCadastro().getYear() == hoje.getYear()).count();
+    private static String faixaEtaria(int idade) {
+        if (idade <= 18) {
+            return FAIXAS_ETARIAS[0];
+        } else if (idade <= 20) {
+            return FAIXAS_ETARIAS[1];
+        } else if (idade <= 22) {
+            return FAIXAS_ETARIAS[2];
+        } else if (idade <= 24) {
+            return FAIXAS_ETARIAS[3];
+        }
+        return FAIXAS_ETARIAS[4];
     }
 
     /* ===================== Treinos ===================== */

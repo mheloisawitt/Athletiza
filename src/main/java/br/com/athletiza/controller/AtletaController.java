@@ -57,9 +57,6 @@ public class AtletaController {
                 .obrigatorio(atleta.getSituacao(), "Situação")
                 .regra(atleta.getDataNascimento() == null || atleta.getDataNascimento().isBefore(LocalDate.now()),
                         "A \"Data de nascimento\" deve ser anterior a hoje.")
-                .tamanhoMaximo(atleta.getCurso(), 60, "Curso")
-                .regra(atleta.getFase() == null || (atleta.getFase() >= 1 && atleta.getFase() <= 12),
-                        "A \"Fase\" deve ser um número de 1 a 12.")
                 .regra(!atleta.getVinculos().isEmpty(), "Selecione ao menos uma modalidade.")
                 .tamanhoMaximo(atleta.getObservacoes(), 500, "Observações")
                 .validar();
@@ -68,9 +65,6 @@ public class AtletaController {
             throw new RegraNegocioException("Já existe um atleta com a matrícula " + atleta.getMatricula() + ".");
         }
         if (atleta.isNova()) {
-            if (atleta.getDataCadastro() == null) {
-                atleta.setDataCadastro(LocalDate.now());
-            }
             dao.inserir(atleta);
         } else {
             dao.atualizar(atleta);

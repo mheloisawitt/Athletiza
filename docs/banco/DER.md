@@ -31,9 +31,6 @@ erDiagram
         varchar contato
         date data_nascimento
         varchar situacao
-        varchar curso
-        int fase
-        date data_cadastro
     }
 
     modalidade {

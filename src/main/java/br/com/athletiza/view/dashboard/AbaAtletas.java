@@ -1,45 +1,41 @@
 package br.com.athletiza.view.dashboard;
 
-import br.com.athletiza.controller.DashboardController;
 import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.model.Situacao;
 import java.time.LocalDate;
 import java.util.Map;
 
 /**
- * Aba Atletas: total de ativos, atletas por modalidade, por curso, por fase
- * e novos cadastros por mês.
+ * Aba Atletas: totais, atletas por modalidade, por faixa etária e a situação
+ * dos atletas nas modalidades. Usa apenas os dados já cadastrados.
  */
 class AbaAtletas extends AbaDashboard {
 
     private final Cartoes.Numero ativos = new Cartoes.Numero("Atletas ativos");
-    private final Cartoes.Numero novosNoAno = new Cartoes.Numero("Novos cadastros no ano");
-    private final Cartoes.Numero cursos = new Cartoes.Numero("Cursos representados");
+    private final Cartoes.Numero inativos = new Cartoes.Numero("Atletas inativos");
+    private final Cartoes.Numero vinculos = new Cartoes.Numero("Vínculos com modalidades");
     private final GraficoBarras porModalidade = new GraficoBarras(Grafico.CORES_SERIES[0]);
-    private final GraficoPizza porCurso = new GraficoPizza();
-    private final GraficoColunas porFase = new GraficoColunas("Atletas", Grafico.CORES_SERIES[1]);
-    private final GraficoLinha cadastros = new GraficoLinha(Grafico.CORES_SERIES[3], "atleta(s)");
+    private final GraficoColunas porIdade = new GraficoColunas("Atletas", Grafico.CORES_SERIES[1]);
+    private final GraficoPizza situacoes = new GraficoPizza();
 
     AbaAtletas() {
-        adicionarLinha(ativos, novosNoAno, cursos);
+        adicionarLinha(ativos, inativos, vinculos);
         adicionarLinha(
                 Cartoes.comTitulo("Atletas por modalidade", "Atletas ativos; quem pratica mais de uma conta em cada", porModalidade),
-                Cartoes.comTitulo("Novos cadastros por mês", "Últimos " + DashboardController.MESES + " meses", cadastros));
+                Cartoes.comTitulo("Situação nas modalidades", "Atletas ativos: ativo, lesionado, afastado ou inativo em cada modalidade", situacoes));
         adicionarLinha(
-                Cartoes.comTitulo("Distribuição por curso", "Atletas ativos", porCurso),
-                Cartoes.comTitulo("Distribuição por fase", "Período/fase atual dos atletas ativos (N/I = não informada)", porFase));
+                Cartoes.comTitulo("Distribuição por faixa etária", "Idade dos atletas ativos (N/I = sem data de nascimento)", porIdade));
     }
 
     @Override
     protected void atualizar(LocalDate hoje) throws PersistenciaException {
-        Map<String, Integer> porCursoDados = controller.atletasPorCurso();
-        Map<String, Integer> cadastrosDados = controller.novosCadastrosPorMes(hoje);
-        ativos.mostrar(controller.totais(hoje).atletasAtivos(), "com situação Ativo");
-        novosNoAno.mostrar(controller.novosCadastrosNoAno(hoje), "cadastrados em " + hoje.getYear());
-        cursos.mostrar((int) porCursoDados.keySet().stream().filter(c -> !c.equals("Não informado")).count(),
-                "com ao menos um atleta ativo");
+        Map<Situacao, Integer> porSituacao = controller.atletasPorSituacao();
+        Map<String, Integer> situacaoDados = controller.situacaoNasModalidades();
+        ativos.mostrar(porSituacao.get(Situacao.ATIVO), "com situação Ativo");
+        inativos.mostrar(porSituacao.get(Situacao.INATIVO), "não aparecem nos gráficos");
+        vinculos.mostrar(situacaoDados.values().stream().mapToInt(Integer::intValue).sum(), "dos atletas ativos");
         porModalidade.mostrar(controller.atletasPorModalidade());
-        porCurso.mostrar(porCursoDados);
-        porFase.mostrarSerieUnica(controller.atletasPorFase());
-        cadastros.mostrar(cadastrosDados);
+        porIdade.mostrarSerieUnica(controller.atletasPorFaixaEtaria(hoje));
+        situacoes.mostrar(situacaoDados);
     }
 }

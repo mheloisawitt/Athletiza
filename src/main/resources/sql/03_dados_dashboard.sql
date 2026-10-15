@@ -2,15 +2,16 @@
 -- Execute depois do 02_dados_exemplo.sql, com o banco athletiza selecionado.
 -- Acrescenta atletas, treinos com presença, competições com resultados e eventos dos últimos meses
 -- (e de gestões anteriores), para que os gráficos do Dashboard tenham o que mostrar.
+-- Apenas insere dados: as tabelas não são alteradas.
 -- Os testes automáticos usam só os scripts 01 e 02; este é usado apenas no teste do dashboard.
 
--- Mais atletas, de outros cursos e fases
-INSERT INTO atleta (nome, matricula, contato, data_nascimento, situacao, curso, fase, data_cadastro) VALUES
-    ('Gabriel Rocha', '202203', 'gabriel.rocha@email.com', '2004-06-14', 'ATIVO', 'Educação Física', 4, '2025-12-02'),
-    ('Helena Duarte', '202217', '(47) 98888-2004', '2005-03-09', 'ATIVO', 'Educação Física', 2, '2026-03-16'),
-    ('Igor Batista', '202231', 'igor.batista@email.com', '2003-12-01', 'ATIVO', 'Engenharia Civil', 6, '2026-04-07'),
-    ('Julia Ferraz', '202248', '(47) 98888-2005', '2006-07-22', 'ATIVO', 'Psicologia', 1, '2026-09-02'),
-    ('Kauã Moreira', '202256', 'kaua.moreira@email.com', '2002-10-30', 'INATIVO', 'Administração', 8, '2025-11-21');
+-- Mais atletas
+INSERT INTO atleta (nome, matricula, contato, data_nascimento, situacao) VALUES
+    ('Gabriel Rocha', '202203', 'gabriel.rocha@email.com', '2004-06-14', 'ATIVO'),
+    ('Helena Duarte', '202217', '(47) 98888-2004', '2005-03-09', 'ATIVO'),
+    ('Igor Batista', '202231', 'igor.batista@email.com', '2003-12-01', 'ATIVO'),
+    ('Julia Ferraz', '202248', '(47) 98888-2005', '2008-07-22', 'ATIVO'),
+    ('Kauã Moreira', '202256', 'kaua.moreira@email.com', '2002-10-30', 'INATIVO');
 
 INSERT INTO atleta_modalidade (atleta_id, modalidade_id, situacao)
     SELECT a.id, m.id, v.situacao

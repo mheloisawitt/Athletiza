@@ -43,15 +43,12 @@ Para a apresentação:
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
    - [`03_dados_dashboard.sql`](src/main/resources/sql/03_dados_dashboard.sql) (opcional): histórico de treinos,
      competições, resultados e eventos dos meses anteriores, para os gráficos do **Dashboard** terem o que mostrar
+     (só insere dados; o Dashboard não altera nenhuma tabela)
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 
 Pelo terminal, com o `mysql` no PATH: `mysql -u root -p < src/main/resources/sql/00_criar_banco.sql`, depois
 `mysql -u root -p athletiza < .../01_estrutura.sql` e o mesmo para o `02_dados_exemplo.sql`.
-
-**Banco criado antes do Dashboard:** a tabela `atleta` ganhou as colunas `curso`, `fase` e `data_cadastro`.
-Execute os scripts de novo (o `01_estrutura.sql` recria as tabelas e apaga os dados) ou, para manter os dados:
-`ALTER TABLE atleta ADD COLUMN curso VARCHAR(60), ADD COLUMN fase INTEGER CHECK (fase IS NULL OR fase BETWEEN 1 AND 12), ADD COLUMN data_cadastro DATE;`
 
 **Log de erros:** detalhes técnicos de erros inesperados ficam em `Documentos/Athletiza-logs/athletiza-0.log`
 (até 5 arquivos de 1 MB). Para usar outra pasta: `-Dathletiza.logs=CAMINHO`.
