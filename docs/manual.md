@@ -49,11 +49,15 @@ Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (D
 
 ## Dashboard
 
-Responde às perguntas da diretoria com um gráfico para cada uma. Em cada cartão, a resposta aparece em
-destaque (havendo empate no primeiro lugar, todos os empatados aparecem) e o gráfico mostra as 6 primeiras
-posições. Passe o mouse sobre uma barra para ver os detalhes.
+No topo ficam os números gerais: atletas ativos, treinos e amistosos realizados, percentual de presença e
+demandas em aberto. O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período)
+vale para treinos, amistosos, presenças, eventos e pódios; atletas e demandas mostram sempre a situação atual.
+Passe o mouse sobre qualquer gráfico para ver os detalhes. O Dashboard aparece para administrador,
+presidência e diretores; assessores não o veem, porque ele mostra os dados de todos os setores.
 
-- **Topo:** atletas ativos, treinos e amistosos realizados, percentual de presença e demandas em aberto.
+**Aba Perguntas da diretoria** (barras horizontais, com a resposta em destaque e as 6 primeiras posições;
+havendo empate no primeiro lugar, todos os empatados aparecem):
+
 - **Qual modalidade tem mais atletas?** Atletas ativos em cada modalidade (vínculos inativos não contam).
 - **Qual modalidade tem mais atletas presentes nos treinos?** Total de presenças nas listas de presença.
   O detalhe mostra a média de presentes por treino e o percentual de presença.
@@ -65,11 +69,26 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
   Financeiro...). A parte vermelha da barra são as atrasadas. Uma demanda com responsáveis de setores
   diferentes conta em cada um deles (no número do topo, conta uma vez só). Sem responsável com setor, vale o
   setor do evento ou competição relacionado; sem nenhum dos dois, aparece em *Sem setor definido*.
-- O Dashboard aparece para administrador, presidência e diretores; assessores não o veem, porque ele
-  mostra os dados de todos os setores.
-- O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período) vale para os
-  treinos, amistosos e presenças. Atletas e demandas mostram sempre a situação atual.
-- Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
+
+**Aba Linha do tempo:**
+
+- **Próximos 30 dias:** linha do tempo com treinos, amistosos, competições, eventos e compromissos agendados,
+  nas cores do calendário. Atividades do mesmo dia ficam empilhadas.
+- **Atividades por mês:** gráfico de linhas com treinos, amistosos, competições e eventos realizados em cada mês
+  (a partir do primeiro mês com atividade no período; no máximo 24 meses).
+- **Presença nos treinos por mês:** linha com o percentual de presentes (meses sem lista de presença ficam em branco).
+- **Presenças e faltas por mês:** colunas empilhadas com as marcações das listas de presença.
+
+**Aba Distribuição:**
+
+- **Situação dos atletas nas modalidades** (pizza): ativos, lesionados, afastados e inativos.
+- **Eventos por tipo** (rosca, com o total no meio): festas, ações sociais e ambientais, competições e outros,
+  realizados e agendados a partir do início do período (os cancelados não entram).
+- **Demandas por situação** (rosca) e **Prioridade das demandas em aberto** (pizza).
+- **Pódios por modalidade** (colunas empilhadas): 1º, 2º e 3º lugares nas competições do período, da modalidade
+  com mais pódios para a com menos.
+
+Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
 
 ## Gestão
 

@@ -1,9 +1,26 @@
 package br.com.athletiza.view.dashboard;
 
 import br.com.athletiza.controller.DashboardController;
+import static br.com.athletiza.controller.DashboardController.AMISTOSOS;
+import static br.com.athletiza.controller.DashboardController.COMPETICOES;
+import static br.com.athletiza.controller.DashboardController.EVENTOS;
+import static br.com.athletiza.controller.DashboardController.FALTAS;
+import static br.com.athletiza.controller.DashboardController.PRESENCA;
+import static br.com.athletiza.controller.DashboardController.PRESENCAS;
+import static br.com.athletiza.controller.DashboardController.PRIMEIRO;
+import static br.com.athletiza.controller.DashboardController.SEGUNDO;
+import static br.com.athletiza.controller.DashboardController.TERCEIRO;
+import static br.com.athletiza.controller.DashboardController.TREINOS;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.DadosDashboard;
+import br.com.athletiza.model.DadosDashboard.Distribuicao;
+import br.com.athletiza.model.DadosDashboard.LinhaDoTempo;
 import br.com.athletiza.model.DadosDashboard.Resumo;
+import br.com.athletiza.model.PrioridadeDemanda;
+import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.model.SituacaoDemanda;
+import br.com.athletiza.model.TipoAtividade;
+import br.com.athletiza.model.TipoEvento;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Indicador;
 import br.com.athletiza.util.Cores;
@@ -20,6 +37,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -30,14 +48,21 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
 /**
- * Dashboard: números gerais e um gráfico para cada pergunta da diretoria
- * (modalidades com mais atletas, mais presenças e mais treinos; atletas que
- * menos participam; setores com mais demandas). Cada cartão mostra a resposta
- * em destaque e o gráfico com as primeiras posições.
+ * Dashboard: números gerais no topo e três abas.
+ * <ul>
+ * <li>Perguntas da diretoria: um gráfico de barras para cada pergunta (modalidades com
+ * mais atletas, presenças e treinos; atletas que menos participam; setores com mais demandas),
+ * com a resposta em destaque.</li>
+ * <li>Linha do tempo: próximas atividades, atividades e presença mês a mês (linhas) e
+ * presenças e faltas por mês (colunas empilhadas).</li>
+ * <li>Distribuição: pizzas e roscas (situação dos atletas, eventos por tipo, demandas por
+ * situação e prioridade) e pódios por modalidade.</li>
+ * </ul>
  */
 public class PainelDashboard extends JPanel implements Recarregavel {
 
@@ -85,32 +110,97 @@ public class PainelDashboard extends JPanel implements Recarregavel {
     private final Cartao cartaoDemandas = new Cartao("Quais setores estão com o maior número de demandas?",
             GraficoBarras.composto(Cores.AMARELO, "Em aberto", Cores.VERMELHO, "Atrasadas", ITENS_POR_GRAFICO));
 
+    private static final Color CINZA = new Color(0x6A6A6A);
+    private static final Map<String, Color> CORES_ATIVIDADES = Map.of(
+            TREINOS, Color.decode(TipoAtividade.TREINO.getCorHex()),
+            AMISTOSOS, Color.decode(TipoAtividade.AMISTOSO.getCorHex()),
+            COMPETICOES, Color.decode(TipoAtividade.COMPETICAO.getCorHex()),
+            EVENTOS, Color.decode(TipoAtividade.EVENTO.getCorHex()));
+
+    private final GraficoLinhaDoTempo proximas = new GraficoLinhaDoTempo(DashboardController.DIAS_PROXIMAS);
+    private final GraficoLinha atividadesPorMes = new GraficoLinha(CORES_ATIVIDADES, false);
+    private final GraficoLinha presencaPorMes = new GraficoLinha(Map.of(PRESENCA, Cores.VERDE), true);
+    private final GraficoColunas presencasEFaltas = new GraficoColunas(Map.of(PRESENCAS, Cores.VERDE, FALTAS, Cores.VERMELHO));
+    private final GraficoPizza atletasPorSituacao = new GraficoPizza(false, Map.of(
+            SituacaoAtleta.ATIVO.toString(), Cores.VERDE, SituacaoAtleta.LESIONADO.toString(), Cores.VERMELHO,
+            SituacaoAtleta.AFASTADO.toString(), Cores.AMARELO, SituacaoAtleta.INATIVO.toString(), CINZA), "vínculos");
+    private final GraficoPizza eventosPorTipo = new GraficoPizza(true, Map.of(
+            TipoEvento.FESTA.toString(), new Color(0xFF4FD8), TipoEvento.ACAO_SOCIAL.toString(), new Color(0x3D9BFF),
+            TipoEvento.ACAO_AMBIENTAL.toString(), new Color(0x2ED3C6), TipoEvento.COMPETICAO.toString(), Cores.VERDE,
+            TipoEvento.OUTRO.toString(), CINZA), "eventos");
+    private final GraficoPizza demandasPorSituacao = new GraficoPizza(true, Map.of(
+            SituacaoDemanda.ABERTA.toString(), Cores.AMARELO, SituacaoDemanda.EM_ANDAMENTO.toString(), Cores.ROXO,
+            SituacaoDemanda.CONCLUIDA.toString(), Cores.VERDE, SituacaoDemanda.CANCELADA.toString(), CINZA), "demandas");
+    private final GraficoPizza demandasPorPrioridade = new GraficoPizza(false, Map.of(
+            PrioridadeDemanda.ALTA.toString(), Cores.VERMELHO, PrioridadeDemanda.MEDIA.toString(), Cores.AMARELO,
+            PrioridadeDemanda.BAIXA.toString(), Cores.VERDE), "em aberto");
+    private final GraficoColunas podios = new GraficoColunas(Map.of(
+            PRIMEIRO, new Color(0xF5C542), SEGUNDO, new Color(0xC9CED6), TERCEIRO, new Color(0xCD7F32)));
+
+    private final CartaoGrafico cartaoProximas = new CartaoGrafico("Próximos " + DashboardController.DIAS_PROXIMAS
+            + " dias", "Treinos, amistosos, competições, eventos e compromissos agendados", proximas,
+            "Nenhuma atividade agendada para os próximos dias.");
+    private final CartaoGrafico cartaoAtividadesPorMes = new CartaoGrafico("Atividades por mês",
+            "Treinos, amistosos, competições e eventos realizados em cada mês do período", atividadesPorMes,
+            "Nenhuma atividade realizada no período.");
+    private final CartaoGrafico cartaoPresencaPorMes = new CartaoGrafico("Presença nos treinos por mês",
+            "Percentual de presentes nas listas de presença", presencaPorMes,
+            "Nenhuma lista de presença registrada no período.");
+    private final CartaoGrafico cartaoPresencasEFaltas = new CartaoGrafico("Presenças e faltas por mês",
+            "Marcações das listas de presença", presencasEFaltas, "Nenhuma lista de presença registrada no período.");
+    private final CartaoGrafico cartaoAtletasPorSituacao = new CartaoGrafico("Situação dos atletas nas modalidades",
+            "Cada vínculo de atleta com uma modalidade", atletasPorSituacao, "Nenhum atleta vinculado a uma modalidade.");
+    private final CartaoGrafico cartaoEventosPorTipo = new CartaoGrafico("Eventos por tipo",
+            "Realizados e agendados a partir do início do período (sem os cancelados)", eventosPorTipo,
+            "Nenhum evento no período.");
+    private final CartaoGrafico cartaoDemandasPorSituacao = new CartaoGrafico("Demandas por situação",
+            "Todas as demandas cadastradas", demandasPorSituacao, "Nenhuma demanda cadastrada.");
+    private final CartaoGrafico cartaoDemandasPorPrioridade = new CartaoGrafico("Prioridade das demandas em aberto",
+            "Abertas e em andamento", demandasPorPrioridade, "Nenhuma demanda em aberto.");
+    private final CartaoGrafico cartaoPodios = new CartaoGrafico("Pódios por modalidade",
+            "1º, 2º e 3º lugares nas competições do período", podios, "Nenhum resultado de 1º a 3º lugar no período.");
+
     public PainelDashboard() {
         super(new BorderLayout(0, 20));
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
         filtroPeriodo.setSelectedItem(Periodo.ESTE_ANO);
         filtroPeriodo.addActionListener(e -> carregar());
 
-        add(criarCabecalho(), BorderLayout.NORTH);
-        JScrollPane rolagem = new JScrollPane(criarCorpo());
+        JPanel topo = new JPanel(new BorderLayout(0, 16));
+        topo.setOpaque(false);
+        topo.add(criarCabecalho(), BorderLayout.NORTH);
+        topo.add(criarNumeros(), BorderLayout.CENTER);
+        add(topo, BorderLayout.NORTH);
+
+        JTabbedPane abas = new JTabbedPane();
+        abas.putClientProperty(FlatClientProperties.STYLE, "tabHeight:36; underlineColor:" + Cores.hex(Cores.VERDE)
+                + "; selectedForeground:" + Cores.hex(Cores.VERDE));
+        abas.addTab("Perguntas da diretoria", rolavel(criarPerguntas()));
+        abas.addTab("Linha do tempo", rolavel(criarLinhaDoTempo()));
+        abas.addTab("Distribuição", rolavel(criarDistribuicao()));
+        add(abas, BorderLayout.CENTER);
+    }
+
+    private static JScrollPane rolavel(JComponent conteudo) {
+        JScrollPane rolagem = new JScrollPane(conteudo);
         rolagem.setBorder(null);
         rolagem.getViewport().setOpaque(false);
         rolagem.setOpaque(false);
         rolagem.getVerticalScrollBar().setUnitIncrement(16);
-        add(rolagem, BorderLayout.CENTER);
+        return rolagem;
     }
 
     @Override
     public void carregar() {
         LocalDate hoje = LocalDate.now();
         try {
-            mostrar(controller.carregar(((Periodo) filtroPeriodo.getSelectedItem()).inicio(hoje), hoje));
+            mostrar(controller.carregar(((Periodo) filtroPeriodo.getSelectedItem()).inicio(hoje), hoje), hoje);
         } catch (PersistenciaException e) {
             Mensagens.erro(this, e);
         }
     }
 
-    private void mostrar(DadosDashboard dados) {
+    private void mostrar(DadosDashboard dados, LocalDate hoje) {
         Resumo resumo = dados.resumo();
         numeroAtletas.mostrar(String.valueOf(resumo.atletasAtivos()), "cadastrados e ativos");
         numeroTreinos.mostrar(String.valueOf(resumo.treinos() + resumo.amistosos()),
@@ -130,12 +220,34 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         cartaoDemandas.mostrar(dados.demandasPorSetor(), Indicador::detalhe,
                 "Nenhuma demanda em aberto. Tudo em dia!");
         cartaoFrequencia.mostrarAtletas(dados.menosFrequentes());
+
+        LinhaDoTempo linha = dados.linhaDoTempo();
+        proximas.mostrar(hoje, linha.proximas());
+        cartaoProximas.exibir(!linha.proximas().isEmpty());
+        atividadesPorMes.mostrar(linha.atividadesPorMes());
+        cartaoAtividadesPorMes.exibir(!linha.atividadesPorMes().isVazio());
+        presencaPorMes.mostrar(linha.presencaPorMes());
+        cartaoPresencaPorMes.exibir(!linha.presencasEFaltasPorMes().isVazio());
+        presencasEFaltas.mostrar(linha.presencasEFaltasPorMes());
+        cartaoPresencasEFaltas.exibir(!linha.presencasEFaltasPorMes().isVazio());
+
+        Distribuicao distribuicao = dados.distribuicao();
+        atletasPorSituacao.mostrar(distribuicao.atletasPorSituacao());
+        cartaoAtletasPorSituacao.exibir(!atletasPorSituacao.isVazio());
+        eventosPorTipo.mostrar(distribuicao.eventosPorTipo());
+        cartaoEventosPorTipo.exibir(!eventosPorTipo.isVazio());
+        demandasPorSituacao.mostrar(distribuicao.demandasPorSituacao());
+        cartaoDemandasPorSituacao.exibir(!demandasPorSituacao.isVazio());
+        demandasPorPrioridade.mostrar(distribuicao.demandasPorPrioridade());
+        cartaoDemandasPorPrioridade.exibir(!demandasPorPrioridade.isVazio());
+        podios.mostrar(distribuicao.podiosPorModalidade());
+        cartaoPodios.exibir(!distribuicao.podiosPorModalidade().isVazio());
     }
 
     private JPanel criarCabecalho() {
         JLabel titulo = new JLabel("Dashboard");
         titulo.setFont(Tema.fonteTitulo());
-        JLabel subtitulo = new JLabel("Passe o mouse nas barras para ver os detalhes.");
+        JLabel subtitulo = new JLabel("Passe o mouse nos gráficos para ver os detalhes.");
         subtitulo.setToolTipText("O período vale para treinos, amistosos e presenças. "
                 + "Atletas e demandas mostram a situação atual.");
         subtitulo.setForeground(Cores.TEXTO_SECUNDARIO);
@@ -161,36 +273,61 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         return cabecalho;
     }
 
-    private JComponent criarCorpo() {
+    private JComponent criarNumeros() {
         JPanel numeros = new JPanel(new GridLayout(1, 4, 16, 0));
         numeros.setOpaque(false);
         numeros.add(numeroAtletas);
         numeros.add(numeroTreinos);
         numeros.add(numeroPresenca);
         numeros.add(numeroDemandas);
+        return numeros;
+    }
 
+    /** Aba com os cartões das perguntas: dois por linha e o de setores na largura toda. */
+    private JComponent criarPerguntas() {
+        return grade(new JComponent[][]{
+            {cartaoAtletas, cartaoPresencas},
+            {cartaoTreinos, cartaoFrequencia},
+            {cartaoDemandas}});
+    }
+
+    private JComponent criarLinhaDoTempo() {
+        return grade(new JComponent[][]{
+            {cartaoProximas},
+            {cartaoAtividadesPorMes},
+            {cartaoPresencaPorMes, cartaoPresencasEFaltas}});
+    }
+
+    private JComponent criarDistribuicao() {
+        return grade(new JComponent[][]{
+            {cartaoAtletasPorSituacao, cartaoEventosPorTipo},
+            {cartaoDemandasPorSituacao, cartaoDemandasPorPrioridade},
+            {cartaoPodios}});
+    }
+
+    /** Monta as linhas de cartões; uma linha com um cartão só ocupa a largura toda. */
+    private static JComponent grade(JComponent[][] linhas) {
         Corpo corpo = new Corpo();
+        corpo.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1;
-        c.gridwidth = 2;
-        c.insets = new Insets(0, 0, 16, 0);
-        corpo.add(numeros, c);
-
-        c.gridwidth = 1;
-        c.gridy = 1;
-        adicionar(corpo, c, cartaoAtletas, 0);
-        adicionar(corpo, c, cartaoPresencas, 1);
-        c.gridy = 2;
-        adicionar(corpo, c, cartaoTreinos, 0);
-        adicionar(corpo, c, cartaoFrequencia, 1);
-        c.gridy = 3;
+        for (int linha = 0; linha < linhas.length; linha++) {
+            c.gridy = linha;
+            if (linhas[linha].length == 1) {
+                c.gridx = 0;
+                c.gridwidth = 2;
+                c.insets = new Insets(0, 0, 16, 0);
+                corpo.add(linhas[linha][0], c);
+                c.gridwidth = 1;
+            } else {
+                adicionar(corpo, c, linhas[linha][0], 0);
+                adicionar(corpo, c, linhas[linha][1], 1);
+            }
+        }
+        c.gridy = linhas.length;
         c.gridx = 0;
         c.gridwidth = 2;
-        c.insets = new Insets(0, 0, 0, 0);
-        corpo.add(cartaoDemandas, c);
-
-        c.gridy = 4;
         c.weighty = 1;
         corpo.add(Box.createGlue(), c);
         return corpo;
@@ -265,6 +402,42 @@ public class PainelDashboard extends JPanel implements Recarregavel {
 
         void cor(Color cor) {
             valor.setForeground(cor);
+        }
+    }
+
+    /** Cartão com título, explicação e um gráfico; sem dados, mostra uma mensagem no lugar do gráfico. */
+    private static class CartaoGrafico extends JPanel {
+
+        private final JComponent grafico;
+        private final JLabel vazio;
+
+        CartaoGrafico(String titulo, String explicacao, JComponent grafico, String mensagemVazio) {
+            super(new BorderLayout(0, 12));
+            this.grafico = grafico;
+            this.vazio = new JLabel(mensagemVazio);
+            vazio.setForeground(Cores.TEXTO_SECUNDARIO);
+            putClientProperty(FlatClientProperties.STYLE, "arc:16; background:" + Cores.hex(Cores.FUNDO_CARTAO));
+            setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
+
+            JLabel rotuloTitulo = new JLabel(titulo);
+            rotuloTitulo.setFont(Tema.fonte(Font.BOLD, 14f));
+            JLabel rotuloExplicacao = new JLabel(explicacao);
+            rotuloExplicacao.setForeground(Cores.TEXTO_SECUNDARIO);
+            JPanel topo = new JPanel();
+            topo.setOpaque(false);
+            topo.setLayout(new BoxLayout(topo, BoxLayout.Y_AXIS));
+            topo.add(rotuloTitulo);
+            topo.add(Box.createVerticalStrut(2));
+            topo.add(rotuloExplicacao);
+            add(topo, BorderLayout.NORTH);
+            add(grafico, BorderLayout.CENTER);
+        }
+
+        void exibir(boolean temDados) {
+            remove(temDados ? vazio : grafico);
+            add(temDados ? grafico : vazio, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         }
     }
 
