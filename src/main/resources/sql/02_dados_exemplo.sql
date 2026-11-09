@@ -2,6 +2,9 @@
 -- Execute depois do 01_estrutura.sql, com o banco athletiza selecionado.
 -- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
 
+-- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
+/*!40101 SET NAMES utf8mb4 */;
+
 -- Usuário administrador inicial: login "admin", senha "admin123".
 -- A senha é provisória: o sistema exige a troca no primeiro acesso.
 -- O hash foi gerado com: java -cp target/classes br.com.athletiza.util.Senha admin123
