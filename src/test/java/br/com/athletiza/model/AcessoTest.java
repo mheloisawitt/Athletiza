@@ -52,6 +52,7 @@ class AcessoTest {
 
         assertTrue(esportes.veModulo(Modulo.GESTAO));
         assertTrue(esportes.veModulo(Modulo.REGISTROS));
+        assertTrue(esportes.veModulo(Modulo.DASHBOARD));
         assertFalse(esportes.podeAlterar(Modulo.GESTAO));
         assertTrue(esportes.podeAlterar(Modulo.ATLETAS));
         assertTrue(esportes.podeAlterar(Modulo.TREINOS));
@@ -96,6 +97,7 @@ class AcessoTest {
         assertTrue(assessor.veModulo(Modulo.EVENTOS));
         assertFalse(assessor.veModulo(Modulo.GESTAO));
         assertFalse(assessor.veModulo(Modulo.DEMANDAS));
+        assertFalse(assessor.veModulo(Modulo.DASHBOARD));
         assertFalse(assessor.podeAlterar(Modulo.ATLETAS));
         assertFalse(assessor.podeAlterar(jiudesc));
         assertTrue(assessor.tiposDeEvento().isEmpty());

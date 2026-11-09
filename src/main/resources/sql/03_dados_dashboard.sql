@@ -1,11 +1,13 @@
 -- Athletiza - dados de exemplo extras para o Dashboard (opcional) - MySQL 8
 -- Execute UMA VEZ, depois do 02_dados_exemplo.sql, com o banco athletiza selecionado.
 -- Acrescenta atletas, treinos e amistosos de outras modalidades, listas de presença
--- e tarefas com responsáveis de vários setores, para os gráficos do dashboard terem o que mostrar.
+-- e demandas com responsáveis de vários setores, para os gráficos do dashboard terem o que mostrar.
 -- Para voltar ao início: execute de novo o 01_estrutura.sql e o 02_dados_exemplo.sql.
 
 -- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
 /*!40101 SET NAMES utf8mb4 */;
+
+USE athletiza;
 
 -- Atletas
 INSERT INTO atleta (nome, matricula, contato, data_nascimento) VALUES
@@ -77,36 +79,44 @@ INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id)
     FROM gestao g, membro m, cargo c
     WHERE g.nome = 'Gestão 2025-2026' AND m.matricula = '202111' AND c.nome = 'Secretário';
 
--- Tarefas (demandas) de eventos e competições, com responsáveis de vários setores
-INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
-    SELECT e.id, v.descricao, m.id, CAST(v.prazo AS DATE), v.situacao
-    FROM (SELECT 'Ação Social' AS evento, 'Arrecadar alimentos' AS descricao, '201933' AS matricula,
-                 '2026-10-18' AS prazo, 'CONCLUIDA' AS situacao
-             UNION ALL SELECT 'Ação Social', 'Divulgar nas redes sociais', '202111', '2026-10-15', 'CONCLUIDA'
-             UNION ALL SELECT 'Workshop', 'Convidar palestrante', '201933', '2026-11-05', 'EM_ANDAMENTO'
-             UNION ALL SELECT 'Workshop', 'Reservar auditório', '202111', '2026-11-10', 'PENDENTE'
-             UNION ALL SELECT 'Workshop', 'Comprar coffee break', '202010', '2026-11-12', 'PENDENTE'
-             UNION ALL SELECT 'Workshop', 'Emitir certificados', '202111', '2026-11-20', 'PENDENTE'
-             UNION ALL SELECT 'Desafio das Atléticas', 'Prestação de contas', '202010', '2026-11-04', 'PENDENTE'
-             UNION ALL SELECT 'Desafio das Atléticas', 'Relatório para a reitoria', '201801', '2026-11-30', 'PENDENTE') AS v,
-         evento e, membro m
-    WHERE e.titulo = v.evento AND m.matricula = v.matricula;
+-- Demandas (as abertas e em andamento entram no gráfico de setores)
+INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id, competicao_id)
+    SELECT v.titulo, v.prioridade, v.situacao, CAST(v.prazo AS DATE), e.id, c.id
+    FROM (SELECT 'Inscrever atletas no Regional' AS titulo, 'ALTA' AS prioridade, 'EM_ANDAMENTO' AS situacao,
+                 '2026-11-01' AS prazo, NULL AS evento, 'Campeonato Regional' AS competicao
+             UNION ALL SELECT 'Conseguir uniformes', 'MEDIA', 'ABERTA', '2026-11-06', NULL, 'Campeonato Regional'
+             UNION ALL SELECT 'Organizar hospedagem', 'ALTA', 'ABERTA', '2026-11-12', NULL, 'Campeonato Regional'
+             UNION ALL SELECT 'Agendar exames médicos', 'MEDIA', 'ABERTA', '2026-11-18', NULL, 'Copa Alto Vale'
+             UNION ALL SELECT 'Montar as equipes', 'MEDIA', 'ABERTA', '2026-11-25', NULL, 'Copa Alto Vale'
+             UNION ALL SELECT 'Definir fotógrafo', 'BAIXA', 'ABERTA', '2026-12-01', NULL, 'Copa Alto Vale'
+             UNION ALL SELECT 'Convidar palestrante', 'ALTA', 'EM_ANDAMENTO', '2026-11-05', 'Workshop', NULL
+             UNION ALL SELECT 'Reservar auditório', 'MEDIA', 'ABERTA', '2026-11-10', 'Workshop', NULL
+             UNION ALL SELECT 'Emitir certificados', 'BAIXA', 'ABERTA', '2026-11-20', 'Workshop', NULL
+             UNION ALL SELECT 'Pagar taxa de inscrição', 'ALTA', 'ABERTA', '2026-11-08', NULL, 'Campeonato Regional'
+             UNION ALL SELECT 'Prestação de contas do Desafio', 'MEDIA', 'ABERTA', '2026-11-04', 'Desafio das Atléticas', NULL
+             UNION ALL SELECT 'Relatório para a reitoria', 'MEDIA', 'ABERTA', '2026-11-30', NULL, NULL
+             UNION ALL SELECT 'Atualizar a ata das reuniões', 'BAIXA', 'ABERTA', '2026-11-15', NULL, NULL
+             UNION ALL SELECT 'Organizar a sala da atlética', 'BAIXA', 'ABERTA', NULL, NULL, NULL
+             UNION ALL SELECT 'Divulgar a ação social', 'MEDIA', 'CONCLUIDA', '2026-10-15', 'Ação Social', NULL) AS v
+    LEFT JOIN evento e ON e.titulo = v.evento
+    LEFT JOIN competicao c ON c.titulo = v.competicao;
 
-INSERT INTO tarefa (competicao_id, descricao, responsavel_id, prazo, situacao)
-    SELECT c.id, v.descricao, m.id, CAST(v.prazo AS DATE), v.situacao
-    FROM (SELECT 'JIUDESC 2026' AS competicao, 'Inscrever atletas' AS descricao, '201902' AS matricula,
-                 '2026-10-15' AS prazo, 'CONCLUIDA' AS situacao
-             UNION ALL SELECT 'JIUDESC 2026', 'Reservar ônibus', '201902', '2026-10-25', 'CONCLUIDA'
-             UNION ALL SELECT 'Campeonato Regional', 'Inscrever atletas', '201902', '2026-11-01', 'EM_ANDAMENTO'
-             UNION ALL SELECT 'Campeonato Regional', 'Conseguir uniformes', '201902', '2026-11-06', 'PENDENTE'
-             UNION ALL SELECT 'Campeonato Regional', 'Pagar taxa de inscrição', '202010', '2026-11-08', 'PENDENTE'
-             UNION ALL SELECT 'Campeonato Regional', 'Organizar hospedagem', '201902', '2026-11-12', 'PENDENTE'
-             UNION ALL SELECT 'Copa Alto Vale', 'Montar as equipes', '201902', '2026-11-25', 'PENDENTE'
-             UNION ALL SELECT 'Copa Alto Vale', 'Agendar exames médicos', '201902', '2026-11-18', 'PENDENTE'
-             UNION ALL SELECT 'Copa Alto Vale', 'Pedir apoio da prefeitura', '201845', '2026-11-28', 'PENDENTE') AS v,
-         competicao c, membro m
-    WHERE c.titulo = v.competicao AND m.matricula = v.matricula;
-
--- Uma demanda ainda sem responsável
-INSERT INTO tarefa (competicao_id, descricao, prazo, situacao)
-    SELECT id, 'Definir fotógrafo', CAST('2026-12-01' AS DATE), 'PENDENTE' FROM competicao WHERE titulo = 'Copa Alto Vale';
+-- Responsáveis (membros com cargo na gestão em andamento). "Definir fotógrafo" fica sem
+-- responsável e conta para Esportes, pela competição; "Organizar a sala" não tem setor.
+INSERT INTO demanda_responsavel (demanda_id, membro_id)
+    SELECT d.id, m.id
+    FROM (SELECT 'Inscrever atletas no Regional' AS titulo, '201902' AS matricula
+             UNION ALL SELECT 'Conseguir uniformes', '201902'
+             UNION ALL SELECT 'Organizar hospedagem', '201902'
+             UNION ALL SELECT 'Agendar exames médicos', '202105'
+             UNION ALL SELECT 'Montar as equipes', '201902'
+             UNION ALL SELECT 'Convidar palestrante', '201933'
+             UNION ALL SELECT 'Reservar auditório', '201933'
+             UNION ALL SELECT 'Emitir certificados', '202111'
+             UNION ALL SELECT 'Pagar taxa de inscrição', '202010'
+             UNION ALL SELECT 'Prestação de contas do Desafio', '202010'
+             UNION ALL SELECT 'Relatório para a reitoria', '201801'
+             UNION ALL SELECT 'Atualizar a ata das reuniões', '202111'
+             UNION ALL SELECT 'Divulgar a ação social', '201933') AS v,
+         demanda d, membro m
+    WHERE d.titulo = v.titulo AND m.matricula = v.matricula;

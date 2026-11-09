@@ -128,7 +128,7 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         cartaoTreinos.mostrar(dados.treinosPorModalidade(), Indicador::detalhe,
                 "Nenhum treino ou amistoso realizado no período.");
         cartaoDemandas.mostrar(dados.demandasPorSetor(), Indicador::detalhe,
-                "Nenhuma tarefa em aberto. Tudo em dia!");
+                "Nenhuma demanda em aberto. Tudo em dia!");
         cartaoFrequencia.mostrarAtletas(dados.menosFrequentes());
     }
 

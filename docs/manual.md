@@ -60,10 +60,13 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 - **Qual modalidade realizou mais treinos e amistosos?** Treinos (verde) e amistosos (roxo) que já aconteceram.
 - **Quais atletas menos participam dos treinos?** Frequência de cada atleta, da menor para a maior
   (vermelho abaixo de 50%, amarelo até 75%, verde acima).
-- **Quais setores estão com o maior número de demandas?** Tarefas de eventos e competições não concluídas,
-  agrupadas pelo cargo que o responsável ocupa na gestão em andamento (ex.: Diretor de Eventos).
-  A parte vermelha da barra são as atrasadas. Tarefas sem responsável, ou cujo responsável não tem cargo
-  na gestão atual, aparecem em *Sem setor definido*.
+- **Quais setores estão com o maior número de demandas?** Demandas abertas ou em andamento (módulo
+  **Demandas**), agrupadas pelo setor dos cargos dos responsáveis na gestão em andamento (Esportes, Eventos,
+  Financeiro...). A parte vermelha da barra são as atrasadas. Uma demanda com responsáveis de setores
+  diferentes conta em cada um deles (no número do topo, conta uma vez só). Sem responsável com setor, vale o
+  setor do evento ou competição relacionado; sem nenhum dos dois, aparece em *Sem setor definido*.
+- O Dashboard aparece para administrador, presidência e diretores; assessores não o veem, porque ele
+  mostra os dados de todos os setores.
 - O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período) vale para os
   treinos, amistosos e presenças. Atletas e demandas mostram sempre a situação atual.
 - Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
