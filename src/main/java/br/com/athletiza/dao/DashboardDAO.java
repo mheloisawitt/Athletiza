@@ -4,6 +4,9 @@ import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Indicador;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.PrioridadeDemanda;
+import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.model.SituacaoDemanda;
 import br.com.athletiza.model.Setor;
 import br.com.athletiza.model.TipoEvento;
 import java.time.LocalDate;
@@ -131,6 +134,69 @@ public class DashboardDAO extends DAOBase {
                     return null;
                 });
         return setores;
+    }
+
+    /** Uma marcação da lista de presença: data do treino e se o atleta estava presente. */
+    public record RegistroPresenca(LocalDate data, boolean presente) {
+    }
+
+    /** Marcações das listas de presença dos treinos do período. */
+    public List<RegistroPresenca> registrosDePresenca(LocalDate inicio, LocalDate fim) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return consultar("SELECT t.data, p.presente FROM presenca_treino p JOIN treino t ON t.id = p.treino_id"
+                + periodo("t.data", inicio, fim, parametros),
+                rs -> new RegistroPresenca(lerData(rs, "data"), rs.getBoolean("presente")), parametros.toArray());
+    }
+
+    /** Vínculos de atletas com modalidades por situação; atleta inativo conta como inativo em todas. */
+    public List<Indicador> atletasPorSituacao() throws PersistenciaException {
+        return contarPorEnum("SELECT CASE WHEN a.situacao = 'INATIVO' THEN 'INATIVO' ELSE am.situacao END AS chave,"
+                + " COUNT(*) AS total FROM atleta_modalidade am JOIN atleta a ON a.id = am.atleta_id"
+                + " GROUP BY CASE WHEN a.situacao = 'INATIVO' THEN 'INATIVO' ELSE am.situacao END",
+                SituacaoAtleta.class, "vínculo", "vínculos");
+    }
+
+    /** Eventos não cancelados a partir de {@code inicio} (nulo = todos), inclusive os já agendados. */
+    public List<Indicador> eventosPorTipo(LocalDate inicio) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return contarPorEnum("SELECT tipo_evento AS chave, COUNT(*) AS total FROM evento"
+                + periodo("data", inicio, null, parametros) + " AND situacao <> 'CANCELADO' GROUP BY tipo_evento",
+                TipoEvento.class, "evento", "eventos", parametros.toArray());
+    }
+
+    public List<Indicador> demandasPorSituacao() throws PersistenciaException {
+        return contarPorEnum("SELECT situacao AS chave, COUNT(*) AS total FROM demanda GROUP BY situacao",
+                SituacaoDemanda.class, "demanda", "demandas");
+    }
+
+    /** Demandas abertas ou em andamento, por prioridade. */
+    public List<Indicador> demandasAbertasPorPrioridade() throws PersistenciaException {
+        return contarPorEnum("SELECT prioridade AS chave, COUNT(*) AS total FROM demanda"
+                + " WHERE situacao IN ('ABERTA', 'EM_ANDAMENTO') GROUP BY prioridade",
+                PrioridadeDemanda.class, "demanda", "demandas");
+    }
+
+    /** Um pódio: modalidade e colocação (1, 2 ou 3). */
+    public record Podio(String modalidade, int colocacao) {
+    }
+
+    /** Colocações de 1º a 3º lugar nas competições que começaram no período. */
+    public List<Podio> podios(LocalDate inicio, LocalDate fim) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return consultar("SELECT m.nome, m.genero, r.colocacao FROM resultado r"
+                + " JOIN competicao c ON c.id = r.competicao_id JOIN modalidade m ON m.id = r.modalidade_id"
+                + periodo("c.data", inicio, fim, parametros) + " AND r.colocacao BETWEEN 1 AND 3",
+                rs -> new Podio(nomeModalidade(rs.getString("nome"), rs.getString("genero")), rs.getInt("colocacao")),
+                parametros.toArray());
+    }
+
+    /** Conta por uma coluna que guarda o nome de um enum; o nome exibido é o toString do enum. */
+    private <E extends Enum<E>> List<Indicador> contarPorEnum(String sql, Class<E> tipo, String singular, String plural,
+            Object... parametros) throws PersistenciaException {
+        return consultar(sql, rs -> {
+            int total = rs.getInt("total");
+            return new Indicador(lerEnum(rs, "chave", tipo).toString(), total, plural(total, singular, plural));
+        }, parametros);
     }
 
     /** Monta o WHERE do período e acrescenta os parâmetros. */

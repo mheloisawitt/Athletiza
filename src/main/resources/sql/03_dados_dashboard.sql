@@ -53,7 +53,25 @@ INSERT INTO treino (tipo, titulo, data, horario, local, modalidade_id, responsav
                               'Futsal', 'MASCULINO', 'Atlética Tubarões'
              UNION ALL SELECT 'TREINO', 'Treino Handebol (M)', '2026-09-18', '19:30', 'Ginásio', 'Handebol', 'MASCULINO', NULL
              UNION ALL SELECT 'TREINO', 'Treino Handebol (M)', '2026-10-16', '19:30', 'Ginásio', 'Handebol', 'MASCULINO', NULL
-             UNION ALL SELECT 'TREINO', 'Treino Atletismo (M)', '2026-10-17', '07:00', 'Pista', 'Atletismo', 'MASCULINO', NULL)
+             UNION ALL SELECT 'TREINO', 'Treino Atletismo (M)', '2026-10-17', '07:00', 'Pista', 'Atletismo', 'MASCULINO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-07-08', '19:00', 'Quadra 1', 'Futsal', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-07-22', '19:00', 'Quadra 1', 'Futsal', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (M)', '2026-07-15', '21:00', 'Quadra 1', 'Futsal', 'MASCULINO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Vôlei (F)', '2026-07-21', '18:00', 'Ginásio', 'Vôlei', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-08-05', '19:00', 'Quadra 1', 'Futsal', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-08-19', '19:00', 'Quadra 1', 'Futsal', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (M)', '2026-08-12', '21:00', 'Quadra 1', 'Futsal', 'MASCULINO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (M)', '2026-08-26', '21:00', 'Quadra 1', 'Futsal', 'MASCULINO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Vôlei (F)', '2026-08-18', '18:00', 'Ginásio', 'Vôlei', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Handebol (M)', '2026-08-20', '19:30', 'Ginásio', 'Handebol', 'MASCULINO', NULL
+             UNION ALL SELECT 'AMISTOSO', 'Amistoso Vôlei (F) x Atlética Leões', '2026-08-29', '15:00', 'Ginásio',
+                              'Vôlei', 'FEMININO', 'Atlética Leões'
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (F)', '2026-09-09', '19:00', 'Quadra 1', 'Futsal', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Atletismo (M)', '2026-09-12', '07:00', 'Pista', 'Atletismo', 'MASCULINO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Vôlei (F)', '2026-11-12', '18:00', 'Ginásio', 'Vôlei', 'FEMININO', NULL
+             UNION ALL SELECT 'TREINO', 'Treino Futsal (M)', '2026-11-18', '21:00', 'Quadra 1', 'Futsal', 'MASCULINO', NULL
+             UNION ALL SELECT 'AMISTOSO', 'Amistoso Handebol (M) x Atlética Feras', '2026-11-21', '16:00', 'Ginásio',
+                              'Handebol', 'MASCULINO', 'Atlética Feras')
          AS v, modalidade m, membro r
     WHERE m.nome = v.modalidade AND m.genero = v.genero AND r.matricula = '201902';
 
@@ -69,6 +87,46 @@ INSERT INTO presenca_treino (treino_id, atleta_id, presente)
     JOIN atleta a ON a.id = am.atleta_id
     WHERE t.data <= '2026-11-08'
       AND NOT EXISTS (SELECT 1 FROM presenca_treino p WHERE p.treino_id = t.id);
+
+-- Eventos já realizados (para a linha do tempo) e mais um agendado
+INSERT INTO evento (titulo, tipo_evento, data, horario, local, situacao) VALUES
+    ('Festa Julina da Atlética', 'FESTA', '2026-07-11', '20:00', 'Ibirama', 'REALIZADO'),
+    ('Plantio de mudas', 'ACAO_AMBIENTAL', '2026-08-22', '09:00', 'Parque Municipal', 'REALIZADO'),
+    ('Campanha do agasalho', 'ACAO_SOCIAL', '2026-07-25', '14:00', 'Ibirama', 'REALIZADO'),
+    ('Calourada', 'FESTA', '2026-08-15', '21:00', 'Ibirama', 'REALIZADO'),
+    ('Limpeza do rio', 'ACAO_AMBIENTAL', '2026-11-28', '08:00', 'Rio Itajaí', 'PLANEJADO');
+
+-- Competição já encerrada e resultados (pódios)
+INSERT INTO competicao (titulo, data, data_fim, local, situacao) VALUES
+    ('Copa de Inverno', '2026-07-18', '2026-07-19', 'Ibirama', 'ENCERRADA');
+
+INSERT INTO competicao_modalidade (competicao_id, modalidade_id)
+    SELECT c.id, m.id FROM competicao c, modalidade m
+    WHERE c.titulo = 'Copa de Inverno'
+      AND ((m.nome IN ('Futsal', 'Vôlei')) OR (m.nome = 'Handebol' AND m.genero = 'MASCULINO'));
+
+INSERT INTO resultado (competicao_id, modalidade_id, colocacao, placar)
+    SELECT c.id, m.id, v.colocacao, v.placar
+    FROM (SELECT 'Copa de Inverno' AS competicao, 'Futsal' AS modalidade, 'FEMININO' AS genero, 1 AS colocacao, '3 x 1' AS placar
+             UNION ALL SELECT 'Copa de Inverno', 'Futsal', 'MASCULINO', 2, '2 x 4'
+             UNION ALL SELECT 'Copa de Inverno', 'Vôlei', 'FEMININO', 1, '3 x 0'
+             UNION ALL SELECT 'Copa de Inverno', 'Handebol', 'MASCULINO', 3, '25 x 22'
+             UNION ALL SELECT 'JIUDESC 2026', 'Futsal', 'FEMININO', 1, '2 x 0'
+             UNION ALL SELECT 'JIUDESC 2026', 'Futsal', 'MASCULINO', 3, '1 x 0'
+             UNION ALL SELECT 'JIUDESC 2026', 'Vôlei', 'FEMININO', 2, '1 x 3'
+             UNION ALL SELECT 'JIUDESC 2026', 'Vôlei', 'MASCULINO', 3, '3 x 2'
+             UNION ALL SELECT 'JIUDESC 2026', 'Handebol', 'MASCULINO', 2, '20 x 24') AS v,
+         competicao c, modalidade m
+    WHERE c.titulo = v.competicao AND m.nome = v.modalidade AND m.genero = v.genero;
+
+-- Resultados individuais do atletismo no JIUDESC
+INSERT INTO resultado (competicao_id, modalidade_id, atleta_id, colocacao, placar)
+    SELECT c.id, m.id, a.id, v.colocacao, v.placar
+    FROM (SELECT 'Atletismo' AS modalidade, 'MASCULINO' AS genero, '202067' AS matricula, 1 AS colocacao, '100 m: 11,2 s' AS placar
+             UNION ALL SELECT 'Atletismo', 'FEMININO', '202256', 2, '200 m: 26,8 s'
+             UNION ALL SELECT 'Atletismo', 'FEMININO', '202256', 1, 'Salto em distância: 5,40 m') AS v,
+         competicao c, modalidade m, atleta a
+    WHERE c.titulo = 'JIUDESC 2026' AND m.nome = v.modalidade AND m.genero = v.genero AND a.matricula = v.matricula;
 
 -- Mais membros na gestão atual
 INSERT INTO membro (nome, matricula, contato) VALUES
