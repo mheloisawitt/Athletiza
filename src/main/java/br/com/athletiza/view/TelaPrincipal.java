@@ -12,6 +12,7 @@ import br.com.athletiza.view.atletas.PainelConsultaAtletas;
 import br.com.athletiza.view.calendario.PainelCalendario;
 import br.com.athletiza.view.competicoes.PainelConsultaCompeticoes;
 import br.com.athletiza.view.demandas.PainelConsultaDemandas;
+import br.com.athletiza.view.dashboard.PainelDashboard;
 import br.com.athletiza.view.eventos.PainelConsultaEventos;
 import br.com.athletiza.view.gestao.PainelConsultaGestoes;
 import br.com.athletiza.view.registros.PainelRegistros;
@@ -56,6 +57,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         // Cada perfil vê só os módulos a que tem acesso (RN19)
         Acesso acesso = Sessao.getAcesso();
         adicionarModulo(acesso, Modulo.INICIO, () -> new PainelCalendario(this));
+        adicionarModulo(acesso, Modulo.DASHBOARD, PainelDashboard::new);
         adicionarModulo(acesso, Modulo.GESTAO, () -> new PainelConsultaGestoes(this));
         adicionarModulo(acesso, Modulo.ATLETAS, () -> new PainelConsultaAtletas(this));
         adicionarModulo(acesso, Modulo.COMPETICOES, () -> new PainelConsultaCompeticoes(this));

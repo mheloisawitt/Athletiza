@@ -45,6 +45,19 @@ public final class BancoDeTeste {
         }
     }
 
+    /** Executa outro script de src/main/resources/sql no banco de teste (ex.: dados extras). */
+    public static void executar(String script) throws SQLException {
+        try (Connection con = ConnectionFactory.getConnection(); Statement st = con.createStatement()) {
+            for (String comando : lerScript(script).split(";")) {
+                if (!comando.isBlank()) {
+                    st.execute(comando);
+                }
+            }
+        } catch (br.com.athletiza.exception.PersistenciaException e) {
+            throw new SQLException(e.getMessage(), e);
+        }
+    }
+
     private static String lerScript(String nome) {
         try (InputStream entrada = BancoDeTeste.class.getResourceAsStream("/sql/" + nome)) {
             String texto = new String(entrada.readAllBytes(), StandardCharsets.UTF_8);

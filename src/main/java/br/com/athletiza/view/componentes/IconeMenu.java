@@ -30,6 +30,13 @@ public enum IconeMenu implements Icon {
             caminho(3, 11, 12, 3, 21, 11),
             caminho(5, 10, 5, 20, 10, 20, 10, 14, 14, 14, 14, 20, 19, 20, 19, 10))),
 
+    /** Gráfico de barras: o dashboard com os indicadores. */
+    DASHBOARD(() -> List.of(
+            caminho(3, 3, 3, 21, 21, 21),
+            new RoundRectangle2D.Double(6.5, 12, 3, 6, 1, 1),
+            new RoundRectangle2D.Double(11.5, 7, 3, 11, 1, 1),
+            new RoundRectangle2D.Double(16.5, 10, 3, 8, 1, 1))),
+
     /** Organograma: a gestão e seus cargos. */
     GESTAO(() -> List.of(
             circulo(12, 6, 3),
@@ -136,6 +143,7 @@ public enum IconeMenu implements Icon {
     public static IconeMenu doItem(String nome) {
         return switch (nome) {
             case "Início" -> INICIO;
+            case "Dashboard" -> DASHBOARD;
             case "Gestão" -> GESTAO;
             case "Atletas" -> ATLETAS;
             case "Competições" -> COMPETICOES;

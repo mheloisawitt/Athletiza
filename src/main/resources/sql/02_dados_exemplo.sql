@@ -2,6 +2,9 @@
 -- Execute depois do 01_estrutura.sql. O USE abaixo seleciona o banco athletiza.
 -- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
 
+-- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
+/*!40101 SET NAMES utf8mb4 */;
+
 USE athletiza;
 
 -- Usuário administrador inicial: login "admin", senha "admin123".

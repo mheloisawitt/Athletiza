@@ -9,6 +9,9 @@
 --   CASCADE  -> apaga junto as linhas que só existem por causa do registro principal
 --               (ex.: presenças de um treino, tarefas de um evento)
 
+-- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
+/*!40101 SET NAMES utf8mb4 */;
+
 USE athletiza;
 
 DROP TABLE IF EXISTS demanda_responsavel;

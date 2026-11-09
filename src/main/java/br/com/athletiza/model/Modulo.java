@@ -6,6 +6,7 @@ package br.com.athletiza.model;
 public enum Modulo {
 
     INICIO("Início"),
+    DASHBOARD("Dashboard"),
     GESTAO("Gestão"),
     ATLETAS("Atletas"),
     COMPETICOES("Competições"),

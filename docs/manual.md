@@ -47,6 +47,27 @@ Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (D
 - **Alertas** (topo da lateral): tarefas atrasadas (vermelho), treinos dos últimos 30 dias sem lista de presença
   (amarelo) e competições que começam nos próximos 7 dias (verde).
 
+## Dashboard
+
+Responde às perguntas da diretoria com um gráfico para cada uma. Em cada cartão, a resposta aparece em
+destaque (havendo empate no primeiro lugar, todos os empatados aparecem) e o gráfico mostra as 6 primeiras
+posições. Passe o mouse sobre uma barra para ver os detalhes.
+
+- **Topo:** atletas ativos, treinos e amistosos realizados, percentual de presença e demandas em aberto.
+- **Qual modalidade tem mais atletas?** Atletas ativos em cada modalidade (vínculos inativos não contam).
+- **Qual modalidade tem mais atletas presentes nos treinos?** Total de presenças nas listas de presença.
+  O detalhe mostra a média de presentes por treino e o percentual de presença.
+- **Qual modalidade realizou mais treinos e amistosos?** Treinos (verde) e amistosos (roxo) que já aconteceram.
+- **Quais atletas menos participam dos treinos?** Frequência de cada atleta, da menor para a maior
+  (vermelho abaixo de 50%, amarelo até 75%, verde acima).
+- **Quais setores estão com o maior número de demandas?** Tarefas de eventos e competições não concluídas,
+  agrupadas pelo cargo que o responsável ocupa na gestão em andamento (ex.: Diretor de Eventos).
+  A parte vermelha da barra são as atrasadas. Tarefas sem responsável, ou cujo responsável não tem cargo
+  na gestão atual, aparecem em *Sem setor definido*.
+- O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período) vale para os
+  treinos, amistosos e presenças. Atletas e demandas mostram sempre a situação atual.
+- Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
+
 ## Gestão
 
 - **Gestões:** períodos não podem se sobrepor. **Gerenciar** mostra quem ocupa cada cargo, com
