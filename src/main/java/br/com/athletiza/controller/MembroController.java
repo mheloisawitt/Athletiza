@@ -26,6 +26,11 @@ public class MembroController {
         return dao.listarTodos().stream().filter(m -> m.getSituacao() == Situacao.ATIVO).toList();
     }
 
+    /** Membros ativos com cargo na gestão em andamento: os que podem ser responsáveis por demandas. */
+    public List<Membro> listarDaGestaoEmAndamento() throws PersistenciaException {
+        return dao.listarDaGestaoEmAndamento();
+    }
+
     public void salvar(Membro membro) throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador()
                 .obrigatorio(membro.getNome(), "Nome")

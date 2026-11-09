@@ -7,8 +7,24 @@
 2. Marque **Lembrar de mim** para o sistema guardar o seu usuário neste computador.
 3. Para trocar a sua senha, clique no seu nome, no rodapé do menu.
 
-**Perfis:** *Administrador* faz tudo, inclusive cadastrar usuários. *Diretoria* inclui, edita e exclui
-registros. *Consulta* apenas visualiza (os botões de alteração ficam desabilitados).
+**Perfis.** Fora o administrador, o perfil vem do cargo que o membro ligado ao seu usuário ocupa na
+gestão em andamento (o setor de cada cargo é definido em **Gestão → Cargos**):
+
+| Perfil | Quem | O que pode fazer |
+|---|---|---|
+| Administrador | Usuário marcado como administrador | Tudo, inclusive cadastrar usuários e liberar acessos |
+| Presidência | Presidente ou Vice-presidente | Inclui, edita e exclui em todos os módulos, menos usuários |
+| Diretor | Cargo que dirige um setor (ex.: Diretor de Esportes) | Consulta tudo, inclusive o calendário completo; inclui e edita só a área da sua diretoria |
+| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora |
+
+Área de cada diretoria: **Esportes** cuida de Atletas, Treinos, Competições e dos eventos do tipo
+Competição; **Eventos**, das festas e eventos "Outro"; **Ações sociais** e **Ações ambientais**, dos
+eventos desses tipos. Em **Demandas**, o diretor só registra as ligadas a um evento ou competição da sua
+área. Gestão, compromissos do calendário e Registros ficam com a presidência. Os botões que o perfil
+não permite ficam desabilitados.
+
+Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (Diretora de Esportes),
+`rafael` (Diretor de Eventos) e `bruno` (Assessor de Esportes).
 
 ## Padrão das telas
 
@@ -44,10 +60,13 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 - **Qual modalidade realizou mais treinos e amistosos?** Treinos (verde) e amistosos (roxo) que já aconteceram.
 - **Quais atletas menos participam dos treinos?** Frequência de cada atleta, da menor para a maior
   (vermelho abaixo de 50%, amarelo até 75%, verde acima).
-- **Quais setores estão com o maior número de demandas?** Tarefas de eventos e competições não concluídas,
-  agrupadas pelo cargo que o responsável ocupa na gestão em andamento (ex.: Diretor de Eventos).
-  A parte vermelha da barra são as atrasadas. Tarefas sem responsável, ou cujo responsável não tem cargo
-  na gestão atual, aparecem em *Sem setor definido*.
+- **Quais setores estão com o maior número de demandas?** Demandas abertas ou em andamento (módulo
+  **Demandas**), agrupadas pelo setor dos cargos dos responsáveis na gestão em andamento (Esportes, Eventos,
+  Financeiro...). A parte vermelha da barra são as atrasadas. Uma demanda com responsáveis de setores
+  diferentes conta em cada um deles (no número do topo, conta uma vez só). Sem responsável com setor, vale o
+  setor do evento ou competição relacionado; sem nenhum dos dois, aparece em *Sem setor definido*.
+- O Dashboard aparece para administrador, presidência e diretores; assessores não o veem, porque ele
+  mostra os dados de todos os setores.
 - O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período) vale para os
   treinos, amistosos e presenças. Atletas e demandas mostram sempre a situação atual.
 - Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
@@ -89,6 +108,16 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 - **Responsáveis e tarefas:** adicione os membros que organizam o evento e as tarefas, com responsável,
   prazo e situação. Tarefas atrasadas aparecem em vermelho; **Concluir** encerra a tarefa selecionada.
 
+## Demandas
+
+- Registre o que precisa ser feito pela atlética, com prioridade (alta, média ou baixa), prazo e situação
+  (aberta, em andamento, concluída ou cancelada).
+- **Relacionada a:** opcionalmente, ligue a demanda a um evento (festa, ação social, ação ambiental...) ou
+  a uma competição. Deixe "Nenhum" para uma demanda avulsa.
+- **Responsáveis:** marque um ou mais membros da gestão em andamento (quem tem cargo nela, no módulo Gestão).
+  Filtre a consulta por situação ou por responsável.
+- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo.
+
 ## Registros (fotos e vídeos)
 
 - As fotos e vídeos ficam organizados em **pastas** (Festas, Ações Sociais, Competições, Treinos, Outros...).
@@ -102,7 +131,11 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 
 ## Usuários (administradores)
 
-- Crie usuários com login, perfil e senha (mínimo de 6 caracteres).
+- Crie usuários com login e senha (mínimo de 6 caracteres) e escolha o **membro da gestão** que vai usá-lo:
+  o acesso dele aparece na hora, calculado pelo cargo na gestão em andamento. Marque **Administrador**
+  apenas para quem deve ter acesso total.
+- Quem não tem cargo com setor na gestão em andamento não consegue entrar. Ao trocar de gestão, o
+  acesso muda sozinho conforme os novos cargos.
 - Na edição, deixe a senha em branco para mantê-la.
 - O sistema sempre mantém pelo menos um administrador ativo.
 - A senha que o administrador define para outra pessoa é provisória: ela troca no primeiro acesso.

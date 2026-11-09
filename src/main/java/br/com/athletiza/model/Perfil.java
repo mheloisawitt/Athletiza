@@ -1,35 +1,28 @@
 package br.com.athletiza.model;
 
 /**
- * Perfis de acesso ao sistema (RN19).
+ * Perfis de acesso ao sistema (RN19). Fora o administrador, o perfil vem do
+ * cargo que o membro ligado ao usuário ocupa na gestão em andamento.
  */
 public enum Perfil {
 
-    ADMINISTRADOR("Administrador", true, true),
-    DIRETORIA("Diretoria", true, false),
-    CONSULTA("Consulta", false, false);
+    /** Acesso total, inclusive cadastro de usuários. */
+    ADMINISTRADOR("Administrador"),
+    /** Presidente ou vice: inclui, edita e exclui em todos os módulos, menos usuários. */
+    PRESIDENCIA("Presidência"),
+    /** Consulta tudo; inclui e edita só o que é da área da sua diretoria. */
+    DIRETOR("Diretor"),
+    /** Somente consulta, apenas dos módulos do setor que assessora. */
+    ASSESSOR("Assessor");
 
     private final String descricao;
-    private final boolean podeAlterarDados;
-    private final boolean podeGerenciarUsuarios;
 
-    Perfil(String descricao, boolean podeAlterarDados, boolean podeGerenciarUsuarios) {
+    Perfil(String descricao) {
         this.descricao = descricao;
-        this.podeAlterarDados = podeAlterarDados;
-        this.podeGerenciarUsuarios = podeGerenciarUsuarios;
     }
 
     public String getDescricao() {
         return descricao;
-    }
-
-    /** Pode incluir, editar e excluir registros. */
-    public boolean podeAlterarDados() {
-        return podeAlterarDados;
-    }
-
-    public boolean podeGerenciarUsuarios() {
-        return podeGerenciarUsuarios;
     }
 
     @Override

@@ -2,12 +2,15 @@ package br.com.athletiza.dao;
 
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Cargo;
+import br.com.athletiza.model.Setor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Acesso aos dados dos cargos da gestão (CH-18).
@@ -31,15 +34,15 @@ public class CargoDAO extends AbstractDAO<Cargo> {
 
     @Override
     public void inserir(Cargo cargo) throws PersistenciaException {
-        int id = executarInsercao("INSERT INTO cargo (nome, ordem, cargo_superior_id) VALUES (?, ?, ?)",
-                cargo.getNome(), cargo.getOrdem(), idDoSuperior(cargo));
+        int id = executarInsercao("INSERT INTO cargo (nome, ordem, setor, cargo_superior_id) VALUES (?, ?, ?, ?)",
+                cargo.getNome(), cargo.getOrdem(), cargo.getSetor(), idDoSuperior(cargo));
         cargo.setId(id);
     }
 
     @Override
     public void atualizar(Cargo cargo) throws PersistenciaException {
-        executarAtualizacao("UPDATE cargo SET nome = ?, ordem = ?, cargo_superior_id = ? WHERE id = ?",
-                cargo.getNome(), cargo.getOrdem(), idDoSuperior(cargo), cargo.getId());
+        executarAtualizacao("UPDATE cargo SET nome = ?, ordem = ?, setor = ?, cargo_superior_id = ? WHERE id = ?",
+                cargo.getNome(), cargo.getOrdem(), cargo.getSetor(), idDoSuperior(cargo), cargo.getId());
     }
 
     /** Todos os cargos, cada um ligado ao objeto do seu cargo superior. */
@@ -65,6 +68,14 @@ public class CargoDAO extends AbstractDAO<Cargo> {
         return listarTodos().stream().filter(c -> c.getId() == id).findFirst();
     }
 
+    /** Cargos que o membro ocupa nas gestões em andamento (com o cargo superior, para saber se é assessoria). */
+    public List<Cargo> listarDoMembroNaGestaoEmAndamento(int membroId) throws PersistenciaException {
+        Set<Integer> ids = new HashSet<>(consultar("SELECT gmc.cargo_id FROM gestao_membro_cargo gmc"
+                + " JOIN gestao g ON g.id = gmc.gestao_id WHERE gmc.membro_id = ? AND g.situacao = 'EM_ANDAMENTO'",
+                rs -> rs.getInt(1), membroId));
+        return listarTodos().stream().filter(c -> ids.contains(c.getId())).toList();
+    }
+
     /** Quantas vezes o cargo está ocupado, somando todas as gestões. */
     public int contarOcupacoes(int id) throws PersistenciaException {
         return consultar("SELECT COUNT(*) FROM gestao_membro_cargo WHERE cargo_id = ?", rs -> rs.getInt(1), id).get(0);
@@ -78,6 +89,7 @@ public class CargoDAO extends AbstractDAO<Cargo> {
     protected Cargo mapear(ResultSet rs) throws SQLException {
         Cargo cargo = new Cargo(rs.getString("nome"), rs.getInt("ordem"), null);
         cargo.setId(rs.getInt("id"));
+        cargo.setSetor(lerEnum(rs, "setor", Setor.class));
         return cargo;
     }
 }

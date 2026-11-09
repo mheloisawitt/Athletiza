@@ -3,7 +3,9 @@ package br.com.athletiza.view.competicoes;
 import br.com.athletiza.controller.CompeticaoController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Competicao;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.SituacaoCompeticao;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
@@ -54,6 +56,7 @@ public class PainelConsultaCompeticoes extends PainelConsulta<Competicao> {
                 .coluna("Tarefas", String.class, c -> PainelTarefas.resumir(c.getTarefas())),
                 EnumSet.allOf(Acao.class));
         this.navegador = navegador;
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.COMPETICOES));
         larguraColuna(0, 170);
         tabela.getColumnModel().getColumn(5).setMinWidth(140);
         tabela.getColumnModel().getColumn(6).setMinWidth(215);

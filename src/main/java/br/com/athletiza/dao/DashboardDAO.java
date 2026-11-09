@@ -4,11 +4,15 @@ import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Indicador;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Setor;
+import br.com.athletiza.model.TipoEvento;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Consultas de totais que alimentam o dashboard. Os períodos vão de {@code inicio}
@@ -16,8 +20,11 @@ import java.util.Map;
  */
 public class DashboardDAO extends DAOBase {
 
-    /** Demanda em aberto: tarefa não concluída e quem é o responsável por ela. */
-    public record DemandaAberta(Integer responsavelId, LocalDate prazo) {
+    /**
+     * Demanda em aberto (aberta ou em andamento), com o setor da atividade relacionada:
+     * o do tipo do evento, Esportes para competições, ou nulo se não houver relação.
+     */
+    public record DemandaAberta(int id, LocalDate prazo, Setor setorDaAtividade) {
     }
 
     @Override
@@ -88,24 +95,39 @@ public class DashboardDAO extends DAOBase {
         return consultar("SELECT COUNT(*) FROM atleta WHERE situacao = 'ATIVO'", rs -> rs.getInt(1)).get(0);
     }
 
-    /** Tarefas de eventos e competições ainda não concluídas. */
+    /** Demandas abertas ou em andamento. */
     public List<DemandaAberta> demandasAbertas() throws PersistenciaException {
-        return consultar("SELECT responsavel_id, prazo FROM tarefa WHERE situacao <> 'CONCLUIDA'", rs -> {
-            int responsavel = rs.getInt("responsavel_id");
-            return new DemandaAberta(rs.wasNull() ? null : responsavel, lerData(rs, "prazo"));
+        return consultar("SELECT d.id, d.prazo, d.competicao_id, e.tipo_evento FROM demanda d"
+                + " LEFT JOIN evento e ON e.id = d.evento_id"
+                + " WHERE d.situacao IN ('ABERTA', 'EM_ANDAMENTO')", rs -> {
+                    TipoEvento tipo = lerEnum(rs, "tipo_evento", TipoEvento.class);
+                    rs.getInt("competicao_id");
+                    Setor setor = !rs.wasNull() ? Setor.ESPORTES : tipo == null ? null : tipo.getSetor();
+                    return new DemandaAberta(rs.getInt("id"), lerData(rs, "prazo"), setor);
+                });
+    }
+
+    /** Membros responsáveis por cada demanda (id da demanda -> ids dos membros). */
+    public Map<Integer, List<Integer>> responsaveisDasDemandas() throws PersistenciaException {
+        Map<Integer, List<Integer>> responsaveis = new HashMap<>();
+        consultar("SELECT demanda_id, membro_id FROM demanda_responsavel", rs -> {
+            responsaveis.computeIfAbsent(rs.getInt("demanda_id"), id -> new ArrayList<>()).add(rs.getInt("membro_id"));
+            return null;
         });
+        return responsaveis;
     }
 
     /**
-     * Setor (cargo) de cada membro na gestão em andamento. Quem ocupa mais de um
-     * cargo fica com o de nível mais alto no organograma.
+     * Setores de cada membro na gestão em andamento, pelos cargos que ocupa
+     * (cargos sem setor não entram).
      */
-    public Map<Integer, String> setorDosMembros() throws PersistenciaException {
-        Map<Integer, String> setores = new HashMap<>();
-        consultar("SELECT gmc.membro_id, c.nome FROM gestao_membro_cargo gmc"
+    public Map<Integer, Set<Setor>> setoresDosMembros() throws PersistenciaException {
+        Map<Integer, Set<Setor>> setores = new HashMap<>();
+        consultar("SELECT gmc.membro_id, c.setor FROM gestao_membro_cargo gmc"
                 + " JOIN gestao g ON g.id = gmc.gestao_id JOIN cargo c ON c.id = gmc.cargo_id"
-                + " WHERE g.situacao = 'EM_ANDAMENTO' ORDER BY g.data_inicio DESC, c.ordem, c.nome", rs -> {
-                    setores.putIfAbsent(rs.getInt("membro_id"), rs.getString("nome"));
+                + " WHERE g.situacao = 'EM_ANDAMENTO' AND c.setor IS NOT NULL", rs -> {
+                    setores.computeIfAbsent(rs.getInt("membro_id"), id -> EnumSet.noneOf(Setor.class))
+                            .add(lerEnum(rs, "setor", Setor.class));
                     return null;
                 });
         return setores;

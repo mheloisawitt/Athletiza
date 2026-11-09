@@ -5,6 +5,7 @@ import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.SituacaoEvento;
 import br.com.athletiza.model.TipoEvento;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.util.Validador;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelFormulario;
@@ -21,7 +22,9 @@ public class PainelCadastroEvento extends PainelFormulario {
     private final Evento evento;
     private final EventoController controller = new EventoController();
     private final JTextField nome = new JTextField();
-    private final JComboBox<TipoEvento> tipo = new JComboBox<>(TipoEvento.values());
+    /** Só os tipos de evento da área do usuário (a presidência vê todos). */
+    private final JComboBox<TipoEvento> tipo = new JComboBox<>(
+            Sessao.getAcesso().tiposDeEvento().toArray(TipoEvento[]::new));
     private final JTextField data = new JTextField();
     private final JTextField horario = new JTextField();
     private final JTextField local = new JTextField();

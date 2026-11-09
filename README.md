@@ -42,7 +42,7 @@ Para a apresentação:
    - [`01_estrutura.sql`](src/main/resources/sql/01_estrutura.sql): cria as tabelas (pode ser executado de novo para zerar o banco)
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
    - [`03_dados_dashboard.sql`](src/main/resources/sql/03_dados_dashboard.sql) (opcional, uma vez só): mais atletas,
-     treinos, presenças e tarefas, para os gráficos do **Dashboard** terem o que mostrar
+     treinos, presenças e demandas, para os gráficos do **Dashboard** terem o que mostrar
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 

@@ -52,7 +52,7 @@ Todas as telas abaixo leem ou gravam no banco, exceto onde indicado.
 | 27 | Responsáveis e tarefas | `eventos/PainelGerenciarEvento` (+ `componentes/PainelTarefas`) | Painel | Alta | Responsáveis e tarefas lado a lado, atrasadas em vermelho | [imagem](prototipo/telas/27.png) |
 | 28 | Registros (galeria) | `registros/PainelRegistros` (+ `CartaoArquivo`) | Painel | Alta | Pastas, miniaturas, JFileChooser, arrastar e soltar, menu do botão direito | [imagem](prototipo/telas/28.png) |
 | 29 | Consulta de usuários | `usuarios/PainelConsultaUsuarios` | Consulta | Média | Só para administradores | [imagem](prototipo/telas/29.png) |
-| 30 | Cadastro de usuário | `usuarios/PainelCadastroUsuario` | Cadastro | Média | Perfil, situação, senha e confirmação | [imagem](prototipo/telas/30.png) |
+| 30 | Cadastro de usuário | `usuarios/PainelCadastroUsuario` | Cadastro | Média | Membro da gestão (define o acesso), administrador, situação, senha e confirmação | [imagem](prototipo/telas/30.png) |
 | 31 | Alterar senha | `usuarios/DialogoAlterarSenha` | Diálogo | Simples | Senha atual, nova e confirmação | [imagem](prototipo/telas/31.png) |
 
 Infraestrutura compartilhada (não conta como tela de ninguém, mas qualquer um pode explicar):

@@ -66,19 +66,31 @@ class DashboardControllerTest {
     }
 
     @Test
-    void agrupaDemandasAbertasPeloSetorDoResponsavel() throws Exception {
+    void agrupaDemandasAbertasPeloSetorDosResponsaveis() throws Exception {
         try (Connection con = ConnectionFactory.getConnection(); Statement st = con.createStatement()) {
-            st.execute("INSERT INTO tarefa (evento_id, descricao, situacao)"
-                    + " SELECT id, 'Sem responsável', 'PENDENTE' FROM evento WHERE titulo = 'Festa Atlética'");
+            // sem responsável e sem relação: sem setor; concluída: não conta
+            st.execute("INSERT INTO demanda (titulo, situacao) VALUES ('Sem dono', 'ABERTA')");
+            st.execute("INSERT INTO demanda (titulo, situacao) VALUES ('Já feita', 'CONCLUIDA')");
+            // sem responsável, ligada a uma competição: conta para Esportes
+            st.execute("INSERT INTO demanda (titulo, situacao, prazo, competicao_id)"
+                    + " SELECT 'Inscrições', 'ABERTA', '2026-10-01', id FROM competicao WHERE titulo = 'Torneio Interno'");
         }
 
-        List<Indicador> setores = controller.demandasPorSetor(LocalDate.of(2026, 10, 8));
+        List<Indicador> setores = controller.demandasPorSetor(LocalDate.of(2026, 10, 22));
 
-        // "Contratar DJ" (Diretor de Eventos) venceu em 05/10; "Vender ingressos" (Tesoureiro) vence em 11/10
-        assertEquals(new Indicador("Diretor de Eventos", 1, 1, "1 em aberto, 1 atrasada(s)"), setores.get(0));
-        assertEquals("Sem setor definido", setores.get(1).nome());
-        assertEquals("Tesoureiro", setores.get(2).nome());
-        assertEquals(0, setores.get(2).parcial());
+        // "Reservar ônibus" (Juliana, Esportes, prazo 25/10) + "Inscrições" (pela competição, atrasada)
+        assertEquals(new Indicador("Esportes", 2, 1, "2 em aberto, 1 atrasada(s)"), setores.get(0));
+        // "Arrecadar alimentos" tem responsáveis de Eventos e da Presidência: conta nos dois (atrasada desde 20/10)
+        assertTrue(setores.contains(new Indicador("Eventos", 1, 1, "1 em aberto, 1 atrasada(s)")));
+        assertTrue(setores.contains(new Indicador("Presidência", 1, 1, "1 em aberto, 1 atrasada(s)")));
+        assertTrue(setores.contains(new Indicador("Financeiro", 1, 0, "1 em aberto, 0 atrasada(s)")));
+        assertTrue(setores.contains(new Indicador("Sem setor definido", 1, 0, "1 em aberto, 0 atrasada(s)")));
+        assertEquals(5, setores.size());
+
+        // No topo, cada demanda conta uma vez só
+        DadosDashboard dados = controller.carregar(null, LocalDate.of(2026, 10, 22));
+        assertEquals(5, dados.resumo().demandasAbertas());
+        assertEquals(2, dados.resumo().demandasAtrasadas());
     }
 
     @Test
@@ -90,7 +102,7 @@ class DashboardControllerTest {
         assertEquals("Futsal (F)", dados.atletasPorModalidade().get(0).nome());
         assertEquals("Futsal (M)", dados.treinosPorModalidade().get(0).nome());
         assertEquals(6, dados.treinosPorModalidade().get(0).valor());
-        assertEquals("Diretor de Esportes", dados.demandasPorSetor().get(0).nome());
+        assertEquals("Esportes", dados.demandasPorSetor().get(0).nome());
         assertTrue(dados.menosFrequentes().get(0).getPercentual() < 50);
         assertTrue(dados.presencasPorModalidade().size() >= 4);
     }

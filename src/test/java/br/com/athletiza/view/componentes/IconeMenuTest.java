@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class IconeMenuTest {
 
     private static final List<String> ITENS = List.of(
-            "Início", "Dashboard", "Gestão", "Atletas", "Competições", "Treinos", "Eventos", "Registros", "Usuários");
+            "Início", "Dashboard", "Gestão", "Atletas", "Competições", "Treinos", "Eventos", "Demandas", "Registros", "Usuários");
 
     @Test
     void todoItemDoMenuTemUmIconeDiferente() {

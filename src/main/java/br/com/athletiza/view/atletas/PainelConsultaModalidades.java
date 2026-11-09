@@ -3,6 +3,8 @@ package br.com.athletiza.view.atletas;
 import br.com.athletiza.controller.ModalidadeController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Modulo;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
 import br.com.athletiza.view.componentes.Navegador;
@@ -22,6 +24,7 @@ public class PainelConsultaModalidades extends PainelConsulta<Modalidade> {
                 .coluna("Modalidade", String.class, Modalidade::getNome)
                 .coluna("Gênero", String.class, m -> m.getGenero().getNomeCompleto()));
         this.navegador = navegador;
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.ATLETAS));
         exibirVoltar(navegador::voltar);
     }
 

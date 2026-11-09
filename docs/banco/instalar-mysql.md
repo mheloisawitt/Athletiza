@@ -57,6 +57,7 @@ Depois copie `db.properties.example` para `db.properties`, na raiz do projeto, e
 | *Can't connect to MySQL server* / *Communications link failure* | O serviço **MySQL84** está parado: ligue-o |
 | *Access denied for user 'root'* | Senha errada no Workbench ou no `db.properties` |
 | *Unknown database 'athletiza'* | Falta executar o `00_criar_banco.sql` |
+| *No database selected* | Use os scripts atualizados (já começam com `USE athletiza;`) ou dê duplo clique no banco `athletiza` no Workbench antes de executar |
 | *Table 'athletiza.usuario' doesn't exist* | Falta executar o `01_estrutura.sql` (e o `02_dados_exemplo.sql`) |
 
 Não use XAMPP/WAMP: eles trazem o MariaDB, que tem diferenças em relação ao MySQL.

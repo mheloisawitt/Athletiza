@@ -7,7 +7,9 @@ import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.Resultado;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.ModeloTabela;
@@ -44,6 +46,7 @@ class PainelResultados extends PainelConsulta<Resultado> {
                 .coluna("Colocação", Integer.class, Resultado::getColocacao)
                 .coluna("Placar", String.class, Resultado::getPlacar)
                 .coluna("Observação", String.class, Resultado::getObservacao));
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.COMPETICOES));
         this.fonte = fonte;
         setBorder(BorderFactory.createEmptyBorder(16, 4, 4, 4));
     }

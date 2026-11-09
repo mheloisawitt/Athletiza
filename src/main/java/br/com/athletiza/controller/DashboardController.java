@@ -8,11 +8,14 @@ import br.com.athletiza.model.DadosDashboard;
 import br.com.athletiza.model.DadosDashboard.Resumo;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Indicador;
+import br.com.athletiza.model.Setor;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Indicadores do dashboard. Responde às perguntas:
@@ -23,8 +26,8 @@ import java.util.TreeMap;
  * <li>Quais atletas menos participam dos treinos?</li>
  * <li>Quais setores estão com o maior número de demandas?</li>
  * </ul>
- * Setor é o cargo que o responsável pela tarefa ocupa na gestão em andamento
- * (ex.: Diretor de Eventos); demanda é uma tarefa de evento ou competição ainda não concluída.
+ * Demandas são as do módulo Demandas, abertas ou em andamento; o setor vem dos cargos
+ * dos responsáveis na gestão em andamento (ex.: Esportes, Eventos, Financeiro).
  */
 public class DashboardController {
 
@@ -50,10 +53,11 @@ public class DashboardController {
         List<Indicador> demandas = demandasPorSetor(hoje);
         int totalTreinos = treinos.stream().mapToInt(Indicador::valor).sum();
         int amistosos = treinos.stream().mapToInt(Indicador::parcial).sum();
+        // Total pelas demandas (não pela soma dos setores: uma demanda pode contar em dois setores)
+        List<DemandaAberta> abertas = dao.demandasAbertas();
         Resumo resumo = new Resumo(dao.contarAtletasAtivos(), totalTreinos - amistosos, amistosos,
-                dao.percentualPresenca(inicio, hoje),
-                demandas.stream().mapToInt(Indicador::valor).sum(),
-                demandas.stream().mapToInt(Indicador::parcial).sum());
+                dao.percentualPresenca(inicio, hoje), abertas.size(),
+                (int) abertas.stream().filter(d -> d.prazo() != null && d.prazo().isBefore(hoje)).count());
         return new DadosDashboard(resumo,
                 ordenar(dao.atletasPorModalidade()),
                 ordenar(dao.presencasPorModalidade(inicio, hoje)),
@@ -67,17 +71,31 @@ public class DashboardController {
         return treinoDAO.frequencia(null, inicio, hoje).stream().sorted(MENOS_FREQUENTE).toList();
     }
 
-    /** Demandas em aberto agrupadas pelo setor do responsável; o parcial é quantas já passaram do prazo. */
+    /**
+     * Demandas abertas ou em andamento agrupadas por setor; o parcial é quantas já passaram do prazo.
+     * O setor de uma demanda é o dos cargos dos seus responsáveis na gestão em andamento. Sem
+     * responsável com setor, vale o setor da atividade relacionada (tipo do evento, ou Esportes
+     * para competições). Uma demanda com responsáveis de setores diferentes conta uma vez em cada setor.
+     */
     public List<Indicador> demandasPorSetor(LocalDate hoje) throws PersistenciaException {
-        Map<Integer, String> setorDoMembro = dao.setorDosMembros();
+        Map<Integer, Set<Setor>> setoresDoMembro = dao.setoresDosMembros();
+        Map<Integer, List<Integer>> responsaveis = dao.responsaveisDasDemandas();
         Map<String, int[]> porSetor = new TreeMap<>();
         for (DemandaAberta demanda : dao.demandasAbertas()) {
-            String setor = demanda.responsavelId() == null ? SEM_SETOR
-                    : setorDoMembro.getOrDefault(demanda.responsavelId(), SEM_SETOR);
-            int[] contagem = porSetor.computeIfAbsent(setor, s -> new int[2]);
-            contagem[0]++;
-            if (demanda.prazo() != null && demanda.prazo().isBefore(hoje)) {
-                contagem[1]++;
+            Set<String> setores = new TreeSet<>();
+            for (int membro : responsaveis.getOrDefault(demanda.id(), List.of())) {
+                setoresDoMembro.getOrDefault(membro, Set.of()).forEach(s -> setores.add(s.getDescricao()));
+            }
+            if (setores.isEmpty()) {
+                setores.add(demanda.setorDaAtividade() == null ? SEM_SETOR : demanda.setorDaAtividade().getDescricao());
+            }
+            boolean atrasada = demanda.prazo() != null && demanda.prazo().isBefore(hoje);
+            for (String setor : setores) {
+                int[] contagem = porSetor.computeIfAbsent(setor, s -> new int[2]);
+                contagem[0]++;
+                if (atrasada) {
+                    contagem[1]++;
+                }
             }
         }
         return ordenar(porSetor.entrySet().stream()

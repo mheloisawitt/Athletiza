@@ -15,6 +15,8 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
     private String nome;
     private int ordem;
     private Cargo cargoSuperior;
+    /** Setor do cargo (null = o cargo não dá acesso ao sistema). */
+    private Setor setor;
 
     public Cargo() {
     }
@@ -47,6 +49,23 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
 
     public void setCargoSuperior(Cargo cargoSuperior) {
         this.cargoSuperior = cargoSuperior;
+    }
+
+    public Setor getSetor() {
+        return setor;
+    }
+
+    public void setSetor(Setor setor) {
+        this.setor = setor;
+    }
+
+    /**
+     * Cargo que assessora outro do mesmo setor (ex.: Coordenador de Modalidade, subordinado
+     * ao Diretor de Esportes). O cargo de um setor que não responde a ninguém do mesmo setor
+     * é o diretor dele.
+     */
+    public boolean isAssessoria() {
+        return setor != null && cargoSuperior != null && cargoSuperior.getSetor() == setor;
     }
 
     @Override

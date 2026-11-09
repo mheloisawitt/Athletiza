@@ -12,7 +12,8 @@ Além deste roteiro manual, o projeto tem testes automatizados (`mvn test`, banc
 3. **Datas dos dados de exemplo:** os treinos, eventos e tarefas são de outubro a dezembro de 2026. Os alertas e a
    lista de próximos eventos dependem da data do computador. Se estiver testando em outra data, use os casos
    marcados com ⏱ como referência e ajuste as datas dos registros para perto de hoje.
-4. Usuários para os testes de perfil: crie no módulo Usuários (caso USU-01) um usuário *Diretoria* e um *Consulta*.
+4. Usuários para os testes de perfil (senha `athletiza`): `mariana` (Presidência), `juliana` (Diretora de Esportes),
+   `rafael` (Diretor de Eventos) e `bruno` (Assessor de Esportes).
 
 **Como preencher:** em *Resultado* escreva **OK** ou **Falhou**; em *Obs.*, o que apareceu de diferente.
 Casos marcados com ❌ são negativos: o sistema deve **recusar** a operação com uma mensagem clara.
@@ -28,8 +29,12 @@ Casos marcados com ❌ são negativos: o sistema deve **recusar** a operação c
 | ACE-05 | Usuário inativo | Entrar com ele | ❌ "Este usuário está desativado. Procure um administrador." | | |
 | ACE-06 | — | Marcar **Lembrar de mim**, entrar, sair e abrir de novo | O login vem preenchido | | |
 | ACE-07 | Logado | Clicar no nome no rodapé do menu e trocar a senha informando a atual errada | ❌ "A senha atual não confere." | | |
-| ACE-08 | Logado como *Consulta* | Percorrer as telas | Botões de incluir, editar e excluir desabilitados; menu Usuários não aparece | | |
-| ACE-09 | Logado como *Diretoria* | Abrir o menu | Menu Usuários não aparece; demais módulos permitem alterar | | |
+| ACE-08 | Logado como `bruno` (Assessor) | Percorrer as telas | Menu só com Início, Atletas, Competições, Treinos e Eventos; botões de incluir, editar e excluir desabilitados; em Eventos, só os de competição | | |
+| ACE-09 | Logado como `mariana` (Presidência) | Abrir o menu | Menu Usuários não aparece; todos os demais módulos permitem alterar | | |
+| ACE-10 | Logado como `juliana` (Diretora de Esportes) | Incluir atleta e treino; em Gestão, tentar incluir | Atleta e treino gravados; em Gestão os botões ficam desabilitados | | |
+| ACE-11 | Logado como `juliana` | Eventos → + Incluir; depois tentar editar a Festa Atlética | Tipo só oferece "Competição"; na festa, ❌ "Seu perfil não permite alterar este registro: ele é de outra área." | | |
+| ACE-12 | Logado como `rafael` (Diretor de Eventos) | Eventos → + Incluir; Demandas → + Incluir | Tipo oferece Festa e Outro; a demanda só pode ser ligada a festas e eventos "Outro" | | |
+| ACE-13 | Membro sem cargo na gestão em andamento com usuário | Entrar com ele | ❌ "Seu usuário não está ligado a um cargo da gestão em andamento. Procure um administrador." | | |
 
 ## 2. Início (calendário)
 
@@ -130,11 +135,11 @@ Casos marcados com ❌ são negativos: o sistema deve **recusar** a operação c
 
 | ID | Pré-condição | Passos | Resultado esperado | Resultado | Obs. |
 |---|---|---|---|---|---|
-| USU-01 | Logado como admin | Criar usuário *Diretoria* com senha de 6+ caracteres | Gravado; no primeiro acesso dele a troca de senha é exigida | | |
+| USU-01 | Logado como admin | Criar usuário ligado à Paula Ribeiro (Tesoureira) com senha de 6+ caracteres | O formulário mostra "Acesso: Diretor · Financeiro"; gravado; no primeiro acesso dele a troca de senha é exigida | | |
 | USU-02 | — | Senha com menos de 6 caracteres ou confirmação diferente | ❌ Aponta o problema da senha | | |
 | USU-03 | — | Login já usado (ex.: admin) | ❌ "O login "admin" já está em uso." | | |
 | USU-04 | — | Excluir o próprio usuário | ❌ "Você não pode excluir o seu próprio usuário." | | |
-| USU-05 | Só um administrador ativo | Mudar o perfil ou a situação dele | ❌ "O sistema precisa de pelo menos um administrador ativo." | | |
+| USU-05 | Só um administrador ativo | Desmarcar Administrador (escolhendo um membro) ou inativá-lo | ❌ "O sistema precisa de pelo menos um administrador ativo." | | |
 | USU-06 | — | Editar usuário deixando a senha em branco | Senha anterior mantida | | |
 
 ## 10. Erros e robustez

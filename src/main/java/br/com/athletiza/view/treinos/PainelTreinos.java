@@ -6,6 +6,7 @@ import br.com.athletiza.dao.TreinoDAO;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Amistoso;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.TipoAtividade;
 import br.com.athletiza.model.Treino;
 import br.com.athletiza.util.Cores;
@@ -91,8 +92,12 @@ public class PainelTreinos extends PainelConsulta<Treino> {
         renomearBotao(Acao.INCLUIR, "+ Treino");
         renomearBotao(Acao.GERENCIAR, "Presença");
         JButton amistoso = Botoes.destaque("+ Amistoso", e -> incluir(new Amistoso()));
-        amistoso.setEnabled(Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados());
         adicionarBotao(amistoso);
+        definirPermissao(() -> {
+            boolean pode = Sessao.getAcesso().podeAlterar(Modulo.TREINOS);
+            amistoso.setEnabled(pode);
+            return pode;
+        });
         adicionarBotao(Botoes.contorno("Frequência", e -> navegador.abrir(new PainelFrequencia(navegador))));
         tabela.getColumnModel().getColumn(0).setMinWidth(100);
         tabela.getColumnModel().getColumn(1).setMinWidth(70);
@@ -194,6 +199,10 @@ public class PainelTreinos extends PainelConsulta<Treino> {
 
     @Override
     protected void gerenciar(Treino treino) {
+        if (!Sessao.getAcesso().podeAlterar(Modulo.TREINOS)) {
+            Mensagens.aviso(this, "Seu perfil não permite registrar presenças.");
+            return;
+        }
         navegador.abrir(new PainelPresenca(treino, navegador));
     }
 

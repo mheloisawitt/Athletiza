@@ -62,8 +62,13 @@ public class PainelTarefas extends PainelConsulta<Tarefa> {
                 EnumSet.of(Acao.INCLUIR, Acao.EDITAR, Acao.EXCLUIR));
         this.fonte = fonte;
         setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-        JButton concluir = Botoes.contornoVerde("Concluir", e -> getSelecionado().ifPresentOrElse(this::concluir,
-                () -> Mensagens.aviso(this, "Selecione uma tarefa na tabela.")));
+        JButton concluir = Botoes.contornoVerde("Concluir", e -> getSelecionado().ifPresentOrElse(tarefa -> {
+            if (podeIncluir()) {
+                concluir(tarefa);
+            } else {
+                Mensagens.aviso(this, "Seu perfil não permite alterar estas tarefas.");
+            }
+        }, () -> Mensagens.aviso(this, "Selecione uma tarefa na tabela.")));
         adicionarBotao(concluir);
         larguraColuna(0, 200);
         tabela.getColumnModel().getColumn(1).setMinWidth(120);

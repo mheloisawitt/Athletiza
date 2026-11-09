@@ -1,5 +1,5 @@
 -- Athletiza - estrutura do banco de dados (MySQL 8)
--- Execute com o banco athletiza selecionado (no Workbench: USE athletiza; ou Default Schema = athletiza).
+-- Execute depois do 00_criar_banco.sql. O USE abaixo seleciona o banco athletiza.
 -- Pode ser executado novamente: apaga e recria todas as tabelas (os dados são perdidos).
 --
 -- As tabelas são apagadas das dependentes para as principais, para não violar as chaves estrangeiras.
@@ -12,6 +12,10 @@
 -- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
 /*!40101 SET NAMES utf8mb4 */;
 
+USE athletiza;
+
+DROP TABLE IF EXISTS demanda_responsavel;
+DROP TABLE IF EXISTS demanda;
 DROP TABLE IF EXISTS arquivo;
 DROP TABLE IF EXISTS pasta;
 DROP TABLE IF EXISTS tarefa;
@@ -30,23 +34,10 @@ DROP TABLE IF EXISTS gestao;
 DROP TABLE IF EXISTS atleta_modalidade;
 DROP TABLE IF EXISTS atleta;
 DROP TABLE IF EXISTS modalidade;
-DROP TABLE IF EXISTS membro;
 DROP TABLE IF EXISTS usuario;
+DROP TABLE IF EXISTS membro;
 
 -- ===================== Pessoas =====================
-
-CREATE TABLE usuario (
-    id          INTEGER AUTO_INCREMENT PRIMARY KEY,
-    nome        VARCHAR(100) NOT NULL,
-    matricula   VARCHAR(20),
-    contato     VARCHAR(100),
-    login       VARCHAR(50)  NOT NULL UNIQUE,
-    senha_hash  VARCHAR(255) NOT NULL,
-    perfil      VARCHAR(20)  NOT NULL CHECK (perfil IN ('ADMINISTRADOR', 'DIRETORIA', 'CONSULTA')),
-    ativo       BOOLEAN      NOT NULL DEFAULT TRUE,
-    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
-    deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE
-);
 
 CREATE TABLE membro (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -54,6 +45,23 @@ CREATE TABLE membro (
     matricula   VARCHAR(20)  NOT NULL UNIQUE,
     contato     VARCHAR(100),
     situacao    VARCHAR(20)  NOT NULL DEFAULT 'ATIVO' CHECK (situacao IN ('ATIVO', 'INATIVO'))
+);
+
+-- Usuários do sistema. O administrador tem acesso total; os demais são ligados a um membro e
+-- o que podem fazer vem do setor do cargo dele na gestão em andamento (Presidência, Diretor, Assessor).
+CREATE TABLE usuario (
+    id            INTEGER AUTO_INCREMENT PRIMARY KEY,
+    nome          VARCHAR(100) NOT NULL,
+    matricula     VARCHAR(20),
+    contato       VARCHAR(100),
+    login         VARCHAR(50)  NOT NULL UNIQUE,
+    senha_hash    VARCHAR(255) NOT NULL,
+    administrador BOOLEAN      NOT NULL DEFAULT FALSE,
+    membro_id     INTEGER,
+    ativo         BOOLEAN      NOT NULL DEFAULT TRUE,
+    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
+    deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT
 );
 
 CREATE TABLE modalidade (
@@ -95,10 +103,16 @@ CREATE TABLE gestao (
     CHECK (data_fim >= data_inicio)
 );
 
+-- setor: define o acesso de quem ocupa o cargo. PRESIDENCIA = presidência; nos demais setores, o cargo
+-- que não responde a ninguém do mesmo setor é o diretor e os subordinados a ele são assessores.
+-- Sem setor, o cargo não dá acesso ao sistema.
 CREATE TABLE cargo (
     id                INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome              VARCHAR(60) NOT NULL UNIQUE,
     ordem             INTEGER     NOT NULL DEFAULT 1,
+    setor             VARCHAR(20)
+                      CHECK (setor IS NULL OR setor IN ('PRESIDENCIA', 'ESPORTES', 'EVENTOS', 'SOCIAL', 'AMBIENTAL',
+                                                        'FINANCEIRO', 'SECRETARIA')),
     cargo_superior_id INTEGER,
     FOREIGN KEY (cargo_superior_id) REFERENCES cargo (id) ON DELETE SET NULL
 );
@@ -251,6 +265,36 @@ CREATE TABLE arquivo (
     enviado_por VARCHAR(50),
     descricao   VARCHAR(500),
     FOREIGN KEY (pasta_id) REFERENCES pasta (id) ON DELETE RESTRICT
+);
+
+-- ===================== Demandas =====================
+-- O que precisa ser feito pela atlética. A relação com um evento ou com uma
+-- competição é opcional (no máximo um dos dois, garantido pelo sistema: o MySQL não aceita CHECK
+-- em coluna de chave estrangeira com ON DELETE SET NULL); se o evento ou a competição for excluído,
+-- a demanda continua existindo, apenas sem a relação.
+-- Os responsáveis devem ser membros com cargo na gestão em andamento. A regra é conferida pelo
+-- sistema ao salvar (DemandaController), pois uma chave estrangeira não consegue verificar a gestão.
+
+CREATE TABLE demanda (
+    id            INTEGER AUTO_INCREMENT PRIMARY KEY,
+    titulo        VARCHAR(100) NOT NULL,
+    descricao     VARCHAR(500),
+    prioridade    VARCHAR(10)  NOT NULL DEFAULT 'MEDIA' CHECK (prioridade IN ('ALTA', 'MEDIA', 'BAIXA')),
+    situacao      VARCHAR(20)  NOT NULL DEFAULT 'ABERTA'
+                  CHECK (situacao IN ('ABERTA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA')),
+    prazo         DATE,
+    evento_id     INTEGER,
+    competicao_id INTEGER,
+    FOREIGN KEY (evento_id) REFERENCES evento (id) ON DELETE SET NULL,
+    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL
+);
+
+CREATE TABLE demanda_responsavel (
+    demanda_id INTEGER NOT NULL,
+    membro_id  INTEGER NOT NULL,
+    PRIMARY KEY (demanda_id, membro_id),
+    FOREIGN KEY (demanda_id) REFERENCES demanda (id) ON DELETE CASCADE,
+    FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_treino_data ON treino (data);

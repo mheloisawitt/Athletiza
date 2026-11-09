@@ -6,6 +6,7 @@ import br.com.athletiza.model.Atividade;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Compromisso;
 import br.com.athletiza.model.Evento;
+import br.com.athletiza.model.Perfil;
 import br.com.athletiza.model.Treino;
 import br.com.athletiza.util.Cores;
 import br.com.athletiza.util.Sessao;
@@ -134,7 +135,7 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         JLabel titulo = new JLabel("Calendário");
         titulo.setFont(Tema.fonteTitulo());
         JButton novo = Botoes.destaque("+ Compromisso", e -> novoCompromisso(diaSelecionado));
-        novo.setEnabled(podeAlterar());
+        novo.setEnabled(podeAlterarCompromissos());
 
         JPanel cabecalho = new JPanel(new BorderLayout());
         cabecalho.setOpaque(false);
@@ -193,7 +194,7 @@ public class PainelCalendario extends JPanel implements Recarregavel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 LocalDate dia = ((CelulaDia) e.getComponent()).getData();
-                if (e.getClickCount() == 2 && podeAlterar()) {
+                if (e.getClickCount() == 2 && podeAlterarCompromissos()) {
                     novoCompromisso(dia);
                 } else {
                     selecionarDia(dia);
@@ -353,16 +354,16 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         if (modoDia) {
             tituloLista.setText("Atividades de " + diaSelecionado.format(FORMATO_DIA));
             List<Atividade> doDia = new ArrayList<>(atividadesDoMes.getOrDefault(diaSelecionado, List.of()));
-            boolean alteravel = podeAlterar();
+            boolean alteravel = podeAlterarCompromissos();
             lista.mostrar(doDia, false, alteravel ? this::editarCompromisso : null,
-                    alteravel ? this::excluirCompromisso : null, alteravel ? this::abrir : null);
+                    alteravel ? this::excluirCompromisso : null, podeAbrirAtividades() ? this::abrir : null);
             return;
         }
         tituloLista.setText("Próximos eventos");
         Periodo periodo = (Periodo) comboPeriodo.getSelectedItem();
         try {
             lista.mostrar(controller.proximasAtividades(LocalDate.now(), periodo.dias), true, null, null,
-                    podeAlterar() ? this::abrir : null);
+                    podeAbrirAtividades() ? this::abrir : null);
         } catch (PersistenciaException e) {
             lista.mostrar(List.of(), true, null, null, null);
             Mensagens.erro(this, e);
@@ -403,6 +404,10 @@ public class PainelCalendario extends JPanel implements Recarregavel {
      * Ao salvar ou cancelar, o "Voltar" retorna ao calendário já atualizado.
      */
     private void abrir(Atividade atividade) {
+        if (!Sessao.getAcesso().podeAlterar(atividade)) {
+            Mensagens.aviso(this, "Seu perfil não permite editar esta atividade: ela é de outra área.");
+            return;
+        }
         try {
             Atividade completa = controller.carregarCompleta(atividade);
             if (completa instanceof Treino treino) {
@@ -419,17 +424,25 @@ public class PainelCalendario extends JPanel implements Recarregavel {
 
     /** Clique duplo na visão semanal: compromissos abrem o diálogo; o resto, a tela do módulo. */
     private void abrirOuEditar(Atividade atividade) {
-        if (!podeAlterar()) {
+        if (!podeAbrirAtividades()) {
             return;
         }
         if (atividade instanceof Compromisso compromisso) {
-            editarCompromisso(compromisso);
+            if (podeAlterarCompromissos()) {
+                editarCompromisso(compromisso);
+            }
         } else {
             abrir(atividade);
         }
     }
 
-    private static boolean podeAlterar() {
-        return Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados();
+    /** Compromissos (reuniões, agenda da gestão) são da presidência. */
+    private static boolean podeAlterarCompromissos() {
+        return Sessao.getAcesso().isAcessoTotal();
+    }
+
+    /** Diretores abrem as atividades da sua área para editar; assessores só consultam. */
+    private static boolean podeAbrirAtividades() {
+        return Sessao.getAcesso().getPerfil() != Perfil.ASSESSOR;
     }
 }

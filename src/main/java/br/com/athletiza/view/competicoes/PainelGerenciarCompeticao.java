@@ -9,6 +9,7 @@ import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Competicao;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.SituacaoAtleta;
 import br.com.athletiza.model.Tarefa;
 import br.com.athletiza.util.Cores;
@@ -21,7 +22,6 @@ import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelTarefas;
 import br.com.athletiza.view.componentes.Recarregavel;
 import br.com.athletiza.view.componentes.Renderizadores;
-import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -88,6 +89,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
                 controller.excluirTarefa(tarefa);
             }
         });
+        tarefas.definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.COMPETICOES));
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         add(criarCabecalho(), BorderLayout.NORTH);
@@ -138,10 +140,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
     }
 
     private JPanel criarCabecalho() {
-        JButton voltar = new JButton("‹ Voltar");
-        voltar.putClientProperty(FlatClientProperties.STYLE,
-                "buttonType:borderless; foreground:" + Cores.hex(Cores.TEXTO_SECUNDARIO) + "; margin:2,0,2,8");
-        voltar.addActionListener(e -> {
+        JButton voltar = Botoes.voltar(e -> {
             if (!alterado || Mensagens.confirmar(this, "Há inscrições não salvas. Deseja sair mesmo assim?")) {
                 navegador.voltar();
             }
@@ -151,6 +150,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         JPanel linha = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         linha.setOpaque(false);
         linha.add(voltar);
+        linha.add(Box.createHorizontalStrut(12));
         linha.add(titulo);
 
         String periodo = Validador.FORMATO_DATA.format(original.getData())
@@ -191,7 +191,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         colunas.add(cartao(tituloAtletas, tabelaAtletas));
 
         JButton salvar = Botoes.primario("Salvar inscrições", e -> salvar());
-        salvar.setEnabled(Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados());
+        salvar.setEnabled(Sessao.getAcesso().podeAlterar(Modulo.COMPETICOES));
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rodape.setOpaque(false);
         rodape.add(salvar);
@@ -209,7 +209,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         tabela.getTableHeader().setReorderingAllowed(false);
         Renderizadores.aplicarPadroes(tabela);
         tabela.getColumnModel().getColumn(0).setMaxWidth(46);
-        tabela.setEnabled(Sessao.getUsuarioLogado() == null || Sessao.podeAlterarDados());
+        tabela.setEnabled(Sessao.getAcesso().podeAlterar(Modulo.COMPETICOES));
     }
 
     private static JPanel cartao(JLabel titulo, JTable tabela) {

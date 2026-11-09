@@ -5,7 +5,9 @@ import br.com.athletiza.controller.ModalidadeController;
 import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Atleta;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.model.Situacao;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.componentes.Botoes;
 import br.com.athletiza.view.componentes.Combos;
 import br.com.athletiza.view.componentes.Mensagens;
@@ -61,6 +63,7 @@ public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
                 .coluna("Contato", String.class, Atleta::getContato)
                 .coluna("Situação", Situacao.class, Atleta::getSituacao));
         this.navegador = navegador;
+        definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.ATLETAS));
         larguraColuna(0, 220);
         larguraColuna(1, 100);
         larguraColuna(2, 220);
