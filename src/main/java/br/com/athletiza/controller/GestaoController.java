@@ -7,6 +7,7 @@ import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Cargo;
 import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.Membro;
+import br.com.athletiza.model.SituacaoGestao;
 import br.com.athletiza.util.Validador;
 import java.util.List;
 import java.util.Optional;
@@ -47,11 +48,35 @@ public class GestaoController {
         if (outras.stream().anyMatch(g -> g.getNome().equalsIgnoreCase(gestao.getNome().trim()))) {
             throw new RegraNegocioException("Já existe uma gestão chamada " + gestao.getNome() + ".");
         }
+        // RN08: só uma gestão "Em andamento", e tem que ser a mais recente; as outras são encerradas
+        List<Gestao> emAndamento = gestao.getSituacao() == SituacaoGestao.EM_ANDAMENTO
+                ? outras.stream().filter(g -> g.getSituacao() == SituacaoGestao.EM_ANDAMENTO).toList()
+                : List.of();
+        Optional<Gestao> maisRecente = emAndamento.stream()
+                .filter(g -> g.getDataInicio().isAfter(gestao.getDataInicio())).findFirst();
+        if (maisRecente.isPresent()) {
+            throw new RegraNegocioException("A " + maisRecente.get().getNome() + " é mais recente e está em andamento."
+                    + " Só a gestão mais recente pode ficar \"Em andamento\".");
+        }
         if (gestao.isNova()) {
             dao.inserir(gestao);
         } else {
             dao.atualizar(gestao);
         }
+        for (Gestao anterior : emAndamento) {
+            anterior.setSituacao(SituacaoGestao.ENCERRADA);
+            dao.atualizar(anterior);
+        }
+    }
+
+    /**
+     * Outras gestões que estão "Em andamento" e serão encerradas se esta for salva como
+     * "Em andamento" (RN08). Usado para pedir confirmação antes de salvar.
+     */
+    public List<Gestao> outrasEmAndamento(Gestao gestao) throws PersistenciaException {
+        return dao.listarTodos().stream()
+                .filter(g -> !g.getId().equals(gestao.getId()) && g.getSituacao() == SituacaoGestao.EM_ANDAMENTO)
+                .toList();
     }
 
     /** Quantos membros a gestão possui, para confirmar a exclusão (CH-18). */

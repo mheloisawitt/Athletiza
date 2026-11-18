@@ -1,18 +1,23 @@
 package br.com.athletiza.view.dashboard;
 
+import br.com.athletiza.controller.CalendarioController;
 import br.com.athletiza.controller.DashboardController;
 import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.DadosDashboard;
 import br.com.athletiza.model.DadosDashboard.Resumo;
 import br.com.athletiza.model.Frequencia;
 import br.com.athletiza.model.Indicador;
+import br.com.athletiza.model.Modulo;
 import br.com.athletiza.util.Cores;
+import br.com.athletiza.util.Sessao;
 import br.com.athletiza.view.Tema;
+import br.com.athletiza.view.calendario.ListaAtividades;
 import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Recarregavel;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -20,6 +25,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -85,8 +91,20 @@ public class PainelDashboard extends JPanel implements Recarregavel {
     private final Cartao cartaoDemandas = new Cartao("Quais setores estão com o maior número de demandas?",
             GraficoBarras.composto(Cores.AMARELO, "Em aberto", Cores.VERMELHO, "Atrasadas", ITENS_POR_GRAFICO));
 
-    public PainelDashboard() {
+    /** Quantos dias à frente o cartão "Próximas atividades" considera e quantas mostra no máximo. */
+    private static final int DIAS_PROXIMAS = 14;
+    private static final int MAXIMO_PROXIMAS = 6;
+
+    private final CalendarioController calendario = new CalendarioController();
+    private final ListaAtividades listaProximas = new ListaAtividades();
+
+    /** @param irPara abre um módulo do menu (usado ao clicar nos números do topo, RF44) */
+    public PainelDashboard(Consumer<Modulo> irPara) {
         super(new BorderLayout(0, 20));
+        numeroAtletas.aoClicar(Modulo.ATLETAS, irPara);
+        numeroTreinos.aoClicar(Modulo.TREINOS, irPara);
+        numeroPresenca.aoClicar(Modulo.TREINOS, irPara);
+        numeroDemandas.aoClicar(Modulo.DEMANDAS, irPara);
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
         filtroPeriodo.setSelectedItem(Periodo.ESTE_ANO);
         filtroPeriodo.addActionListener(e -> carregar());
@@ -105,6 +123,10 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         LocalDate hoje = LocalDate.now();
         try {
             mostrar(controller.carregar(((Periodo) filtroPeriodo.getSelectedItem()).inicio(hoje), hoje));
+            listaProximas.mostrar(calendario.proximasAtividades(hoje, DIAS_PROXIMAS).stream()
+                    .filter(Sessao.getAcesso()::ve)
+                    .limit(MAXIMO_PROXIMAS)
+                    .toList(), true, null, null, null);
         } catch (PersistenciaException e) {
             Mensagens.erro(this, e);
         }
@@ -185,15 +207,33 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         adicionar(corpo, c, cartaoTreinos, 0);
         adicionar(corpo, c, cartaoFrequencia, 1);
         c.gridy = 3;
-        c.gridx = 0;
-        c.gridwidth = 2;
-        c.insets = new Insets(0, 0, 0, 0);
-        corpo.add(cartaoDemandas, c);
+        adicionar(corpo, c, cartaoDemandas, 0);
+        adicionar(corpo, c, criarCartaoProximas(), 1);
 
         c.gridy = 4;
         c.weighty = 1;
         corpo.add(Box.createGlue(), c);
         return corpo;
+    }
+
+    /** Próximas atividades dos próximos dias (RF42), no mesmo estilo dos outros cartões. */
+    private JComponent criarCartaoProximas() {
+        JPanel cartao = new JPanel(new BorderLayout(0, 12));
+        cartao.putClientProperty(FlatClientProperties.STYLE, "arc:16; background:" + Cores.hex(Cores.FUNDO_CARTAO));
+        cartao.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
+        JLabel pergunta = new JLabel("Quais são as próximas atividades?");
+        pergunta.setFont(Tema.fonte(Font.BOLD, 14f));
+        JLabel periodo = new JLabel("Treinos, competições, eventos e compromissos dos próximos " + DIAS_PROXIMAS + " dias");
+        periodo.setForeground(Cores.TEXTO_SECUNDARIO);
+        JPanel topo = new JPanel();
+        topo.setOpaque(false);
+        topo.setLayout(new BoxLayout(topo, BoxLayout.Y_AXIS));
+        topo.add(pergunta);
+        topo.add(Box.createVerticalStrut(4));
+        topo.add(periodo);
+        cartao.add(topo, BorderLayout.NORTH);
+        cartao.add(listaProximas, BorderLayout.CENTER);
+        return cartao;
     }
 
     private static void adicionar(JPanel corpo, GridBagConstraints c, JComponent cartao, int coluna) {
@@ -265,6 +305,21 @@ public class PainelDashboard extends JPanel implements Recarregavel {
 
         void cor(Color cor) {
             valor.setForeground(cor);
+        }
+
+        /** Clicar no número abre o módulo correspondente, se o perfil tiver acesso a ele (RF44). */
+        void aoClicar(Modulo modulo, Consumer<Modulo> irPara) {
+            if (irPara == null || !Sessao.getAcesso().veModulo(modulo)) {
+                return;
+            }
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setToolTipText("Abrir " + modulo.getNome());
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    irPara.accept(modulo);
+                }
+            });
         }
     }
 

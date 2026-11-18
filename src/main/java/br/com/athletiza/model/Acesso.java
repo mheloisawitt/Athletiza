@@ -93,7 +93,8 @@ public final class Acesso {
         if (perfil != Perfil.ASSESSOR) {
             return true;
         }
-        return modulo == Modulo.INICIO || modulosDosSetores().contains(modulo);
+        // o assessor consulta as demandas para mudar a situação das que estão sob sua responsabilidade (RN36)
+        return modulo == Modulo.INICIO || modulo == Modulo.DEMANDAS || modulosDosSetores().contains(modulo);
     }
 
     /**

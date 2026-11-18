@@ -96,7 +96,8 @@ class AcessoTest {
         assertTrue(assessor.veModulo(Modulo.ATLETAS));
         assertTrue(assessor.veModulo(Modulo.EVENTOS));
         assertFalse(assessor.veModulo(Modulo.GESTAO));
-        assertFalse(assessor.veModulo(Modulo.DEMANDAS));
+        assertTrue(assessor.veModulo(Modulo.DEMANDAS));
+        assertFalse(assessor.podeAlterar(Modulo.DEMANDAS));
         assertFalse(assessor.veModulo(Modulo.DASHBOARD));
         assertFalse(assessor.podeAlterar(Modulo.ATLETAS));
         assertFalse(assessor.podeAlterar(jiudesc));

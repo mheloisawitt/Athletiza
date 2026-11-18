@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -57,10 +58,19 @@ public class PainelCadastroDemanda extends PainelFormulario {
         adicionarCampo("Demanda", titulo, true);
         adicionarCampo("Situação", situacao, true);
         adicionarCampo("Prioridade", prioridade, true);
-        adicionarCampo("Prazo", prazo, false);
+        adicionarCampo("Prazo", prazo, true);
         adicionarCampoLinhaInteira("Relacionada a evento ou competição", relacionada, false);
-        adicionarCampoLinhaInteira("Responsáveis (membros da gestão em andamento)", responsaveis, false);
+        adicionarCampoLinhaInteira("Responsáveis (membros da gestão em andamento)", responsaveis, true);
         adicionarCampoLinhaInteira("Descrição", areaTexto(descricao), false);
+        if (!demanda.isNova()) {
+            JLabel rotuloSolicitante = new JLabel(demanda.getNomeSolicitante().isEmpty()
+                    ? "Não registrado" : demanda.getNomeSolicitante());
+            adicionarCampo("Solicitante", rotuloSolicitante, false);
+        }
+        if (!controller.podeCancelar(demanda) && demanda.getSituacao() != SituacaoDemanda.CANCELADA) {
+            // só quem registrou a demanda, a presidência ou o administrador podem cancelá-la (RN40)
+            situacao.removeItem(SituacaoDemanda.CANCELADA);
+        }
 
         carregarOpcoes();
         preencher();

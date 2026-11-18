@@ -28,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.event.RowSorterEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableModel;
@@ -36,7 +37,10 @@ import javax.swing.table.TableStringConverter;
 
 /**
  * Painel base das telas de consulta (CH-03, CH-44): título, botões de ação,
- * campo de busca e JTable com ordenação ao clicar no cabeçalho.
+ * campo de busca e JTable com ordenação ao clicar no cabeçalho e paginação (RF13).
+ *
+ * A paginação vale sobre o resultado já buscado e ordenado: a página 1 mostra as
+ * primeiras linhas na ordem que o usuário escolheu, e a busca volta para a página 1.
  *
  * Cada tela de consulta estende esta classe e implementa apenas o que é
  * específico: de onde vêm os dados e o que fazer em cada botão.
@@ -52,7 +56,17 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
     protected final ModeloTabela<T> modelo;
     protected final JTable tabela;
+    /** Quantas linhas cada página da tabela mostra. */
+    public static final int LINHAS_POR_PAGINA = 15;
+
     private final TableRowSorter<ModeloTabela<T>> ordenador;
+    /** Mesma busca e ordenação da tabela, mas sem a paginação: define quais linhas caem em cada página. */
+    private final TableRowSorter<ModeloTabela<T>> ordemCompleta;
+    private int pagina;
+    private boolean sincronizando;
+    private final JLabel rotuloPaginacao = new JLabel();
+    private final JButton botaoAnterior = Botoes.contorno("‹", e -> irParaPagina(pagina - 1));
+    private final JButton botaoProxima = Botoes.contorno("›", e -> irParaPagina(pagina + 1));
     private final JTextField campoBusca = new JTextField(24);
     private final JPanel barraBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     private final JPanel barraFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -67,10 +81,22 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         this.modelo = modelo;
         this.tabela = new JTable(modelo);
         this.ordenador = new TableRowSorter<>(modelo);
+        this.ordemCompleta = new TableRowSorter<>(modelo);
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         add(criarCabecalho(titulo, acoes), BorderLayout.NORTH);
-        add(criarTabela(), BorderLayout.CENTER);
+        JPanel centro = new JPanel(new BorderLayout(0, 10));
+        centro.setOpaque(false);
+        centro.add(criarTabela(), BorderLayout.CENTER);
+        centro.add(criarPaginacao(), BorderLayout.SOUTH);
+        add(centro, BorderLayout.CENTER);
+        // registrado depois da JTable, este ouvinte roda antes do dela: a ordem completa já está
+        // atualizada quando a tabela refaz o filtro da página
+        modelo.addTableModelListener(e -> {
+            ordemCompleta.allRowsChanged();
+            aplicarPagina();
+        });
+        aplicarPagina();
         atualizarPermissoes();
     }
 
@@ -188,6 +214,62 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         ordenador.setSortKeys(null);
     }
 
+    /** Página atual (0 = primeira), para testes e telas que precisem dela. */
+    protected int getPagina() {
+        return pagina;
+    }
+
+    /** Total de páginas do resultado atual (no mínimo 1). */
+    protected int getTotalPaginas() {
+        int total = ordemCompleta.getViewRowCount();
+        return Math.max(1, (total + LINHAS_POR_PAGINA - 1) / LINHAS_POR_PAGINA);
+    }
+
+    private JPanel criarPaginacao() {
+        rotuloPaginacao.setForeground(Cores.TEXTO_SECUNDARIO);
+        botaoAnterior.setToolTipText("Página anterior");
+        botaoProxima.setToolTipText("Próxima página");
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        botoes.setOpaque(false);
+        botoes.add(botaoAnterior);
+        botoes.add(botaoProxima);
+        JPanel barra = new JPanel(new BorderLayout());
+        barra.setOpaque(false);
+        barra.add(rotuloPaginacao, BorderLayout.WEST);
+        barra.add(botoes, BorderLayout.EAST);
+        return barra;
+    }
+
+    private void irParaPagina(int nova) {
+        pagina = nova;
+        aplicarPagina();
+    }
+
+    /** Mostra só as linhas da página atual, na ordem e com a busca escolhidas pelo usuário. */
+    private void aplicarPagina() {
+        int total = ordemCompleta.getViewRowCount();
+        int paginas = getTotalPaginas();
+        pagina = Math.max(0, Math.min(pagina, paginas - 1));
+        int inicio = pagina * LINHAS_POR_PAGINA;
+        int fim = inicio + LINHAS_POR_PAGINA;
+        ordenador.setRowFilter(new RowFilter<ModeloTabela<T>, Integer>() {
+            @Override
+            public boolean include(Entry<? extends ModeloTabela<T>, ? extends Integer> linha) {
+                int indice = linha.getIdentifier();
+                if (indice >= ordemCompleta.getModelRowCount()) {
+                    return false;
+                }
+                int posicao = ordemCompleta.convertRowIndexToView(indice);
+                return posicao >= inicio && posicao < fim;
+            }
+        });
+        rotuloPaginacao.setText(total + " registro(s)" + (paginas > 1 ? " · página " + (pagina + 1) + " de " + paginas : ""));
+        botaoAnterior.setVisible(paginas > 1);
+        botaoProxima.setVisible(paginas > 1);
+        botaoAnterior.setEnabled(pagina > 0);
+        botaoProxima.setEnabled(pagina < paginas - 1);
+    }
+
     /** Ajusta a largura preferida de uma coluna. */
     protected void larguraColuna(int coluna, int largura) {
         tabela.getColumnModel().getColumn(coluna).setPreferredWidth(largura);
@@ -244,13 +326,28 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     }
 
     private JScrollPane criarTabela() {
-        ordenador.setStringConverter(new TableStringConverter() {
+        TableStringConverter conversor = new TableStringConverter() {
             @Override
             public String toString(TableModel modeloTabela, int linha, int coluna) {
                 return Renderizadores.formatar(modeloTabela.getValueAt(linha, coluna));
             }
-        });
+        };
+        ordenador.setStringConverter(conversor);
+        ordemCompleta.setStringConverter(conversor);
         tabela.setRowSorter(ordenador);
+        // clicar no cabeçalho ordena o resultado inteiro e volta para a primeira página
+        ordenador.addRowSorterListener(e -> {
+            if (e.getType() == RowSorterEvent.Type.SORT_ORDER_CHANGED && !sincronizando) {
+                sincronizando = true;
+                try {
+                    ordemCompleta.setSortKeys(ordenador.getSortKeys());
+                    pagina = 0;
+                    aplicarPagina();
+                } finally {
+                    sincronizando = false;
+                }
+            }
+        });
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabela.setFillsViewportHeight(true);
         tabela.getTableHeader().setReorderingAllowed(false);
@@ -322,6 +419,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
     private void filtrar() {
         String texto = campoBusca.getText().trim();
-        ordenador.setRowFilter(texto.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
+        ordemCompleta.setRowFilter(texto.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
+        pagina = 0;
+        aplicarPagina();
     }
 }

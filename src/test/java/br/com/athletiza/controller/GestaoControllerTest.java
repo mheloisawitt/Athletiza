@@ -64,6 +64,27 @@ class GestaoControllerTest {
     }
 
     @Test
+    void soUmaGestaoFicaEmAndamentoEAAnteriorEhEncerrada() throws Exception {
+        Gestao proxima = gestao("Gestão 2027-2028", LocalDate.of(2027, 1, 1), LocalDate.of(2027, 12, 31));
+        proxima.setSituacao(SituacaoGestao.EM_ANDAMENTO);
+        assertEquals(List.of("Gestão 2025-2026"),
+                controller.outrasEmAndamento(proxima).stream().map(Gestao::getNome).toList());
+
+        controller.salvar(proxima);
+
+        List<Gestao> gestoes = controller.listar();
+        assertEquals(SituacaoGestao.ENCERRADA, gestoes.get(3).getSituacao());
+        assertEquals(SituacaoGestao.EM_ANDAMENTO, gestoes.get(4).getSituacao());
+        assertEquals(1, gestoes.stream().filter(g -> g.getSituacao() == SituacaoGestao.EM_ANDAMENTO).count());
+
+        // uma gestão mais antiga não pode voltar a ficar "Em andamento"
+        Gestao antiga = gestoes.get(2);
+        antiga.setSituacao(SituacaoGestao.EM_ANDAMENTO);
+        RegraNegocioException erro = assertThrows(RegraNegocioException.class, () -> controller.salvar(antiga));
+        assertTrue(erro.getMessage().contains("Gestão 2027-2028"), erro.getMessage());
+    }
+
+    @Test
     void carregaComposicaoEMontaOrganogramaPorNivel() throws Exception {
         Gestao atual = atual();
 

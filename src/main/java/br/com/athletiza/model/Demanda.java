@@ -34,6 +34,8 @@ public class Demanda extends Entidade implements Comparable<Demanda> {
     /** Evento ou competição a que a demanda se refere (null = nenhum). */
     private Atividade relacionada;
     private final Set<Membro> responsaveis = new LinkedHashSet<>();
+    /** Usuário que registrou a demanda (RN38). Pode ser null em demandas criadas antes deste campo. */
+    private Usuario solicitante;
 
     public Demanda() {
     }
@@ -87,6 +89,24 @@ public class Demanda extends Entidade implements Comparable<Demanda> {
 
     public void setPrazo(LocalDate prazo) {
         this.prazo = prazo;
+    }
+
+    public Usuario getSolicitante() {
+        return solicitante;
+    }
+
+    public void setSolicitante(Usuario solicitante) {
+        this.solicitante = solicitante;
+    }
+
+    /** Nome de quem registrou a demanda, para a tabela ("" se não houver). */
+    public String getNomeSolicitante() {
+        return solicitante == null || solicitante.getNome() == null ? "" : solicitante.getNome();
+    }
+
+    /** Se o membro é um dos responsáveis pela demanda. */
+    public boolean isResponsavel(Membro membro) {
+        return membro != null && responsaveis.contains(membro);
     }
 
     public Atividade getRelacionada() {

@@ -285,8 +285,11 @@ CREATE TABLE demanda (
     prazo         DATE,
     evento_id     INTEGER,
     competicao_id INTEGER,
+    -- quem registrou a demanda (RN38). Só ele, a presidência e o administrador podem cancelá-la (RN40)
+    solicitante_id INTEGER,
     FOREIGN KEY (evento_id) REFERENCES evento (id) ON DELETE SET NULL,
-    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL
+    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL,
+    FOREIGN KEY (solicitante_id) REFERENCES usuario (id) ON DELETE SET NULL
 );
 
 CREATE TABLE demanda_responsavel (

@@ -160,6 +160,9 @@ INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id)
 INSERT INTO demanda (titulo, prioridade, situacao, prazo, competicao_id)
     SELECT 'Reservar ônibus para os atletas', 'ALTA', 'ABERTA', '2026-10-25', id FROM competicao WHERE titulo = 'JIUDESC 2026';
 
+-- Quem registrou as demandas: a presidente (usuária mariana)
+UPDATE demanda SET solicitante_id = (SELECT id FROM usuario WHERE login = 'mariana');
+
 -- Responsáveis: somente membros com cargo na gestão em andamento (Gestão 2025-2026)
 INSERT INTO demanda_responsavel (demanda_id, membro_id)
     SELECT d.id, m.id

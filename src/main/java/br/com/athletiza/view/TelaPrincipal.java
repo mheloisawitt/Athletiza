@@ -57,7 +57,7 @@ public class TelaPrincipal extends JFrame implements Navegador {
         // Cada perfil vê só os módulos a que tem acesso (RN19)
         Acesso acesso = Sessao.getAcesso();
         adicionarModulo(acesso, Modulo.INICIO, () -> new PainelCalendario(this));
-        adicionarModulo(acesso, Modulo.DASHBOARD, PainelDashboard::new);
+        adicionarModulo(acesso, Modulo.DASHBOARD, () -> new PainelDashboard(m -> menu.selecionar(m.getNome())));
         adicionarModulo(acesso, Modulo.GESTAO, () -> new PainelConsultaGestoes(this));
         adicionarModulo(acesso, Modulo.ATLETAS, () -> new PainelConsultaAtletas(this));
         adicionarModulo(acesso, Modulo.COMPETICOES, () -> new PainelConsultaCompeticoes(this));

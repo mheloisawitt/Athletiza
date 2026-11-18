@@ -15,7 +15,7 @@ gestão em andamento (o setor de cada cargo é definido em **Gestão → Cargos*
 | Administrador | Usuário marcado como administrador | Tudo, inclusive cadastrar usuários e liberar acessos |
 | Presidência | Presidente ou Vice-presidente | Inclui, edita e exclui em todos os módulos, menos usuários |
 | Diretor | Cargo que dirige um setor (ex.: Diretor de Esportes) | Consulta tudo, inclusive o calendário completo; inclui e edita só a área da sua diretoria |
-| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora |
+| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora. Em **Demandas**, vê as que estão sob sua responsabilidade e muda a situação delas |
 
 Área de cada diretoria: **Esportes** cuida de Atletas, Treinos, Competições e dos eventos do tipo
 Competição; **Eventos**, das festas e eventos "Outro"; **Ações sociais** e **Ações ambientais**, dos
@@ -29,7 +29,9 @@ Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (D
 ## Padrão das telas
 
 - **Consultas:** campo **Buscar** (filtra enquanto você digita), filtros ao lado, clique no título
-  de uma coluna para ordenar, clique duplo numa linha para editar.
+  de uma coluna para ordenar, clique duplo numa linha para editar. As tabelas mostram 15 registros por
+  página; use **‹** e **›** abaixo da tabela para trocar de página (a busca e a ordenação valem para todas
+  as páginas).
 - **Cadastros:** campos com `*` são obrigatórios. **Salvar** grava; **Cancelar** pede confirmação.
   Datas no formato `dd/mm/aaaa` e horários em `hh:mm`.
 - **Excluir** sempre pede confirmação. Se o registro tiver vínculos (ex.: atleta com presenças), o sistema
@@ -54,6 +56,9 @@ destaque (havendo empate no primeiro lugar, todos os empatados aparecem) e o gr�
 posições. Passe o mouse sobre uma barra para ver os detalhes.
 
 - **Topo:** atletas ativos, treinos e amistosos realizados, percentual de presença e demandas em aberto.
+  Clique num desses números para abrir o módulo correspondente (Atletas, Treinos ou Demandas).
+- **Quais são as próximas atividades?** Treinos, competições, eventos e compromissos dos próximos 14 dias
+  (até 6 itens).
 - **Qual modalidade tem mais atletas?** Atletas ativos em cada modalidade (vínculos inativos não contam).
 - **Qual modalidade tem mais atletas presentes nos treinos?** Total de presenças nas listas de presença.
   O detalhe mostra a média de presentes por treino e o percentual de presença.
@@ -73,7 +78,8 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 
 ## Gestão
 
-- **Gestões:** períodos não podem se sobrepor. **Gerenciar** mostra quem ocupa cada cargo, com
+- **Gestões:** períodos não podem se sobrepor e só uma gestão fica **Em andamento** (a mais recente). Ao
+  salvar uma gestão como "Em andamento", o sistema avisa e passa a anterior para "Encerrada". **Gerenciar** mostra quem ocupa cada cargo, com
   **Adicionar membro**, **Trocar membro** e **Remover**. **Organograma** desenha a hierarquia.
 - **Cargos:** nível 1 é o topo; cada cargo pode ser subordinado a um cargo de nível menor.
 - **Membros:** pessoas que ocupam cargos, organizam eventos e cuidam de tarefas.
@@ -115,8 +121,14 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 - **Relacionada a:** opcionalmente, ligue a demanda a um evento (festa, ação social, ação ambiental...) ou
   a uma competição. Deixe "Nenhum" para uma demanda avulsa.
 - **Responsáveis:** marque um ou mais membros da gestão em andamento (quem tem cargo nela, no módulo Gestão).
-  Filtre a consulta por situação ou por responsável.
-- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo.
+  Prazo e pelo menos um responsável são obrigatórios.
+- **Solicitante:** o sistema registra quem cadastrou a demanda e mostra na consulta.
+- Filtre a consulta por situação, por responsável ou marque **Minhas demandas** para ver só as que estão com você.
+- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo. As que passaram do
+  prazo sem serem concluídas mostram o prazo em vermelho, com "atrasada".
+- **Mudar situação:** os responsáveis pela demanda (inclusive assessores) e quem pode editá-la mudam só a
+  situação, sem abrir o cadastro.
+- **Cancelar ou excluir:** só quem registrou a demanda, a presidência e o administrador.
 
 ## Registros (fotos e vídeos)
 

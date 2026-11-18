@@ -26,9 +26,9 @@ import javax.swing.JPanel;
  * Lista de atividades em cartões, usada em "Próximos eventos" e nas
  * atividades do dia selecionado (CH-17).
  */
-class ListaAtividades extends JPanel {
+public class ListaAtividades extends JPanel {
 
-    ListaAtividades() {
+    public ListaAtividades() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setOpaque(false);
     }
@@ -39,7 +39,7 @@ class ListaAtividades extends JPanel {
      * @param excluir     ação de exclusão dos compromissos (null para não exibir os botões)
      * @param abrir       abre treinos, competições e eventos na tela de edição (null para não exibir)
      */
-    void mostrar(List<Atividade> atividades, boolean mostrarData, Consumer<Compromisso> editar,
+    public void mostrar(List<Atividade> atividades, boolean mostrarData, Consumer<Compromisso> editar,
             Consumer<Compromisso> excluir, Consumer<Atividade> abrir) {
         removeAll();
         if (atividades.isEmpty()) {

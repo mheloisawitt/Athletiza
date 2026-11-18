@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
+import br.com.athletiza.dao.UsuarioDAO;
 import br.com.athletiza.exception.RegraNegocioException;
 import br.com.athletiza.exception.ValidacaoException;
 import br.com.athletiza.model.Atividade;
@@ -17,12 +18,17 @@ import br.com.athletiza.model.Evento;
 import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.PrioridadeDemanda;
 import br.com.athletiza.model.SituacaoDemanda;
+import br.com.athletiza.model.Usuario;
+import br.com.athletiza.util.Sessao;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DemandaControllerTest {
+
+    private static final LocalDate PRAZO = LocalDate.of(2026, 12, 10);
 
     private final DemandaController controller = new DemandaController();
     private final MembroController membros = new MembroController();
@@ -30,6 +36,64 @@ class DemandaControllerTest {
     @BeforeEach
     void prepararBanco() throws Exception {
         BancoDeTeste.recriar();
+    }
+
+    @AfterEach
+    void sair() {
+        Sessao.encerrar();
+    }
+
+    @Test
+    void registraQuemSolicitouADemanda() throws Exception {
+        entrarComo("juliana");
+        Demanda uniformes = new Demanda("Buscar uniformes", PrioridadeDemanda.MEDIA, PRAZO);
+        uniformes.definirResponsaveis(List.of(membro("Juliana Martins")));
+        controller.salvar(uniformes);
+
+        assertEquals("Juliana Martins", buscar("Buscar uniformes").getNomeSolicitante());
+        assertEquals("Mariana Rocha", buscar("Reservar ônibus para os atletas").getNomeSolicitante());
+    }
+
+    @Test
+    void soQuemRegistrouAPresidenciaOuOAdministradorCancelam() throws Exception {
+        entrarComo("juliana");
+        Demanda onibus = buscar("Reservar ônibus para os atletas");
+
+        // a diretora de Esportes é responsável e pode editar, mas a demanda foi registrada pela presidente
+        assertFalse(controller.podeCancelar(onibus));
+        assertThrows(RegraNegocioException.class, () -> controller.excluir(onibus));
+        assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(onibus, SituacaoDemanda.CANCELADA));
+        onibus.setSituacao(SituacaoDemanda.CANCELADA);
+        assertThrows(RegraNegocioException.class, () -> controller.salvar(onibus));
+
+        controller.mudarSituacao(buscar("Reservar ônibus para os atletas"), SituacaoDemanda.CONCLUIDA);
+        assertEquals(SituacaoDemanda.CONCLUIDA, buscar("Reservar ônibus para os atletas").getSituacao());
+
+        entrarComo("mariana");
+        controller.mudarSituacao(buscar("Reservar ônibus para os atletas"), SituacaoDemanda.CANCELADA);
+        assertEquals(SituacaoDemanda.CANCELADA, buscar("Reservar ônibus para os atletas").getSituacao());
+    }
+
+    @Test
+    void assessorResponsavelSoMudaASituacao() throws Exception {
+        entrarComo("mariana");
+        Demanda bolas = new Demanda("Comprar bolas", PrioridadeDemanda.BAIXA, PRAZO);
+        bolas.definirResponsaveis(List.of(membro("Bruno Costa")));
+        controller.salvar(bolas);
+
+        entrarComo("bruno");
+        Demanda salva = buscar("Comprar bolas");
+        assertFalse(Sessao.getAcesso().podeAlterar(salva));
+        assertTrue(controller.podeMudarSituacao(salva));
+        controller.mudarSituacao(salva, SituacaoDemanda.EM_ANDAMENTO);
+        assertEquals(SituacaoDemanda.EM_ANDAMENTO, buscar("Comprar bolas").getSituacao());
+        assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(salva, SituacaoDemanda.CANCELADA));
+        assertEquals(List.of("Comprar bolas"), titulos(controller.pesquisar(null, controller.membroLogado().orElseThrow())));
+
+        // o diretor de Eventos não é responsável e a demanda não é da área dele
+        entrarComo("rafael");
+        assertFalse(controller.podeMudarSituacao(salva));
+        assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(salva, SituacaoDemanda.CONCLUIDA));
     }
 
     @Test
@@ -57,13 +121,14 @@ class DemandaControllerTest {
         Demanda invalida = new Demanda(" ", null, null);
         invalida.setSituacao(null);
 
+        // demanda, prioridade, situação, prazo e responsável (RN38)
         ValidacaoException erro = assertThrows(ValidacaoException.class, () -> controller.salvar(invalida));
-        assertEquals(3, erro.getErros().size(), erro.getMessage());
+        assertEquals(5, erro.getErros().size(), erro.getMessage());
     }
 
     @Test
     void incluiDemandaAvulsaEDepoisRelacionaATrocandoResponsaveis() throws Exception {
-        Demanda banner = new Demanda("Fazer banner novo", PrioridadeDemanda.BAIXA, null);
+        Demanda banner = new Demanda("Fazer banner novo", PrioridadeDemanda.BAIXA, PRAZO);
         banner.definirResponsaveis(List.of(membro("Lucas Pereira"), membro("Paula Ribeiro")));
         controller.salvar(banner);
 
@@ -90,7 +155,7 @@ class DemandaControllerTest {
         assertFalse(membros.listarDaGestaoEmAndamento().contains(semCargo));
         assertEquals(6, membros.listarDaGestaoEmAndamento().size());
 
-        Demanda demanda = new Demanda("Organizar o almoxarifado", PrioridadeDemanda.BAIXA, null);
+        Demanda demanda = new Demanda("Organizar o almoxarifado", PrioridadeDemanda.BAIXA, PRAZO);
         demanda.definirResponsaveis(List.of(membro("Paula Ribeiro"), semCargo));
 
         ValidacaoException erro = assertThrows(ValidacaoException.class, () -> controller.salvar(demanda));
@@ -135,6 +200,11 @@ class DemandaControllerTest {
 
     private Demanda buscar(String titulo) throws Exception {
         return controller.pesquisar(null, null).stream().filter(d -> d.getTitulo().equals(titulo)).findFirst().orElseThrow();
+    }
+
+    private static void entrarComo(String login) throws Exception {
+        Usuario usuario = new UsuarioDAO().buscarPorLogin(login).orElseThrow();
+        Sessao.iniciar(usuario, new AcessoController().calcular(usuario).orElseThrow());
     }
 
     private Membro membro(String nome) throws Exception {

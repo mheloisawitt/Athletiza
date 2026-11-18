@@ -9,6 +9,7 @@ import br.com.athletiza.model.Membro;
 import br.com.athletiza.model.PrioridadeDemanda;
 import br.com.athletiza.model.SituacaoDemanda;
 import br.com.athletiza.model.TipoEvento;
+import br.com.athletiza.model.Usuario;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,8 +26,10 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
 
     /** Demanda com o título e a data do evento ou da competição relacionada (se houver). */
     private static final String SELECT = "SELECT d.*, e.titulo AS evento_titulo, e.tipo_evento AS evento_tipo,"
-            + " e.data AS evento_data, c.titulo AS competicao_titulo, c.data AS competicao_data"
-            + " FROM demanda d LEFT JOIN evento e ON e.id = d.evento_id LEFT JOIN competicao c ON c.id = d.competicao_id";
+            + " e.data AS evento_data, c.titulo AS competicao_titulo, c.data AS competicao_data,"
+            + " u.nome AS solicitante_nome"
+            + " FROM demanda d LEFT JOIN evento e ON e.id = d.evento_id LEFT JOIN competicao c ON c.id = d.competicao_id"
+            + " LEFT JOIN usuario u ON u.id = d.solicitante_id";
 
     private static final String SELECT_RESPONSAVEIS = "SELECT dr.demanda_id, m.id AS membro_id, m.nome AS membro_nome,"
             + " m.matricula AS membro_matricula, m.contato AS membro_contato, m.situacao AS membro_situacao"
@@ -46,9 +49,10 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
     public void inserir(Demanda demanda) throws PersistenciaException {
         int id = emTransacao("incluir", con -> {
             int novoId = inserir(con, "INSERT INTO demanda (titulo, descricao, prioridade, situacao, prazo, evento_id,"
-                    + " competicao_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    + " competicao_id, solicitante_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     demanda.getTitulo(), demanda.getDescricao(), demanda.getPrioridade(), demanda.getSituacao(),
-                    demanda.getPrazo(), idEvento(demanda), idCompeticao(demanda));
+                    demanda.getPrazo(), idEvento(demanda), idCompeticao(demanda),
+                    demanda.getSolicitante() == null ? null : demanda.getSolicitante().getId());
             gravarResponsaveis(con, novoId, demanda);
             return novoId;
         });
@@ -66,6 +70,14 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
             gravarResponsaveis(con, demanda.getId(), demanda);
             return null;
         });
+    }
+
+    /**
+     * Grava só a nova situação (usado pelo botão "Mudar situação", que também é liberado
+     * ao responsável pela demanda, mesmo sem permissão para editar o resto).
+     */
+    public void atualizarSituacao(int id, SituacaoDemanda situacao) throws PersistenciaException {
+        executarAtualizacao("UPDATE demanda SET situacao = ? WHERE id = ?", situacao, id);
     }
 
     @Override
@@ -118,6 +130,12 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
         demanda.setDescricao(rs.getString("descricao"));
         demanda.setSituacao(lerEnum(rs, "situacao", SituacaoDemanda.class));
         demanda.setRelacionada(lerRelacionada(rs));
+        Integer solicitanteId = lerInteiro(rs, "solicitante_id");
+        if (solicitanteId != null) {
+            Usuario solicitante = new Usuario(rs.getString("solicitante_nome"), null);
+            solicitante.setId(solicitanteId);
+            demanda.setSolicitante(solicitante);
+        }
         return demanda;
     }
 

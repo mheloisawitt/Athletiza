@@ -120,3 +120,6 @@ INSERT INTO demanda_responsavel (demanda_id, membro_id)
              UNION ALL SELECT 'Divulgar a ação social', '201933') AS v,
          demanda d, membro m
     WHERE d.titulo = v.titulo AND m.matricula = v.matricula;
+
+-- Quem registrou as demandas: a presidente (usuária mariana)
+UPDATE demanda SET solicitante_id = (SELECT id FROM usuario WHERE login = 'mariana') WHERE solicitante_id IS NULL;

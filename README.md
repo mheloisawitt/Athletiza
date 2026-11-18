@@ -43,6 +43,9 @@ Para a apresentação:
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
    - [`03_dados_dashboard.sql`](src/main/resources/sql/03_dados_dashboard.sql) (opcional, uma vez só): mais atletas,
      treinos, presenças e demandas, para os gráficos do **Dashboard** terem o que mostrar
+   - [`04_atualizacao_requisitos.sql`](src/main/resources/sql/04_atualizacao_requisitos.sql): **só para quem já tinha
+     o banco criado** antes desta versão (acrescenta quem registrou cada demanda). Quem executa o `01_estrutura.sql`
+     de novo não precisa dele
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
    Esse arquivo não vai para o Git (cada integrante tem o seu).
 

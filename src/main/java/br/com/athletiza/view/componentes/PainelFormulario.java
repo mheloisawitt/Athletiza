@@ -61,6 +61,14 @@ public abstract class PainelFormulario extends JPanel {
      */
     protected abstract void salvar() throws AthletizaException;
 
+    /**
+     * Pergunta feita antes de salvar (ex.: avisar que outra gestão será encerrada).
+     * Retornar false cancela o salvamento sem mensagem de erro. Padrão: não pergunta nada.
+     */
+    protected boolean confirmarAntesDeSalvar() throws AthletizaException {
+        return true;
+    }
+
     /** Mensagem exibida após salvar com sucesso. */
     protected String getMensagemSucesso() {
         return "Registro salvo com sucesso.";
@@ -139,6 +147,9 @@ public abstract class PainelFormulario extends JPanel {
 
     private void confirmarSalvar() {
         try {
+            if (!confirmarAntesDeSalvar()) {
+                return;
+            }
             salvar();
             Mensagens.sucesso(this, getMensagemSucesso());
             navegador.voltar();
