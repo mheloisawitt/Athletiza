@@ -1,0 +1,20 @@
+graph G {
+  graph [rankdir=LR, splines=true, nodesep=0.8, ranksep=1.3, fontname="Helvetica", fontsize=16, labelloc=t, label=<<B>Colaboração 2 - Incluir atleta (JDBC)</B><BR/> >];
+  node [shape=box, style="rounded", fontname="Helvetica", fontsize=13, margin="0.25,0.12"];
+  edge [fontname="Helvetica", fontsize=11];
+  u [shape=plaintext, label=<<FONT POINT-SIZE="26">&#9786;</FONT><BR/>Usuário>];
+  v [shape=box, style="", label=<<U>:PainelCadastroAtleta</U>>];
+  at [shape=box, style="", label=<<U>atleta:Atleta</U>>];
+  c [shape=box, style="", label=<<U>:AtletaController</U>>];
+  val [shape=box, style="", label=<<U>:Validador</U>>];
+  d [shape=box, style="", label=<<U>:AtletaDAO</U>>];
+  cf [shape=box, style="", label=<<U>:ConnectionFactory</U>>];
+  m [shape=box, style="", label=<<U>:Mensagens</U>>];
+  u -- v [label=<&#8594; 1: salvar()<BR ALIGN="LEFT"/>>];
+  v -- at [label=<&#8594; 1.1: vincularModalidade(modalidade, situacao)<BR ALIGN="LEFT"/>>];
+  v -- c [label=<&#8594; 1.2: salvar(atleta)<BR ALIGN="LEFT"/>>];
+  c -- val [label=<&#8594; 1.2.1: obrigatorio(...).validar()<BR ALIGN="LEFT"/>>];
+  c -- d [label=<&#8594; 1.2.2: existeMatricula(matricula, id)<BR ALIGN="LEFT"/>&#8594; 1.2.3: inserir(atleta)<BR ALIGN="LEFT"/>>];
+  d -- cf [label=<&#8594; 1.2.3.1: getConnection()<BR ALIGN="LEFT"/>>];
+  v -- m [label=<&#8594; 1.3: sucesso(painel, "Atleta salvo")<BR ALIGN="LEFT"/>>];
+}

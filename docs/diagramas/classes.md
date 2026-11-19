@@ -181,7 +181,7 @@ classDiagram
     Pasta "1" o-- "*" Arquivo : contém
 ```
 
-`Acesso` reúne as regras de permissão (RN19): é calculado no login a partir do cargo do membro na
+`Acesso` reúne as regras de permissão (RN04, RN34 a RN37): é calculado no login a partir do cargo do membro na
 gestão em andamento (`Cargo.setor` e hierarquia) e consultado pelas telas via `Sessao.getAcesso()`.
 
 Enums do modelo: `Situacao`, `SituacaoAtleta`, `Genero`, `Perfil`, `Setor`, `Modulo`, `TipoAtividade`, `TipoEvento`,
@@ -224,7 +224,19 @@ classDiagram
     }
     class ConnectionFactory {
         +getConnection()$ Connection
+        +getPropriedades()$ Properties
         +testarConexao()$
+    }
+    class JPAUtil {
+        +getEntityManager()$ EntityManager
+        +fechar()$
+    }
+    class ModalidadeDAO {
+        +inserir(Modalidade)
+        +atualizar(Modalidade)
+        +excluir(int)
+        +listarTodos() List~Modalidade~
+        +possuiVinculos(int) boolean
     }
 
     GenericDAO <|.. AbstractDAO
@@ -232,7 +244,10 @@ classDiagram
     DAOBase ..> MapeadorLinha
     DAOBase ..> ConnectionFactory
     AbstractDAO <|-- AtletaDAO
-    AbstractDAO <|-- ModalidadeDAO
+    DAOBase <|-- ModalidadeDAO
+    GenericDAO <|.. ModalidadeDAO
+    ModalidadeDAO ..> JPAUtil : JPA
+    JPAUtil ..> ConnectionFactory
     AbstractDAO <|-- GestaoDAO
     AbstractDAO <|-- CargoDAO
     AbstractDAO <|-- MembroDAO
@@ -254,6 +269,10 @@ classDiagram
     AthletizaException <|-- PersistenciaException
     DAOBase ..> PersistenciaException : lança
 ```
+
+A persistência usa as duas APIs da disciplina: os DAOs que herdam de `AbstractDAO` usam **JDBC**
+(`PreparedStatement` e `ResultSet`), e o `ModalidadeDAO` usa **JPA** (Hibernate), com `Modalidade` mapeada como
+`@Entity` e o `EntityManager` criado pelo `JPAUtil` a partir do `META-INF/persistence.xml`.
 
 Cada controller (`AtletaController`, `GestaoController`, `CompeticaoController`, `TreinoController`,
 `EventoController`, `CalendarioController`, `LoginController`, `UsuarioController`, `GaleriaController`, ...) usa um ou mais DAOs

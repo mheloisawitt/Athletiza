@@ -9,6 +9,7 @@ import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
 import br.com.athletiza.model.Tarefa;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -157,7 +158,7 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
     }
 
     private static List<Integer> consultarIds(Connection con, int competicaoId) throws SQLException {
-        try (var ps = con.prepareStatement("SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
+        try (PreparedStatement ps = con.prepareStatement("SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
             ps.setInt(1, competicaoId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Integer> ids = new java.util.ArrayList<>();

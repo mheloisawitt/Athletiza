@@ -1,9 +1,9 @@
 # Diagramas de sequência (CH-48)
 
 Cada diagrama mostra **View → Controller → DAO → Banco**, com o fluxo principal e o fluxo de erro
-(bloco `alt`), como pede o CH-48. São 13 fluxos, para que cada integrante escolha pelo menos 2.
+(bloco `alt`), como pede o CH-48. São 13 fluxos.
 
-Para exportar como imagem para os slides: cole o código de um diagrama em <https://mermaid.live>
+Para exportar como imagem: cole o código de um diagrama em <https://mermaid.live>
 e use **Actions > PNG** (ou SVG).
 
 | # | Fluxo | Telas / classes principais |

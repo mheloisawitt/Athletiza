@@ -204,7 +204,7 @@ erDiagram
     pasta ||--o{ arquivo : contem
 ```
 
-## Regras de integridade (RN15, RN16)
+## Regras de integridade (RN14, RN32)
 
 | Situação | Regra |
 |---|---|

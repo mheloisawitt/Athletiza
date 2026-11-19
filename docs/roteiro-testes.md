@@ -1,7 +1,7 @@
 # Roteiro de testes por módulo (CH-49)
 
-Roteiro para conferir o sistema antes da entrega e da apresentação. Cada integrante executa os casos das telas
-que ficou responsável (ver [`telas-e-distribuicao.md`](telas-e-distribuicao.md)) e anota o resultado.
+Roteiro para conferir o sistema antes da entrega e da apresentação. Execute os casos de cada tela
+(ver [`telas-e-distribuicao.md`](telas-e-distribuicao.md)) e anote o resultado.
 Além deste roteiro manual, o projeto tem testes automatizados (`mvn test`, banco H2 em memória).
 
 ## Preparação
@@ -154,6 +154,6 @@ Casos marcados com ❌ são negativos: o sistema deve **recusar** a operação c
 
 ## Registro da execução
 
-| Data | Integrante | Casos executados | Falhas encontradas | Corrigido em (branch) |
+| Data | Responsável | Casos executados | Falhas encontradas | Corrigido em (branch) |
 |---|---|---|---|---|
 | | | | | |

@@ -49,6 +49,10 @@ public final class ConnectionFactory {
         }
     }
 
+    public static Properties getPropriedades() throws PersistenciaException {
+        return getConfiguracao();
+    }
+
     private static synchronized Properties getConfiguracao() throws PersistenciaException {
         if (configuracao == null) {
             configuracao = carregar();

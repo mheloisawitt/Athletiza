@@ -1,6 +1,6 @@
 # Athletiza
 
-Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC + MySQL) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
+Sistema de Gerenciamento de Atlética Acadêmica, desenvolvido em Java (Swing + MVC + DAO + JDBC + JPA + MySQL) para a disciplina **Desenvolvimento Orientado a Objetos II (DOO2)**.
 
 O sistema reúne em um só lugar o calendário, o dashboard com os indicadores, as gestões, os atletas, os treinos, as competições e os eventos da atlética.
 
@@ -8,20 +8,23 @@ O sistema reúne em um só lugar o calendário, o dashboard com os indicadores, 
 
 Em [`docs/requisitos`](docs/requisitos):
 
-- `Requisitos_Sistema_Gerenciamento_Atletica.docx`: requisitos funcionais (RF01-RF24) e não funcionais (RN01-RN20)
-- `Chamados_Sistema_Gerenciamento_Atletica.pdf`: plano de construção com 51 chamados (CH-01 a CH-51) em 11 épicos
-- `prototipo_telas.webp`: protótipo das telas
+- `Requisitos_Athletiza.pdf`: regras de negócio (RN01-RN42), requisitos funcionais (RF01-RF48) e não funcionais (RNF01-RNF10)
+- `Chamados_Athletiza.pdf`: plano de construção com 68 chamados, em dois blocos: plano original (CH-01 a CH-50) e
+  pedidos da cliente na 3ª reunião (CH-51 a CH-68)
+- `Prototipos_Athletiza.pdf`: protótipo das 30 telas
+- `Atas_Reunioes_Athletiza.pdf`: atas das quatro reuniões com a cliente
 
 Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras de integridade.
 
-Para a apresentação:
+Documentação técnica:
 
 - [`docs/manual.md`](docs/manual.md): manual de uso por módulo
 - [`docs/diagramas/classes.md`](docs/diagramas/classes.md): diagrama de classes (modelo, persistência e telas)
-- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência (2 ou mais por integrante)
-- [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG, prontos para os slides
+- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência
+- [`docs/diagramas/colaboracao.md`](docs/diagramas/colaboracao.md): 4 diagramas de colaboração
+- [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
-- [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e sugestão de divisão entre os integrantes
+- [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e da complexidade de cada uma
 - [`docs/prototipo/prototipo-telas.html`](docs/prototipo/prototipo-telas.html): protótipo navegável das 31 telas (abrir no navegador), com uma imagem de cada tela em [`docs/prototipo/telas`](docs/prototipo/telas)
 - [`docs/roteiro-testes.md`](docs/roteiro-testes.md): roteiro de testes manuais por módulo, para preencher
 
@@ -47,7 +50,7 @@ Para a apresentação:
      o banco criado** antes desta versão (acrescenta quem registrou cada demanda). Quem executa o `01_estrutura.sql`
      de novo não precisa dele
 3. Na raiz do projeto, copie `db.properties.example` para `db.properties` e coloque a senha do root do seu MySQL.
-   Esse arquivo não vai para o Git (cada integrante tem o seu).
+   Esse arquivo não vai para o Git (cada computador tem o seu).
 
 Pelo terminal, com o `mysql` no PATH: `mysql -u root -p < src/main/resources/sql/00_criar_banco.sql`, depois
 `mysql -u root -p athletiza < .../01_estrutura.sql` e o mesmo para o `02_dados_exemplo.sql` (e o `03`, se quiser).
@@ -122,7 +125,7 @@ Principais classes do modelo:
 | CH-04 | DER e scripts SQL | Concluído |
 | CH-05 | Conexão com o banco (JDBC) | Concluído |
 | CH-05 | Troca do PostgreSQL pelo MySQL 8.4 (scripts, driver, mensagens de erro e testes) | Concluído |
-| CH-06 | GenericDAO, AbstractDAO e DAO de exemplo (`ModalidadeDAO`) | Concluído |
+| CH-06 | GenericDAO, AbstractDAO (JDBC) e `ModalidadeDAO` com JPA | Concluído |
 | CH-07 | Hierarquia de pessoas | Concluído |
 | CH-08 | Hierarquia de atividades do calendário | Concluído |
 | CH-09 | Demais entidades com List, Map e Set e diagrama de classes | Concluído |
@@ -133,13 +136,13 @@ Principais classes do modelo:
 | CH-13 | Perfis de acesso (Usuários só para administradores; Consulta só visualiza) | Concluído |
 | CH-14 | Tela principal com menu lateral (CardLayout) e ícone em cada item | Concluído |
 | CH-46 | Mensagens padronizadas, tratamento global de erros e log em arquivo | Concluído |
-| CH-01 | Validar requisitos com a diretoria | Pendente (grupo) |
+| CH-01 | Validar requisitos com a diretoria | Concluído (atas das reuniões) |
 | CH-15 | Calendário mensal com atividades coloridas por tipo | Concluído |
 | CH-16 | Incluir, editar e excluir compromissos pelo calendário | Concluído |
 | CH-17 | Painel de próximos eventos (7, 15 ou 30 dias) | Concluído |
-| RF09 | Abrir treinos, competições e eventos a partir do calendário | Concluído |
-| RF10 | Visão do calendário por semana | Concluído |
-| RF24 | Alertas na tela inicial (tarefas atrasadas, presença pendente, competições próximas) | Concluído |
+| RF08 | Abrir treinos, competições e eventos a partir do calendário | Concluído |
+| Extra | Visão do calendário por semana | Concluído |
+| Extra | Alertas na tela inicial (tarefas atrasadas, presença pendente, competições próximas) | Concluído |
 | CH-24 | AtletaDAO (com transação), AtletaController e ModalidadeController | Concluído |
 | CH-25 | Consulta de atletas com filtros e ordenação por Comparator | Concluído |
 | CH-26 | Cadastro de atleta com várias modalidades e situação em cada uma | Concluído |
@@ -159,23 +162,23 @@ Principais classes do modelo:
 | CH-34 | Consulta de treinos com modalidades à esquerda e filtros de tipo e período | Concluído |
 | CH-35 | Cadastro de treino e amistoso com verificação de conflito de horário | Concluído |
 | CH-36 | Lista de presença salva em lote | Concluído |
-| CH-37 | Frequência por atleta com percentual e histórico de presença do atleta (RF13) | Concluído |
+| CH-37 | Frequência por atleta com percentual e histórico de presença do atleta (RF34) | Concluído |
 | CH-38 | EventoDAO e EventoController (responsáveis e tarefas) | Concluído |
 | CH-39 | Consulta de eventos com filtros de tipo e período e resumo de tarefas | Concluído |
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
-| RF19 | Tarefas também nas competições (painel de tarefas compartilhado) | Concluído |
-| RF01 | Cadastro de usuários e troca da própria senha | Concluído |
-| RN19 | Senha provisória com troca obrigatória no primeiro acesso | Concluído |
-| CH-47 | Lista de telas e distribuição entre os integrantes | Concluído (nomes a cargo do grupo) |
+| Extra | Tarefas também nas competições (painel de tarefas compartilhado) | Concluído |
+| RF41 | Cadastro de usuários e troca da própria senha | Concluído |
+| Extra | Senha provisória com troca obrigatória no primeiro acesso | Concluído |
+| CH-47 | Lista de telas exigidas pela disciplina | Concluído |
 | CH-48 | Diagramas de sequência (13 fluxos, em Mermaid e PNG) | Concluído |
-| CH-49 | Roteiro de testes por módulo | Concluído (execução a cargo do grupo) |
+| CH-49 | Roteiro de testes por módulo | Concluído |
 | CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
-| CH-51 | Matriz de requisitos técnicos para a apresentação | Concluído (slides a cargo do grupo) |
-| CH-42 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
-| CH-43 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
+| Extra | Matriz de requisitos técnicos | Concluído |
+| CH-60 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
+| CH-61 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
 | Dashboard | Indicadores: modalidades com mais atletas, presenças e treinos; atletas que menos participam; setores com mais demandas | Concluído |
-| CH-01 | Validar requisitos com a diretoria | Registros definido como galeria de fotos e vídeos |
+| CH-51 a CH-68 | Pedidos da cliente na 3ª reunião (identidade visual, perfis, Demandas, Dashboard, paginação e demais ajustes) | Concluído |
 
 ## Como criar uma tela nova
 
@@ -212,7 +215,7 @@ Os botões Salvar e Cancelar, as mensagens de erro e a volta para a consulta já
 - Antes de criar uma branch, verificar a última numeração usada e pegar a próxima
 - Toda branch nova sai da `main` atualizada; ao finalizar, ela é levada para a `main` e a próxima começa
 - Mensagens de commit começando pelo chamado: `CH-12: valida campos obrigatórios do login`
-- Ao concluir o chamado, abrir um Pull Request para a `main` e pedir revisão de outro integrante
+- Ao concluir o chamado, abrir um Pull Request para a `main`
 - Antes de começar a trabalhar, sempre atualizar: `Team > Remote > Pull`
 
 ## Paleta de cores
