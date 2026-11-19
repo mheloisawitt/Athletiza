@@ -17,34 +17,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Métodos auxiliares de JDBC compartilhados por todos os DAOs: execução de
- * comandos, consultas, leitura de colunas e tradução de erros.
- *
- * Todo SQLException é convertido em PersistenciaException com mensagem
- * compreensível; o erro técnico vai apenas para o log.
- */
 public abstract class DAOBase {
-
     private static final Logger LOG = Logger.getLogger(DAOBase.class.getName());
 
-    /** Tipos de erro do banco que viram mensagens específicas para o usuário. */
     enum Violacao { CHAVE_ESTRANGEIRA, UNICIDADE, CHECK, OUTRA }
 
-    /** Nome do que o DAO grava, com artigo, usado nas mensagens (ex.: "a modalidade"). */
     protected abstract String getNomeEntidade();
 
-    /**
-     * Operação com vários comandos que precisam dar certo juntos.
-     * Interface funcional: normalmente implementada com lambda.
-     */
     @FunctionalInterface
     protected interface Transacao<R> {
-
         R executar(Connection conexao) throws SQLException;
     }
 
-    /** Executa um INSERT e devolve o id gerado. */
     protected int executarInsercao(String sql, Object... parametros) throws PersistenciaException {
         try (Connection con = ConnectionFactory.getConnection()) {
             return inserir(con, sql, parametros);
@@ -53,7 +37,6 @@ public abstract class DAOBase {
         }
     }
 
-    /** Executa UPDATE ou DELETE e devolve a quantidade de linhas afetadas. */
     protected int executarAtualizacao(String sql, Object... parametros) throws PersistenciaException {
         try (Connection con = ConnectionFactory.getConnection()) {
             return atualizar(con, sql, parametros);
@@ -62,12 +45,6 @@ public abstract class DAOBase {
         }
     }
 
-    /**
-     * Executa vários comandos em uma única transação: ou todos são gravados,
-     * ou nenhum é (ex.: atleta e suas modalidades).
-     *
-     * @param operacao verbo usado na mensagem de erro (ex.: "salvar")
-     */
     protected <R> R emTransacao(String operacao, Transacao<R> transacao) throws PersistenciaException {
         try (Connection con = ConnectionFactory.getConnection()) {
             con.setAutoCommit(false);
@@ -84,7 +61,6 @@ public abstract class DAOBase {
         }
     }
 
-    /** INSERT usando uma conexão já aberta (dentro de uma transação). Devolve o id gerado. */
     protected static int inserir(Connection con, String sql, Object... parametros) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"})) {
             preencherParametros(ps, parametros);
@@ -98,7 +74,6 @@ public abstract class DAOBase {
         }
     }
 
-    /** UPDATE ou DELETE usando uma conexão já aberta (dentro de uma transação). */
     protected static int atualizar(Connection con, String sql, Object... parametros) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             preencherParametros(ps, parametros);
@@ -123,12 +98,10 @@ public abstract class DAOBase {
         }
     }
 
-    /** Verifica se a consulta (um SELECT COUNT) retorna valor maior que zero. */
     protected boolean existe(String sqlContagem, Object... parametros) throws PersistenciaException {
         return consultar(sqlContagem, rs -> rs.getInt(1), parametros).get(0) > 0;
     }
 
-    /** Converte o erro técnico em uma mensagem que o usuário entende. */
     protected PersistenciaException traduzir(SQLException e, String operacao) {
         LOG.log(Level.SEVERE, "Erro ao " + operacao + " " + getNomeEntidade(), e);
         String mensagem = switch (violacao(e)) {
@@ -142,11 +115,6 @@ public abstract class DAOBase {
         return new PersistenciaException(mensagem, e);
     }
 
-    /**
-     * Identifica o tipo do erro. O MySQL informa pelo código do erro
-     * (1062 duplicado, 1451/1452 chave estrangeira, 3819 check);
-     * o H2 dos testes, pelo SQLState padrão (23505, 23503, 23513).
-     */
     static Violacao violacao(SQLException e) {
         String estado = e.getSQLState() == null ? "" : e.getSQLState();
         return switch (e.getErrorCode()) {
@@ -179,8 +147,6 @@ public abstract class DAOBase {
             }
         }
     }
-
-    /* Leitura de colunas que podem ser nulas */
 
     protected static LocalDate lerData(ResultSet rs, String coluna) throws SQLException {
         Date data = rs.getDate(coluna);

@@ -7,11 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Acesso aos dados dos compromissos e ações do calendário (CH-16).
- */
 public class CompromissoDAO extends AbstractDAO<Compromisso> {
-
     @Override
     protected String getTabela() {
         return "compromisso";

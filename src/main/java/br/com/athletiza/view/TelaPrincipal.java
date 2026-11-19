@@ -33,13 +33,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-/**
- * Janela principal (CH-14): menu lateral à esquerda e a área central, que
- * troca de conteúdo com CardLayout, sem abrir janelas extras.
- */
 public class TelaPrincipal extends JFrame implements Navegador {
-
-    /** Módulos do menu, na ordem de exibição. Cada um é criado só quando aberto pela primeira vez. */
     private final Map<String, Supplier<JComponent>> modulos = new LinkedHashMap<>();
     private final Map<String, JComponent> modulosCriados = new HashMap<>();
 
@@ -47,14 +41,13 @@ public class TelaPrincipal extends JFrame implements Navegador {
     private final JPanel conteudo = new JPanel(cartoes);
     private final MenuLateral menu = new MenuLateral(this::mostrarModulo);
     private String moduloAtual;
-    /** Telas abertas sobre o módulo atual (ex.: consulta -> cadastro). "Voltar" retorna à anterior. */
+
     private final Deque<JComponent> telasAbertas = new ArrayDeque<>();
 
     public TelaPrincipal(Usuario usuario) {
         super("Athletiza - Sistema de Gerenciamento");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        // Cada perfil vê só os módulos a que tem acesso (RN19)
         Acesso acesso = Sessao.getAcesso();
         adicionarModulo(acesso, Modulo.INICIO, () -> new PainelCalendario(this));
         adicionarModulo(acesso, Modulo.DASHBOARD, () -> new PainelDashboard(m -> menu.selecionar(m.getNome())));

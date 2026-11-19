@@ -19,13 +19,7 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.swing.JComboBox;
 
-/**
- * Consulta dos eventos organizados pela atlética (CH-39), com filtro por tipo e período.
- * A coluna "Tarefas" resume o andamento e avisa sobre tarefas atrasadas.
- */
 public class PainelConsultaEventos extends PainelConsulta<Evento> {
-
-    /** Filtro de período. */
     private enum Periodo {
         TODOS("Todas as datas"), PROXIMOS("Próximos"), REALIZADOS("Já realizados");
 
@@ -78,7 +72,6 @@ public class PainelConsultaEventos extends PainelConsulta<Evento> {
                 .stream().filter(Sessao.getAcesso()::ve).toList();
     }
 
-    /** Cada diretor só altera os eventos do tipo da sua área (ex.: Esportes, os de competição). */
     @Override
     protected boolean podeAlterar(Evento evento) {
         return Sessao.getAcesso().podeAlterar(evento);

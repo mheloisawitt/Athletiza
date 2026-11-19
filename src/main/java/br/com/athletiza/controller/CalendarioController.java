@@ -24,11 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
-/**
- * Regras do calendário da tela inicial (CH-15 a CH-17).
- */
 public class CalendarioController {
-
     private final AtividadeDAO atividadeDAO;
     private final CompromissoDAO compromissoDAO;
     private final AlertaDAO alertaDAO = new AlertaDAO();
@@ -42,18 +38,10 @@ public class CalendarioController {
         this.compromissoDAO = compromissoDAO;
     }
 
-    /**
-     * Atividades do mês agrupadas por dia (CH-15). Uma competição de vários dias
-     * aparece em todos eles. As listas de cada dia vêm ordenadas por horário.
-     */
     public Map<LocalDate, List<Atividade>> atividadesDoMes(YearMonth mes) throws PersistenciaException {
         return atividadesDoPeriodo(mes.atDay(1), mes.atEndOfMonth());
     }
 
-    /**
-     * Atividades de um período qualquer (ex.: uma semana, RF10) agrupadas por dia,
-     * cada lista ordenada por horário.
-     */
     public Map<LocalDate, List<Atividade>> atividadesDoPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         Map<LocalDate, List<Atividade>> porDia = new TreeMap<>();
         for (Atividade atividade : atividadeDAO.listarPorPeriodo(inicio, fim)) {
@@ -67,27 +55,16 @@ public class CalendarioController {
         return porDia;
     }
 
-    /**
-     * Próximas atividades a partir de hoje, ordenadas por data e horário (CH-17).
-     * Competições em andamento também aparecem.
-     *
-     * @param dias quantos dias à frente considerar (ex.: 7, 15, 30)
-     */
     public List<Atividade> proximasAtividades(LocalDate hoje, int dias) throws PersistenciaException {
         return atividadeDAO.listarPorPeriodo(hoje, hoje.plusDays(dias)).stream()
                 .sorted()
                 .toList();
     }
 
-    /** Dias de antecedência para avisar sobre competições. */
     static final int DIAS_AVISO_COMPETICAO = 7;
-    /** Quantos dias para trás procurar treinos sem lista de presença. */
+
     static final int DIAS_PRESENCA_PENDENTE = 30;
 
-    /**
-     * Alertas da tela inicial (RF24): tarefas atrasadas, treinos sem presença
-     * registrada e competições da próxima semana, do mais urgente ao menos urgente.
-     */
     public List<Alerta> alertas(LocalDate hoje) throws PersistenciaException {
         List<Alerta> alertas = new ArrayList<>();
         alertas.addAll(alertaDAO.tarefasAtrasadas(hoje));
@@ -97,10 +74,6 @@ public class CalendarioController {
         return alertas;
     }
 
-    /**
-     * Lê a atividade completa do banco (o calendário carrega só o resumo), para
-     * abrir a tela de edição a partir do calendário (RF09).
-     */
     public Atividade carregarCompleta(Atividade atividade) throws PersistenciaException {
         Optional<? extends Atividade> completa;
         if (atividade instanceof Treino treino) {
@@ -115,7 +88,6 @@ public class CalendarioController {
         return completa.orElseThrow(() -> new PersistenciaException("Esta atividade não existe mais."));
     }
 
-    /** Inclui ou altera um compromisso (CH-16). */
     public void salvarCompromisso(Compromisso compromisso) throws ValidacaoException, PersistenciaException {
         new Validador()
                 .obrigatorio(compromisso.getTitulo(), "Título")

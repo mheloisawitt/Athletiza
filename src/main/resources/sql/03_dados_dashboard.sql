@@ -1,15 +1,7 @@
--- Athletiza - dados de exemplo extras para o Dashboard (opcional) - MySQL 8
--- Execute UMA VEZ, depois do 02_dados_exemplo.sql, com o banco athletiza selecionado.
--- Acrescenta atletas, treinos e amistosos de outras modalidades, listas de presença
--- e demandas com responsáveis de vários setores, para os gráficos do dashboard terem o que mostrar.
--- Para voltar ao início: execute de novo o 01_estrutura.sql e o 02_dados_exemplo.sql.
-
--- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
 /*!40101 SET NAMES utf8mb4 */;
 
 USE athletiza;
 
--- Atletas
 INSERT INTO atleta (nome, matricula, contato, data_nascimento) VALUES
     ('Gabriel Santos', '202201', 'gabriel.santos@email.com', '2004-03-14'),
     ('Henrique Dias', '202212', '(47) 98888-3001', '2003-07-02'),
@@ -33,7 +25,6 @@ INSERT INTO atleta_modalidade (atleta_id, modalidade_id, situacao)
          atleta a, modalidade m
     WHERE a.matricula = v.matricula AND m.nome = v.modalidade AND m.genero = v.genero;
 
--- Treinos e amistosos de outras modalidades (setembro a novembro/2026)
 INSERT INTO treino (tipo, titulo, data, horario, local, modalidade_id, responsavel_id, adversario)
     SELECT v.tipo, v.titulo, CAST(v.data AS DATE), CAST(v.horario AS TIME), v.local, m.id, r.id, v.adversario
     FROM (SELECT 'TREINO' AS tipo, 'Treino Vôlei (F)' AS titulo, '2026-09-15' AS data, '18:00' AS horario,
@@ -57,8 +48,6 @@ INSERT INTO treino (tipo, titulo, data, horario, local, modalidade_id, responsav
          AS v, modalidade m, membro r
     WHERE m.nome = v.modalidade AND m.genero = v.genero AND r.matricula = '201902';
 
--- Listas de presença dos treinos já realizados que ainda não têm lista.
--- Algumas faltas variam pelo número do treino; Carla e Henrique faltam mais, para aparecerem no gráfico.
 INSERT INTO presenca_treino (treino_id, atleta_id, presente)
     SELECT t.id, a.id,
            CASE WHEN a.matricula = '202190' THEN MOD(t.id, 3) = 0
@@ -70,7 +59,6 @@ INSERT INTO presenca_treino (treino_id, atleta_id, presente)
     WHERE t.data <= '2026-11-08'
       AND NOT EXISTS (SELECT 1 FROM presenca_treino p WHERE p.treino_id = t.id);
 
--- Mais membros na gestão atual
 INSERT INTO membro (nome, matricula, contato) VALUES
     ('Tiago Moreira', '202111', 'tiago.moreira@email.com');
 
@@ -79,7 +67,6 @@ INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id)
     FROM gestao g, membro m, cargo c
     WHERE g.nome = 'Gestão 2025-2026' AND m.matricula = '202111' AND c.nome = 'Secretário';
 
--- Demandas (as abertas e em andamento entram no gráfico de setores)
 INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id, competicao_id)
     SELECT v.titulo, v.prioridade, v.situacao, CAST(v.prazo AS DATE), e.id, c.id
     FROM (SELECT 'Inscrever atletas no Regional' AS titulo, 'ALTA' AS prioridade, 'EM_ANDAMENTO' AS situacao,
@@ -101,8 +88,6 @@ INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id, competicao_
     LEFT JOIN evento e ON e.titulo = v.evento
     LEFT JOIN competicao c ON c.titulo = v.competicao;
 
--- Responsáveis (membros com cargo na gestão em andamento). "Definir fotógrafo" fica sem
--- responsável e conta para Esportes, pela competição; "Organizar a sala" não tem setor.
 INSERT INTO demanda_responsavel (demanda_id, membro_id)
     SELECT d.id, m.id
     FROM (SELECT 'Inscrever atletas no Regional' AS titulo, '201902' AS matricula
@@ -121,5 +106,4 @@ INSERT INTO demanda_responsavel (demanda_id, membro_id)
          demanda d, membro m
     WHERE d.titulo = v.titulo AND m.matricula = v.matricula;
 
--- Quem registrou as demandas: a presidente (usuária mariana)
 UPDATE demanda SET solicitante_id = (SELECT id FROM usuario WHERE login = 'mariana') WHERE solicitante_id IS NULL;

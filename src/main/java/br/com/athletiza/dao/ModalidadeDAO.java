@@ -6,12 +6,7 @@ import br.com.athletiza.model.Modalidade;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Acesso aos dados das modalidades. Também serve de exemplo de DAO concreto
- * para os demais módulos (CH-06).
- */
 public class ModalidadeDAO extends AbstractDAO<Modalidade> {
-
     @Override
     protected String getTabela() {
         return "modalidade";
@@ -40,7 +35,6 @@ public class ModalidadeDAO extends AbstractDAO<Modalidade> {
                 modalidade.getNome(), modalidade.getGenero(), modalidade.getId());
     }
 
-    /** Indica se a modalidade possui atletas, treinos ou competições vinculados (CH-27). */
     public boolean possuiVinculos(int id) throws PersistenciaException {
         return existe("SELECT (SELECT COUNT(*) FROM atleta_modalidade WHERE modalidade_id = ?)"
                 + " + (SELECT COUNT(*) FROM treino WHERE modalidade_id = ?)"

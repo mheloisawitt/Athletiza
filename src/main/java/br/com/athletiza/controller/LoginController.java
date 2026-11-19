@@ -10,12 +10,7 @@ import br.com.athletiza.util.Senha;
 import br.com.athletiza.util.Sessao;
 import br.com.athletiza.util.Validador;
 
-/**
- * Autenticação de usuários (CH-12).
- */
 public class LoginController {
-
-    /** Mesma mensagem para login e senha errados, para não revelar quais logins existem. */
     static final String CREDENCIAIS_INVALIDAS = "Usuário ou senha inválidos.";
 
     private final UsuarioDAO usuarioDAO;
@@ -28,11 +23,6 @@ public class LoginController {
         this.usuarioDAO = usuarioDAO;
     }
 
-    /**
-     * Confere login e senha e, se estiverem corretos, inicia a sessão.
-     *
-     * @return o usuário autenticado
-     */
     public Usuario autenticar(String login, char[] senha)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador()

@@ -11,16 +11,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Guarda as fotos e vídeos da galeria em uma pasta do computador.
- *
- * Pasta padrão: Documentos/Athletiza-midias, na pasta do usuário (fora do projeto,
- * para as fotos e vídeos não irem para o Git).
- * Pode ser trocada com a propriedade de sistema "athletiza.midias"
- * (ex.: -Dathletiza.midias=D:/Atletica/midias).
- */
 public final class ArmazenamentoMidia {
-
     private static final Logger LOG = Logger.getLogger(ArmazenamentoMidia.class.getName());
 
     private ArmazenamentoMidia() {
@@ -33,11 +24,6 @@ public final class ArmazenamentoMidia {
                 : Path.of(System.getProperty("user.home"), "Documents", "Athletiza-midias");
     }
 
-    /**
-     * Copia o arquivo para a subpasta da pasta da galeria, com um nome único.
-     *
-     * @return caminho relativo à pasta raiz, para gravar no banco
-     */
     public static String copiar(Path origem, int pastaId) throws PersistenciaException {
         String relativo = "pasta-" + pastaId + "/" + UUID.randomUUID().toString().substring(0, 8) + "-"
                 + nomeSeguro(origem.getFileName().toString());
@@ -57,7 +43,6 @@ public final class ArmazenamentoMidia {
         return getPastaRaiz().resolve(caminhoRelativo).normalize();
     }
 
-    /** Apaga o arquivo do disco. Falhas só vão para o log: o registro no banco já foi removido. */
     public static void apagar(String caminhoRelativo) {
         try {
             Files.deleteIfExists(resolver(caminhoRelativo));
@@ -66,7 +51,6 @@ public final class ArmazenamentoMidia {
         }
     }
 
-    /** Remove acentos, espaços e caracteres especiais do nome do arquivo. */
     static String nomeSeguro(String nome) {
         String semAcento = Normalizer.normalize(nome, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         String seguro = semAcento.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]+", "-").replaceAll("-{2,}", "-");

@@ -2,15 +2,7 @@ package br.com.athletiza.model;
 
 import java.util.Objects;
 
-/**
- * Usuário que acessa o sistema (RF01). A senha nunca é guardada em texto
- * puro, apenas o hash.
- *
- * O administrador tem acesso total. Os demais usuários são ligados a um membro:
- * o que podem fazer vem do cargo dele na gestão em andamento (ver Acesso).
- */
 public class Usuario extends Pessoa {
-
     private String login;
     private String senhaHash;
     private boolean administrador;
@@ -50,7 +42,6 @@ public class Usuario extends Pessoa {
         this.administrador = administrador;
     }
 
-    /** Membro da atlética que usa este login (null = nenhum; obrigatório para quem não é administrador). */
     public Membro getMembro() {
         return membro;
     }
@@ -67,7 +58,6 @@ public class Usuario extends Pessoa {
         this.ativo = ativo;
     }
 
-    /** Senha provisória: o usuário precisa trocá-la no próximo acesso. */
     public boolean isDeveTrocarSenha() {
         return deveTrocarSenha;
     }
@@ -76,7 +66,6 @@ public class Usuario extends Pessoa {
         this.deveTrocarSenha = deveTrocarSenha;
     }
 
-    /** Usuários são identificados pelo login, não pela matrícula. */
     @Override
     public boolean equals(Object o) {
         if (this == o) {

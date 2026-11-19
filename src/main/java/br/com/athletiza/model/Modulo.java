@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Módulos do sistema, na ordem do menu lateral.
- */
 public enum Modulo {
-
     INICIO("Início"),
     DASHBOARD("Dashboard"),
     GESTAO("Gestão"),
@@ -22,7 +18,6 @@ public enum Modulo {
         this.nome = nome;
     }
 
-    /** Nome exibido no menu. */
     public String getNome() {
         return nome;
     }

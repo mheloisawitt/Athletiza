@@ -4,11 +4,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * Tipos de arquivo aceitos na galeria de registros, com suas extensões.
- */
 public enum TipoArquivo {
-
     IMAGEM("Imagem", Set.of("jpg", "jpeg", "png", "gif", "bmp")),
     VIDEO("Vídeo", Set.of("mp4", "mov", "avi", "mkv", "webm", "wmv"));
 
@@ -28,7 +24,6 @@ public enum TipoArquivo {
         return extensoes;
     }
 
-    /** Descobre o tipo pela extensão do nome do arquivo (vazio se não for aceito). */
     public static Optional<TipoArquivo> doArquivo(String nomeArquivo) {
         int ponto = nomeArquivo == null ? -1 : nomeArquivo.lastIndexOf('.');
         if (ponto < 0) {

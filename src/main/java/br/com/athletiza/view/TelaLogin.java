@@ -34,11 +34,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 
-/**
- * Tela de login (CH-12). Enter no campo de senha ou o botão Entrar disparam a autenticação.
- */
 public class TelaLogin extends JFrame {
-
     private static final Preferences PREFERENCIAS = Preferences.userNodeForPackage(TelaLogin.class);
     private static final String ULTIMO_LOGIN = "ultimoLogin";
 
@@ -157,9 +153,7 @@ public class TelaLogin extends JFrame {
         }
     }
 
-    /** Lado esquerdo da tela: fundo com arranhões de lobo, escudo da atlética, nome e subtítulo. */
     private static class PainelMarca extends JPanel {
-
         PainelMarca() {
             setLayout(new GridBagLayout());
             JLabel nome = new JLabel("ATHLETIZA");
@@ -210,10 +204,6 @@ public class TelaLogin extends JFrame {
             super.paintComponent(g);
         }
 
-        /**
-         * Três arranhões de garra em diagonal: cada um é fino nas pontas, largo no meio e levemente
-         * curvo, com um brilho suave por baixo, como um rasgo feito pelo lobo.
-         */
         private static void desenharArranhoes(Graphics2D g2, int x, int y, Color cor, int alfa) {
             int[] comprimentos = {205, 240, 190};
             for (int i = 0; i < 3; i++) {
@@ -234,7 +224,7 @@ public class TelaLogin extends JFrame {
             double tamanho = Math.hypot(dx, dy);
             double nx = -dy / tamanho;
             double ny = dx / tamanho;
-            // ponto de controle deslocado para dar a curvatura do golpe
+
             double cx = (x0 + x1) / 2 + nx * tamanho * 0.08;
             double cy = (y0 + y1) / 2 + ny * tamanho * 0.08;
             Path2D.Double forma = new Path2D.Double();

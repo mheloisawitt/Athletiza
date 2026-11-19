@@ -3,12 +3,7 @@ package br.com.athletiza.model;
 import java.time.LocalDate;
 import java.util.Comparator;
 
-/**
- * Tarefa ligada a um evento ou competição, com responsável e prazo (RF19).
- * Ordem natural: pelo prazo.
- */
 public class Tarefa extends Entidade implements Comparable<Tarefa> {
-
     private static final Comparator<Tarefa> POR_PRAZO = Comparator.comparing(Tarefa::getPrazo,
             Comparator.nullsLast(Comparator.naturalOrder()));
 
@@ -26,7 +21,6 @@ public class Tarefa extends Entidade implements Comparable<Tarefa> {
         this.prazo = prazo;
     }
 
-    /** Tarefa não concluída com prazo anterior à data informada (CH-41). */
     public boolean isAtrasada(LocalDate hoje) {
         return situacao != SituacaoTarefa.CONCLUIDA && prazo != null && prazo.isBefore(hoje);
     }

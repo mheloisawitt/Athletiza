@@ -1,19 +1,10 @@
--- Athletiza - dados de exemplo (baseados no protótipo das telas) - MySQL 8
--- Execute depois do 01_estrutura.sql. O USE abaixo seleciona o banco athletiza.
--- Os relacionamentos usam subconsultas (em vez de ids fixos) para funcionar em qualquer banco recém-criado.
-
--- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
 /*!40101 SET NAMES utf8mb4 */;
 
 USE athletiza;
 
--- Usuário administrador inicial: login "admin", senha "admin123".
--- A senha é provisória: o sistema exige a troca no primeiro acesso.
--- O hash foi gerado com: java -cp target/classes br.com.athletiza.util.Senha admin123
 INSERT INTO usuario (nome, login, senha_hash, administrador, deve_trocar_senha) VALUES
     ('Administrador', 'admin', 'pbkdf2$120000$Ldd7cZo0DiIlLjcaDg7IQA==$5P2ymAUQH3VcPGeVFtv9FO2dlfMmNCUjABieDm9OjSY=', TRUE, TRUE);
 
--- Modalidades
 INSERT INTO modalidade (nome, genero) VALUES
     ('Futsal', 'MASCULINO'), ('Futsal', 'FEMININO'),
     ('Vôlei', 'MASCULINO'), ('Vôlei', 'FEMININO'),
@@ -21,14 +12,12 @@ INSERT INTO modalidade (nome, genero) VALUES
     ('Handebol', 'MASCULINO'), ('Handebol', 'FEMININO'),
     ('Basquete', 'MASCULINO'), ('Basquete', 'FEMININO');
 
--- Gestões
 INSERT INTO gestao (nome, data_inicio, data_fim, situacao) VALUES
     ('Gestão 2020-2021', '2020-03-01', '2021-02-28', 'ENCERRADA'),
     ('Gestão 2022-2023', '2022-03-01', '2023-02-28', 'ENCERRADA'),
     ('Gestão 2023-2024', '2023-03-01', '2024-02-29', 'ENCERRADA'),
     ('Gestão 2025-2026', '2025-03-01', '2026-12-31', 'EM_ANDAMENTO');
 
--- Cargos (ordem = nível no organograma; setor = acesso ao sistema de quem ocupa o cargo)
 INSERT INTO cargo (nome, ordem, setor) VALUES ('Presidente', 1, 'PRESIDENCIA');
 INSERT INTO cargo (nome, ordem, setor, cargo_superior_id)
     SELECT 'Vice-presidente', 2, 'PRESIDENCIA', id FROM cargo WHERE nome = 'Presidente';
@@ -40,11 +29,10 @@ INSERT INTO cargo (nome, ordem, setor, cargo_superior_id)
              UNION ALL SELECT 'Secretário', 'SECRETARIA') AS c,
          cargo p
     WHERE p.nome = 'Vice-presidente';
--- Subordinado ao Diretor de Esportes e do mesmo setor: é assessor de Esportes
+
 INSERT INTO cargo (nome, ordem, setor, cargo_superior_id)
     SELECT 'Coordenador de Modalidade', 4, 'ESPORTES', id FROM cargo WHERE nome = 'Diretor de Esportes';
 
--- Membros
 INSERT INTO membro (nome, matricula, contato) VALUES
     ('Mariana Rocha', '201801', 'mariana.rocha@email.com'),
     ('Lucas Pereira', '201845', '(47) 99999-1001'),
@@ -64,7 +52,6 @@ INSERT INTO gestao_membro_cargo (gestao_id, membro_id, cargo_id)
          gestao g, membro m, cargo c
     WHERE g.nome = 'Gestão 2025-2026' AND m.matricula = v.matricula AND c.nome = v.cargo;
 
--- Usuários de exemplo, um de cada perfil (senha "athletiza"). O perfil vem do cargo na gestão em andamento.
 INSERT INTO usuario (nome, matricula, login, senha_hash, membro_id)
     SELECT m.nome, m.matricula, v.login, 'pbkdf2$120000$BU/kNNz8vIHtNWaxrAtuRQ==$KaIvcqN1E4L+se+OTjQ4JCSgnVAAJEBKC2tfNXvLL5U=', m.id
     FROM (SELECT '201801' AS matricula, 'mariana' AS login
@@ -74,7 +61,6 @@ INSERT INTO usuario (nome, matricula, login, senha_hash, membro_id)
          membro m
     WHERE m.matricula = v.matricula;
 
--- Atletas
 INSERT INTO atleta (nome, matricula, contato, data_nascimento) VALUES
     ('Ana Souza', '202001', 'ana.souza@email.com', '2003-05-12'),
     ('Beatriz Lima', '202034', '(47) 98888-2001', '2002-11-03'),
@@ -97,7 +83,6 @@ INSERT INTO atleta_modalidade (atleta_id, modalidade_id, situacao)
          atleta a, modalidade m
     WHERE a.matricula = v.matricula AND m.nome = v.modalidade AND m.genero = v.genero;
 
--- Treinos e amistosos (Futsal Feminino, outubro/2026)
 INSERT INTO treino (tipo, titulo, data, horario, local, modalidade_id, responsavel_id, adversario)
     SELECT v.tipo, v.titulo, CAST(v.data AS DATE), CAST(v.horario AS TIME), v.local, m.id, r.id, v.adversario
     FROM (SELECT 'TREINO' AS tipo, 'Treino Futsal (F)' AS titulo, '2026-10-01' AS data, '19:00' AS horario, 'Quadra 1' AS local, NULL AS adversario
@@ -113,7 +98,6 @@ INSERT INTO presenca_treino (treino_id, atleta_id, presente)
     FROM treino t, atleta a
     WHERE t.data = '2026-10-01' AND a.matricula IN ('202001', '202102', '202190', '202034');
 
--- Competições
 INSERT INTO competicao (titulo, data, data_fim, local, situacao) VALUES
     ('JIUDESC 2026', '2026-10-30', '2026-11-02', 'Blumenau', 'CONFIRMADA'),
     ('Campeonato Regional', '2026-11-15', NULL, 'Rio do Sul', 'CONFIRMADA'),
@@ -131,7 +115,6 @@ INSERT INTO competicao_atleta (competicao_id, modalidade_id, atleta_id)
     FROM competicao_modalidade cm
     JOIN atleta_modalidade am ON am.modalidade_id = cm.modalidade_id;
 
--- Eventos
 INSERT INTO evento (titulo, tipo_evento, data, horario, local, situacao) VALUES
     ('Festa Atlética', 'FESTA', '2026-10-12', '20:00', 'Ibirama', 'CONFIRMADO'),
     ('Ação Social', 'ACAO_SOCIAL', '2026-10-21', '19:00', 'Ibirama', 'CONFIRMADO'),
@@ -150,7 +133,6 @@ INSERT INTO tarefa (evento_id, descricao, responsavel_id, prazo, situacao)
          evento e, membro m
     WHERE e.titulo = 'Festa Atlética' AND m.matricula = v.matricula;
 
--- Demandas (a primeira sem relação, as outras ligadas a um evento ou a uma competição)
 INSERT INTO demanda (titulo, descricao, prioridade, situacao, prazo) VALUES
     ('Renovar o estoque de camisetas', 'Orçar com dois fornecedores antes de comprar.', 'MEDIA', 'ABERTA', '2026-11-10');
 
@@ -160,10 +142,8 @@ INSERT INTO demanda (titulo, prioridade, situacao, prazo, evento_id)
 INSERT INTO demanda (titulo, prioridade, situacao, prazo, competicao_id)
     SELECT 'Reservar ônibus para os atletas', 'ALTA', 'ABERTA', '2026-10-25', id FROM competicao WHERE titulo = 'JIUDESC 2026';
 
--- Quem registrou as demandas: a presidente (usuária mariana)
 UPDATE demanda SET solicitante_id = (SELECT id FROM usuario WHERE login = 'mariana');
 
--- Responsáveis: somente membros com cargo na gestão em andamento (Gestão 2025-2026)
 INSERT INTO demanda_responsavel (demanda_id, membro_id)
     SELECT d.id, m.id
     FROM (SELECT 'Renovar o estoque de camisetas' AS titulo, '202010' AS matricula
@@ -175,9 +155,7 @@ INSERT INTO demanda_responsavel (demanda_id, membro_id)
       AND EXISTS (SELECT 1 FROM gestao_membro_cargo gmc JOIN gestao g ON g.id = gmc.gestao_id
                   WHERE gmc.membro_id = m.id AND g.situacao = 'EM_ANDAMENTO');
 
--- Compromissos
 INSERT INTO compromisso (titulo, data, horario, local) VALUES
     ('Reunião Gestão', '2026-10-08', '14:00', 'Sala da atlética');
 
--- Pastas da galeria de registros (os arquivos são adicionados pelo sistema)
 INSERT INTO pasta (nome) VALUES ('Festas'), ('Ações Sociais'), ('Competições'), ('Treinos'), ('Outros');

@@ -3,11 +3,7 @@ package br.com.athletiza.util;
 import br.com.athletiza.model.Acesso;
 import br.com.athletiza.model.Usuario;
 
-/**
- * Guarda o usuário logado e o que ele pode fazer durante o uso do sistema.
- */
 public final class Sessao {
-
     private static Usuario usuarioLogado;
     private static Acesso acesso;
 
@@ -28,15 +24,10 @@ public final class Sessao {
         acesso = null;
     }
 
-    /**
-     * O que o usuário logado pode ver e alterar (RN19). Sem ninguém logado (telas abertas
-     * direto pelo NetBeans, durante o desenvolvimento), o acesso é total.
-     */
     public static Acesso getAcesso() {
         return acesso == null ? Acesso.administrador() : acesso;
     }
 
-    /** Indica se o usuário logado pode cadastrar outros usuários (somente administradores). */
     public static boolean podeGerenciarUsuarios() {
         return usuarioLogado != null && getAcesso().podeGerenciarUsuarios();
     }

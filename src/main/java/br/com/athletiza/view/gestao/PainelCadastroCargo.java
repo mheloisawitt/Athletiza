@@ -18,12 +18,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
-/**
- * Cadastro e edição de cargo: nome, nível no organograma, cargo superior (CH-18)
- * e setor, que define o acesso ao sistema de quem o ocupa (RN19).
- */
 public class PainelCadastroCargo extends PainelFormulario {
-
     private final Cargo cargo;
     private final CargoController controller = new CargoController();
     private final JTextField nome = new JTextField();

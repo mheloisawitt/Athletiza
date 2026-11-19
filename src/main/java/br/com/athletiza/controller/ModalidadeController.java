@@ -8,11 +8,7 @@ import br.com.athletiza.model.Modalidade;
 import br.com.athletiza.util.Validador;
 import java.util.List;
 
-/**
- * Cadastro das modalidades esportivas (CH-27).
- */
 public class ModalidadeController {
-
     private final ModalidadeDAO dao = new ModalidadeDAO();
 
     public List<Modalidade> listar() throws PersistenciaException {
@@ -38,7 +34,6 @@ public class ModalidadeController {
         }
     }
 
-    /** Só exclui modalidades sem atletas, treinos ou competições vinculados. */
     public void excluir(Modalidade modalidade) throws RegraNegocioException, PersistenciaException {
         if (dao.possuiVinculos(modalidade.getId())) {
             throw new RegraNegocioException("Não é possível excluir a modalidade " + modalidade

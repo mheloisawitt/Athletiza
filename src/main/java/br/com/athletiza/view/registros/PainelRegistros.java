@@ -56,13 +56,7 @@ import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-/**
- * Registros (CH-42, CH-43): galeria de fotos e vídeos da atlética organizada em pastas.
- * Pastas à esquerda; miniaturas da pasta selecionada à direita.
- */
 public class PainelRegistros extends JPanel implements Recarregavel {
-
-    /** Miniaturas já geradas, para não ler as imagens do disco a cada atualização. */
     private static final Map<String, Image> MINIATURAS = new ConcurrentHashMap<>();
 
     private final GaleriaController controller = new GaleriaController();
@@ -72,7 +66,7 @@ public class PainelRegistros extends JPanel implements Recarregavel {
     private final JPanel grade = new JPanel();
     private final JScrollPane rolagemGrade = new JScrollPane();
     private final List<CartaoArquivo> cartoes = new ArrayList<>();
-    /** A galeria é organizada pela presidência; os demais perfis só consultam. */
+
     private final boolean podeAlterar = Sessao.getAcesso().isAcessoTotal();
     private CartaoArquivo selecionado;
     private boolean atualizandoPastas;
@@ -274,7 +268,6 @@ public class PainelRegistros extends JPanel implements Recarregavel {
         return cartao;
     }
 
-    /** Distribui os cartões em quantas colunas couberem na largura disponível. */
     private void organizarGrade() {
         grade.removeAll();
         if (cartoes.isEmpty()) {
@@ -303,7 +296,6 @@ public class PainelRegistros extends JPanel implements Recarregavel {
         grade.repaint();
     }
 
-    /** Lê as imagens em segundo plano e mostra as miniaturas conforme ficam prontas. */
     private void gerarMiniaturas() {
         List<CartaoArquivo> pendentes = cartoes.stream()
                 .filter(c -> c.getArquivo().isImagem() && !MINIATURAS.containsKey(c.getArquivo().getCaminho()))
@@ -322,7 +314,6 @@ public class PainelRegistros extends JPanel implements Recarregavel {
                             publish(cartao);
                         }
                     } catch (IOException e) {
-                        // Arquivo ausente ou ilegível: o cartão fica sem miniatura.
                     }
                 }
                 return null;
@@ -335,7 +326,6 @@ public class PainelRegistros extends JPanel implements Recarregavel {
         }.execute();
     }
 
-    /** Reduz a imagem para o dobro do tamanho do cartão (nítida também em telas de alta resolução). */
     private static Image reduzir(BufferedImage original) {
         double escala = Math.min(1.0, Math.max(CartaoArquivo.LARGURA * 2.0 / original.getWidth(),
                 CartaoArquivo.ALTURA_IMAGEM * 2.0 / original.getHeight()));
@@ -385,7 +375,6 @@ public class PainelRegistros extends JPanel implements Recarregavel {
         }
     }
 
-    /** Copia os arquivos em segundo plano (vídeos podem ser grandes) e atualiza a tela ao final. */
     private void adicionar(List<Path> arquivos) {
         Pasta pasta = listaPastas.getSelectedValue();
         if (pasta == null || arquivos.isEmpty()) {
@@ -532,9 +521,7 @@ public class PainelRegistros extends JPanel implements Recarregavel {
         return item;
     }
 
-    /** Aceita fotos e vídeos arrastados do Explorador de Arquivos. */
     private class SoltarArquivos extends TransferHandler {
-
         @Override
         public boolean canImport(TransferSupport suporte) {
             return suporte.isDataFlavorSupported(DataFlavor.javaFileListFlavor);

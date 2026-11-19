@@ -4,15 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Comparator;
 
-/**
- * Qualquer atividade que aparece no calendário: treino, amistoso,
- * competição, evento ou compromisso (CH-08).
- *
- * O calendário trabalha só com Atividade; cada subclasse informa o seu
- * tipo, cor e descrição (polimorfismo). Ordem natural: data e horário.
- */
 public abstract class Atividade extends Entidade implements Comparable<Atividade> {
-
     public static final Comparator<Atividade> POR_DATA = Comparator
             .comparing(Atividade::getData, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Atividade::getHorario, Comparator.nullsFirst(Comparator.naturalOrder()));
@@ -33,15 +25,12 @@ public abstract class Atividade extends Entidade implements Comparable<Atividade
         this.local = local;
     }
 
-    /** Tipo usado para agrupar e colorir a atividade no calendário. */
     public abstract TipoAtividade getTipo();
 
-    /** Texto curto exibido no calendário e na lista de próximos eventos. */
     public String getDescricaoCalendario() {
         return getTipo().getDescricao() + " - " + titulo;
     }
 
-    /** Nome curto exibido dentro do quadrado do dia no calendário. */
     public String getRotuloCurto() {
         return titulo;
     }
@@ -50,7 +39,6 @@ public abstract class Atividade extends Entidade implements Comparable<Atividade
         return getTipo().getCorHex();
     }
 
-    /** Indica se a atividade acontece no dia informado. */
     public boolean ocorreEm(LocalDate dia) {
         return data != null && data.equals(dia);
     }

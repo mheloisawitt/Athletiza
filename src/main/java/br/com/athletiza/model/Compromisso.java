@@ -3,11 +3,7 @@ package br.com.athletiza.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * Compromisso ou ação avulsa no calendário, como uma reunião de gestão (RF09).
- */
 public class Compromisso extends Atividade {
-
     public Compromisso() {
     }
 

@@ -27,19 +27,13 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
-/**
- * Barra lateral de navegação (CH-14): logo, itens do menu e usuário logado.
- * O item selecionado fica destacado em verde.
- */
 public class MenuLateral extends JPanel {
-
     private static final String ESTILO_ITEM = "background:" + Cores.hex(Cores.FUNDO_MENU)
             + "; selectedBackground:" + Cores.hex(Cores.VERDE_SELECAO)
             + "; selectedForeground:" + Cores.hex(Cores.VERDE)
             + "; hoverBackground:#232323; foreground:#D0D0D0; focusWidth:0; arc:10; margin:9,14,9,14"
             + "; borderColor:" + Cores.hex(Cores.FUNDO_MENU) + "; focusedBorderColor:" + Cores.hex(Cores.FUNDO_MENU);
 
-    /** O item selecionado ganha contorno verde, como no protótipo. */
     private static final String ESTILO_ITEM_SELECIONADO = ESTILO_ITEM
             + "; borderColor:" + Cores.hex(Cores.VERDE) + "; focusedBorderColor:" + Cores.hex(Cores.VERDE)
             + "; hoverBorderColor:" + Cores.hex(Cores.VERDE);
@@ -82,7 +76,6 @@ public class MenuLateral extends JPanel {
         painelItens.add(Box.createVerticalStrut(4));
     }
 
-    /** Marca o item como selecionado e avisa quem está ouvindo. */
     public void selecionar(String nome) {
         JToggleButton item = itens.get(nome);
         if (item != null) {
@@ -91,7 +84,6 @@ public class MenuLateral extends JPanel {
         }
     }
 
-    /** Rodapé com o usuário logado e o botão Sair. */
     public void definirUsuario(String nome, String detalhe, Runnable aoAlterarSenha, Runnable aoSair) {
         JLabel rotuloNome = new JLabel(nome);
         rotuloNome.setFont(Tema.fonte(Font.BOLD, 13f));
@@ -145,9 +137,7 @@ public class MenuLateral extends JPanel {
         return logo;
     }
 
-    /** Círculo com a inicial do usuário. */
     private static class Avatar extends JComponent {
-
         private final String inicial;
 
         Avatar(String nome) {

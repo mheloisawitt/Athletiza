@@ -6,11 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Acesso aos dados das pastas da galeria de registros.
- */
 public class PastaDAO extends AbstractDAO<Pasta> {
-
     @Override
     protected String getTabela() {
         return "pasta";
@@ -31,7 +27,6 @@ public class PastaDAO extends AbstractDAO<Pasta> {
         executarAtualizacao("UPDATE pasta SET nome = ? WHERE id = ?", pasta.getNome(), pasta.getId());
     }
 
-    /** Pastas com a quantidade de arquivos de cada uma. */
     @Override
     public List<Pasta> listarTodos() throws PersistenciaException {
         return consultar("SELECT p.*, (SELECT COUNT(*) FROM arquivo a WHERE a.pasta_id = p.id) AS quantidade"

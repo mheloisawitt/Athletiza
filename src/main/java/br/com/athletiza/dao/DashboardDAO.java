@@ -14,16 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Consultas de totais que alimentam o dashboard. Os períodos vão de {@code inicio}
- * (nulo = desde o primeiro registro) até {@code fim}, inclusive.
- */
 public class DashboardDAO extends DAOBase {
-
-    /**
-     * Demanda em aberto (aberta ou em andamento), com o setor da atividade relacionada:
-     * o do tipo do evento, Esportes para competições, ou nulo se não houver relação.
-     */
     public record DemandaAberta(int id, LocalDate prazo, Setor setorDaAtividade) {
     }
 
@@ -32,7 +23,6 @@ public class DashboardDAO extends DAOBase {
         return "os dados do dashboard";
     }
 
-    /** Atletas ativos por modalidade (vínculos inativos e atletas inativos não contam). */
     public List<Indicador> atletasPorModalidade() throws PersistenciaException {
         return consultar("SELECT m.nome, m.genero, COUNT(*) AS atletas,"
                 + " SUM(CASE WHEN am.situacao <> 'ATIVO' THEN 1 ELSE 0 END) AS indisponiveis"
@@ -48,7 +38,6 @@ public class DashboardDAO extends DAOBase {
                 });
     }
 
-    /** Presenças registradas nos treinos e amistosos de cada modalidade. */
     public List<Indicador> presencasPorModalidade(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT m.nome, m.genero, COUNT(*) AS registros, COUNT(DISTINCT t.id) AS treinos,"
@@ -67,7 +56,6 @@ public class DashboardDAO extends DAOBase {
         }, parametros.toArray());
     }
 
-    /** Treinos e amistosos já realizados por modalidade; o parcial é a quantidade de amistosos. */
     public List<Indicador> treinosPorModalidade(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT m.nome, m.genero, COUNT(*) AS total,"
@@ -83,7 +71,6 @@ public class DashboardDAO extends DAOBase {
         }, parametros.toArray());
     }
 
-    /** Percentual geral de presença nos treinos do período (0 se não houver lista de presença). */
     public int percentualPresenca(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT COUNT(*) AS registros, SUM(CASE WHEN p.presente THEN 1 ELSE 0 END) AS presencas"
@@ -95,7 +82,6 @@ public class DashboardDAO extends DAOBase {
         return consultar("SELECT COUNT(*) FROM atleta WHERE situacao = 'ATIVO'", rs -> rs.getInt(1)).get(0);
     }
 
-    /** Demandas abertas ou em andamento. */
     public List<DemandaAberta> demandasAbertas() throws PersistenciaException {
         return consultar("SELECT d.id, d.prazo, d.competicao_id, e.tipo_evento FROM demanda d"
                 + " LEFT JOIN evento e ON e.id = d.evento_id"
@@ -107,7 +93,6 @@ public class DashboardDAO extends DAOBase {
                 });
     }
 
-    /** Membros responsáveis por cada demanda (id da demanda -> ids dos membros). */
     public Map<Integer, List<Integer>> responsaveisDasDemandas() throws PersistenciaException {
         Map<Integer, List<Integer>> responsaveis = new HashMap<>();
         consultar("SELECT demanda_id, membro_id FROM demanda_responsavel", rs -> {
@@ -117,10 +102,6 @@ public class DashboardDAO extends DAOBase {
         return responsaveis;
     }
 
-    /**
-     * Setores de cada membro na gestão em andamento, pelos cargos que ocupa
-     * (cargos sem setor não entram).
-     */
     public Map<Integer, Set<Setor>> setoresDosMembros() throws PersistenciaException {
         Map<Integer, Set<Setor>> setores = new HashMap<>();
         consultar("SELECT gmc.membro_id, c.setor FROM gestao_membro_cargo gmc"
@@ -133,7 +114,6 @@ public class DashboardDAO extends DAOBase {
         return setores;
     }
 
-    /** Monta o WHERE do período e acrescenta os parâmetros. */
     private static String periodo(String coluna, LocalDate inicio, LocalDate fim, List<Object> parametros) {
         StringBuilder where = new StringBuilder(" WHERE 1 = 1");
         if (inicio != null) {

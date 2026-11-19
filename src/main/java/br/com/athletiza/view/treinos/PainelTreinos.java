@@ -37,13 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
-/**
- * Consulta de treinos e amistosos (CH-34): modalidades à esquerda e os treinos
- * da modalidade à direita, com filtros de tipo e período.
- */
 public class PainelTreinos extends PainelConsulta<Treino> {
-
-    /** Filtro de período. */
     private enum Periodo {
         TODOS("Todas as datas"), PROXIMOS("Próximos"), REALIZADOS("Realizados");
 
@@ -66,7 +60,7 @@ public class PainelTreinos extends PainelConsulta<Treino> {
     private final JComboBox<TipoAtividade> filtroTipo =
             Combos.comOpcaoTodos(List.of(TipoAtividade.TREINO, TipoAtividade.AMISTOSO), "Treinos e amistosos");
     private final JComboBox<Periodo> filtroPeriodo = new JComboBox<>(Periodo.values());
-    /** Resumo de presença de cada treino; compartilhado com a coluna "Presença" da tabela. */
+
     private final AtomicReference<Map<Integer, TreinoDAO.ResumoPresenca>> presencas;
     private boolean atualizandoLista;
 
@@ -162,7 +156,6 @@ public class PainelTreinos extends PainelConsulta<Treino> {
                 (TipoAtividade) filtroTipo.getSelectedItem());
     }
 
-    /** Recarrega as modalidades da lista lateral, mantendo a selecionada. */
     private void atualizarModalidades() throws AthletizaException {
         Modalidade selecionada = listaModalidades.getSelectedValue();
         int indiceSelecionado = listaModalidades.getSelectedIndex();

@@ -16,12 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 
-/**
- * Quadrado de um dia no calendário: número do dia e as atividades,
- * cada uma com a cor do seu tipo (CH-15).
- */
 class CelulaDia extends JComponent {
-
     private static final int MAXIMO_VISIVEL = 3;
 
     private LocalDate data;

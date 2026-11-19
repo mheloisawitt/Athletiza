@@ -29,13 +29,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Histórico de frequência dos atletas nos treinos (CH-37), com filtro de
- * modalidade e período. A busca por texto filtra pelo nome do atleta.
- */
 public class PainelFrequencia extends PainelConsulta<Frequencia> {
-
-    /** Períodos do filtro. */
     private enum Periodo {
         TRINTA_DIAS("Últimos 30 dias", 30), NOVENTA_DIAS("Últimos 90 dias", 90),
         ESTE_ANO("Este ano", -1), TUDO("Todo o período", 0);
@@ -104,7 +98,6 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
                 periodo.inicio(LocalDate.now()), null);
     }
 
-    /** Clique duplo (ou "Ver treinos do atleta") abre em quais treinos o atleta esteve presente ou ausente. */
     @Override
     protected void aoClicarDuasVezes(Frequencia frequencia) {
         Periodo periodo = (Periodo) filtroPeriodo.getSelectedItem();
@@ -112,9 +105,7 @@ public class PainelFrequencia extends PainelConsulta<Frequencia> {
                 periodo.inicio(LocalDate.now()), navegador));
     }
 
-    /** Percentual exibido como barra: verde a partir de 75%, amarelo a partir de 50%, vermelho abaixo. */
     private static class BarraPercentual extends JPanel implements TableCellRenderer {
-
         private final JProgressBar barra = new JProgressBar(0, 100);
         private final JLabel texto = new JLabel();
 

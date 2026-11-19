@@ -11,19 +11,10 @@ import java.sql.Statement;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-/**
- * Prepara um banco para os testes executando os scripts de src/main/resources/sql.
- *
- * Por padrão usa H2 em memória (modo MySQL), que não exige instalação.
- * Para testar em um MySQL real (use um banco só para testes, ele é apagado), rode com:
- * mvn test -Dteste.db.url=jdbc:mysql://localhost:3306/athletiza_teste -Dteste.db.usuario=root -Dteste.db.senha=...
- */
 public final class BancoDeTeste {
-
     private BancoDeTeste() {
     }
 
-    /** Recria as tabelas e carrega os dados de exemplo. */
     public static void recriar() throws SQLException {
         Properties config = new Properties();
         config.setProperty("db.url", System.getProperty("teste.db.url",
@@ -45,7 +36,6 @@ public final class BancoDeTeste {
         }
     }
 
-    /** Executa outro script de src/main/resources/sql no banco de teste (ex.: dados extras). */
     public static void executar(String script) throws SQLException {
         try (Connection con = ConnectionFactory.getConnection(); Statement st = con.createStatement()) {
             for (String comando : lerScript(script).split(";")) {
@@ -63,7 +53,7 @@ public final class BancoDeTeste {
             String texto = new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
             return texto.lines()
                     .filter(linha -> !linha.trim().startsWith("--"))
-                    // os testes usam o banco da URL acima; o USE athletiza dos scripts trocaria de banco
+
                     .filter(linha -> !linha.trim().toUpperCase().startsWith("USE "))
                     .collect(Collectors.joining("\n"));
         } catch (IOException e) {

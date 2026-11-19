@@ -9,24 +9,17 @@ import br.com.athletiza.model.Situacao;
 import br.com.athletiza.util.Validador;
 import java.util.List;
 
-/**
- * Cadastro dos membros da atlética (CH-22).
- */
 public class MembroController {
-
     private final MembroDAO dao = new MembroDAO();
 
-    /** Membros em ordem alfabética. */
     public List<Membro> listar() throws PersistenciaException {
         return dao.listarTodos();
     }
 
-    /** Membros ativos, para escolher ocupantes de cargos e responsáveis. */
     public List<Membro> listarAtivos() throws PersistenciaException {
         return dao.listarTodos().stream().filter(m -> m.getSituacao() == Situacao.ATIVO).toList();
     }
 
-    /** Membros ativos com cargo na gestão em andamento: os que podem ser responsáveis por demandas. */
     public List<Membro> listarDaGestaoEmAndamento() throws PersistenciaException {
         return dao.listarDaGestaoEmAndamento();
     }

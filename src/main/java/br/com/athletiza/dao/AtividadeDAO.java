@@ -17,14 +17,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Leitura de todas as atividades do calendário em um período (CH-15):
- * treinos, amistosos, competições, eventos e compromissos.
- *
- * Apenas consulta; o cadastro de cada tipo fica no DAO do seu módulo.
- */
 public class AtividadeDAO extends DAOBase {
-
     private final CompromissoDAO compromissoDAO = new CompromissoDAO();
 
     @Override
@@ -32,7 +25,6 @@ public class AtividadeDAO extends DAOBase {
         return "as atividades do calendário";
     }
 
-    /** Atividades que acontecem, ao menos em parte, entre as duas datas (inclusive). */
     public List<Atividade> listarPorPeriodo(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Atividade> atividades = new ArrayList<>();
         atividades.addAll(consultar("SELECT t.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero"

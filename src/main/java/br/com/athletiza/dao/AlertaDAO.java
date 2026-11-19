@@ -8,17 +8,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Consultas que alimentam os alertas da tela inicial (RF24).
- */
 public class AlertaDAO extends DAOBase {
-
     @Override
     protected String getNomeEntidade() {
         return "os alertas";
     }
 
-    /** Tarefas de eventos e competições vencidas e não concluídas. */
     public List<Alerta> tarefasAtrasadas(LocalDate hoje) throws PersistenciaException {
         return consultar("SELECT t.descricao, t.prazo, COALESCE(e.titulo, c.titulo) AS origem FROM tarefa t"
                 + " LEFT JOIN evento e ON e.id = t.evento_id LEFT JOIN competicao c ON c.id = t.competicao_id"
@@ -28,7 +23,6 @@ public class AlertaDAO extends DAOBase {
                         + Validador.FORMATO_DATA.format(lerData(rs, "prazo")) + ")"), hoje);
     }
 
-    /** Treinos dos últimos dias que já aconteceram e ainda não têm lista de presença. */
     public List<Alerta> treinosSemPresenca(LocalDate hoje, int dias) throws PersistenciaException {
         return consultar("SELECT t.titulo, t.data FROM treino t WHERE t.data < ? AND t.data >= ?"
                 + " AND NOT EXISTS (SELECT 1 FROM presenca_treino p WHERE p.treino_id = t.id) ORDER BY t.data",
@@ -36,7 +30,6 @@ public class AlertaDAO extends DAOBase {
                         + " de " + Validador.FORMATO_DATA.format(lerData(rs, "data"))), hoje, hoje.minusDays(dias));
     }
 
-    /** Competições que começam nos próximos dias (as canceladas não contam). */
     public List<Alerta> competicoesProximas(LocalDate hoje, int dias) throws PersistenciaException {
         List<Alerta> alertas = new ArrayList<>();
         consultar("SELECT titulo, data FROM competicao WHERE data BETWEEN ? AND ? AND situacao <> 'CANCELADA'"

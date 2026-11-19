@@ -3,13 +3,7 @@ package br.com.athletiza.model;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 
-/**
- * Foto ou vídeo guardado em uma pasta da galeria de registros.
- * O conteúdo fica no disco; "caminho" é relativo à pasta de mídias.
- * Ordem natural: os enviados mais recentemente primeiro.
- */
 public class Arquivo extends Entidade implements Comparable<Arquivo> {
-
     private static final Comparator<Arquivo> MAIS_RECENTE_PRIMEIRO = Comparator
             .comparing(Arquivo::getEnviadoEm, Comparator.nullsLast(Comparator.reverseOrder()))
             .thenComparing(Arquivo::getNome, Textos.COMPARADOR);
@@ -27,7 +21,6 @@ public class Arquivo extends Entidade implements Comparable<Arquivo> {
         return tipo == TipoArquivo.IMAGEM;
     }
 
-    /** Tamanho legível, ex.: "2,4 MB". */
     public String getTamanhoFormatado() {
         if (tamanho < 1024) {
             return tamanho + " B";

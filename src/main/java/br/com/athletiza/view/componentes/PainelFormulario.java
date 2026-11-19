@@ -16,15 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-/**
- * Painel base das telas de cadastro (CH-03): título, campos organizados em
- * duas colunas e botões Cancelar e Salvar.
- *
- * A subclasse adiciona os campos no construtor e implementa salvar().
- * Erros lançados em salvar() são mostrados ao usuário automaticamente.
- */
 public abstract class PainelFormulario extends JPanel {
-
     private final JPanel campos = new JPanel(new GridBagLayout());
     private final Navegador navegador;
     private int linha;
@@ -55,31 +47,20 @@ public abstract class PainelFormulario extends JPanel {
         add(botoes, BorderLayout.SOUTH);
     }
 
-    /**
-     * Valida e grava os dados. Deve lançar ValidacaoException, RegraNegocioException
-     * ou PersistenciaException em caso de problema.
-     */
     protected abstract void salvar() throws AthletizaException;
 
-    /**
-     * Pergunta feita antes de salvar (ex.: avisar que outra gestão será encerrada).
-     * Retornar false cancela o salvamento sem mensagem de erro. Padrão: não pergunta nada.
-     */
     protected boolean confirmarAntesDeSalvar() throws AthletizaException {
         return true;
     }
 
-    /** Mensagem exibida após salvar com sucesso. */
     protected String getMensagemSucesso() {
         return "Registro salvo com sucesso.";
     }
 
-    /** Adiciona um campo ocupando meia linha (dois campos lado a lado). */
     protected void adicionarCampo(String rotulo, JComponent campo, boolean obrigatorio) {
         posicionar(rotulo, campo, obrigatorio, 1);
     }
 
-    /** Adiciona um campo ocupando a linha inteira. */
     protected void adicionarCampoLinhaInteira(String rotulo, JComponent campo, boolean obrigatorio) {
         if (coluna != 0) {
             linha++;
@@ -88,7 +69,6 @@ public abstract class PainelFormulario extends JPanel {
         posicionar(rotulo, campo, obrigatorio, 2);
     }
 
-    /** Adiciona um componente ocupando a linha inteira, sem rótulo (ex.: texto informativo, barra de botões). */
     protected void adicionarLinha(JComponent componente) {
         if (coluna != 0) {
             linha++;
@@ -106,7 +86,6 @@ public abstract class PainelFormulario extends JPanel {
         linha++;
     }
 
-    /** Área de texto com rolagem, para descrições e observações. */
     protected static JScrollPane areaTexto(JTextArea area) {
         area.setRows(4);
         area.setLineWrap(true);

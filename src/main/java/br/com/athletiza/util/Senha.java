@@ -8,13 +8,7 @@ import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-/**
- * Hash de senhas com PBKDF2 (CH-12). A senha nunca é gravada em texto puro.
- *
- * Formato gravado no banco: pbkdf2$iteracoes$salt$hash (salt e hash em Base64).
- */
 public final class Senha {
-
     private static final String ALGORITMO = "PBKDF2WithHmacSHA256";
     private static final int ITERACOES = 120_000;
     private static final int TAMANHO_SALT = 16;
@@ -62,7 +56,6 @@ public final class Senha {
         }
     }
 
-    /** Gera o hash de uma senha pela linha de comando (útil para scripts SQL). */
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("Uso: java br.com.athletiza.util.Senha <senha>");

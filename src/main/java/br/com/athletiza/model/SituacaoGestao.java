@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Situação de uma gestão da atlética.
- */
 public enum SituacaoGestao {
-
     PLANEJADA("Planejada"),
     EM_ANDAMENTO("Em andamento"),
     ENCERRADA("Encerrada");

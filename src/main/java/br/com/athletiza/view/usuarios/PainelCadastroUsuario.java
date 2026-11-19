@@ -24,13 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de usuário (RF01, RN19). O administrador libera o acesso ligando o
- * login a um membro: o perfil (Presidência, Diretor ou Assessor) vem do cargo dele na
- * gestão em andamento. Na edição, a senha só é trocada se for preenchida.
- */
 public class PainelCadastroUsuario extends PainelFormulario {
-
     private final Usuario usuario;
     private final UsuarioController controller = new UsuarioController();
     private final JTextField nome = new JTextField();
@@ -85,7 +79,6 @@ public class PainelCadastroUsuario extends PainelFormulario {
         mostrarAcesso();
     }
 
-    /** Membros ativos, mais o já ligado ao usuário (mesmo que tenha ficado inativo). */
     private void carregarMembros() {
         try {
             List<Membro> membros = new ArrayList<>(new MembroController().listarAtivos());
@@ -98,7 +91,6 @@ public class PainelCadastroUsuario extends PainelFormulario {
         }
     }
 
-    /** Preenche o nome com o do membro escolhido, se ainda estiver vazio. */
     private void aoEscolherMembro() {
         Membro escolhido = (Membro) membro.getSelectedItem();
         if (escolhido != null && nome.getText().isBlank()) {
@@ -107,7 +99,6 @@ public class PainelCadastroUsuario extends PainelFormulario {
         mostrarAcesso();
     }
 
-    /** Mostra o acesso que o usuário terá com o membro e a marcação escolhidos. */
     private void mostrarAcesso() {
         Usuario previa = new Usuario();
         previa.setAdministrador(administrador.isSelected());

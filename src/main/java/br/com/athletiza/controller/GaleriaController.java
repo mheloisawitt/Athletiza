@@ -18,18 +18,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Galeria de registros: pastas com fotos e vídeos da atlética (CH-42, CH-43).
- */
 public class GaleriaController {
-
-    /** Tamanho máximo de cada arquivo enviado. */
     static final long TAMANHO_MAXIMO = 500L * 1024 * 1024;
 
     private final PastaDAO pastaDAO = new PastaDAO();
     private final ArquivoDAO arquivoDAO = new ArquivoDAO();
 
-    /** Pastas em ordem alfabética, com a quantidade de arquivos. */
     public List<Pasta> listarPastas() throws PersistenciaException {
         return pastaDAO.listarTodos().stream().sorted().toList();
     }
@@ -51,7 +45,6 @@ public class GaleriaController {
         }
     }
 
-    /** Só exclui pastas vazias, para nenhuma foto ser apagada por engano. */
     public void excluirPasta(Pasta pasta) throws RegraNegocioException, PersistenciaException {
         int arquivos = arquivoDAO.listarPorPasta(pasta).size();
         if (arquivos > 0) {
@@ -61,17 +54,10 @@ public class GaleriaController {
         pastaDAO.excluir(pasta.getId());
     }
 
-    /** Arquivos da pasta, os mais recentes primeiro. */
     public List<Arquivo> listarArquivos(Pasta pasta) throws PersistenciaException {
         return arquivoDAO.listarPorPasta(pasta).stream().sorted().toList();
     }
 
-    /**
-     * Copia os arquivos para a pasta de mídias e registra cada um no banco.
-     * Arquivos de tipo não aceito ou grandes demais são recusados antes de qualquer cópia.
-     *
-     * @return os arquivos adicionados
-     */
     public List<Arquivo> adicionarArquivos(Pasta pasta, List<Path> origens)
             throws ValidacaoException, PersistenciaException {
         Validador validador = new Validador().obrigatorio(pasta, "Pasta");
@@ -109,7 +95,6 @@ public class GaleriaController {
         return adicionados;
     }
 
-    /** Renomeia, move para outra pasta ou altera a descrição do arquivo. */
     public void salvarArquivo(Arquivo arquivo) throws ValidacaoException, PersistenciaException {
         new Validador()
                 .obrigatorio(arquivo.getNome(), "Nome")
@@ -120,13 +105,11 @@ public class GaleriaController {
         arquivoDAO.atualizar(arquivo);
     }
 
-    /** Exclui o registro do banco e o arquivo do disco. */
     public void excluirArquivo(Arquivo arquivo) throws PersistenciaException {
         arquivoDAO.excluir(arquivo.getId());
         ArmazenamentoMidia.apagar(arquivo.getCaminho());
     }
 
-    /** Local do arquivo no disco, para abrir ou gerar a miniatura. */
     public Path localDoArquivo(Arquivo arquivo) {
         return ArmazenamentoMidia.resolver(arquivo.getCaminho());
     }

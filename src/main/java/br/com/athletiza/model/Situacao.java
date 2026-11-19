@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Situação cadastral de membros e atletas.
- */
 public enum Situacao {
-
     ATIVO("Ativo"),
     INATIVO("Inativo");
 

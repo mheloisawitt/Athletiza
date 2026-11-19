@@ -12,14 +12,9 @@ import br.com.athletiza.util.Validador;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Regras das gestões da atlética e de sua composição (CH-18 a CH-21).
- */
 public class GestaoController {
-
     private final GestaoDAO dao = new GestaoDAO();
 
-    /** Gestões ordenadas por período (ordem natural de Gestao, CH-19). */
     public List<Gestao> listar() throws PersistenciaException {
         return dao.listarTodos().stream().sorted().toList();
     }
@@ -48,7 +43,7 @@ public class GestaoController {
         if (outras.stream().anyMatch(g -> g.getNome().equalsIgnoreCase(gestao.getNome().trim()))) {
             throw new RegraNegocioException("Já existe uma gestão chamada " + gestao.getNome() + ".");
         }
-        // RN08: só uma gestão "Em andamento", e tem que ser a mais recente; as outras são encerradas
+
         List<Gestao> emAndamento = gestao.getSituacao() == SituacaoGestao.EM_ANDAMENTO
                 ? outras.stream().filter(g -> g.getSituacao() == SituacaoGestao.EM_ANDAMENTO).toList()
                 : List.of();
@@ -69,17 +64,12 @@ public class GestaoController {
         }
     }
 
-    /**
-     * Outras gestões que estão "Em andamento" e serão encerradas se esta for salva como
-     * "Em andamento" (RN08). Usado para pedir confirmação antes de salvar.
-     */
     public List<Gestao> outrasEmAndamento(Gestao gestao) throws PersistenciaException {
         return dao.listarTodos().stream()
                 .filter(g -> !g.getId().equals(gestao.getId()) && g.getSituacao() == SituacaoGestao.EM_ANDAMENTO)
                 .toList();
     }
 
-    /** Quantos membros a gestão possui, para confirmar a exclusão (CH-18). */
     public int contarMembros(Gestao gestao) throws PersistenciaException {
         Gestao copia = new Gestao();
         copia.setId(gestao.getId());
@@ -87,17 +77,14 @@ public class GestaoController {
         return copia.getComposicao().size();
     }
 
-    /** Exclui a gestão junto com sua composição (cargos e membros). */
     public void excluir(Gestao gestao) throws PersistenciaException {
         dao.excluir(gestao.getId());
     }
 
-    /** Carrega quem ocupa cada cargo na gestão. */
     public void carregarComposicao(Gestao gestao) throws PersistenciaException {
         dao.carregarComposicao(gestao);
     }
 
-    /** Coloca um membro em um cargo (CH-21). O mesmo membro não pode ocupar o mesmo cargo duas vezes. */
     public void adicionarMembro(Gestao gestao, Membro membro, Cargo cargo)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador().obrigatorio(cargo, "Cargo").obrigatorio(membro, "Membro").validar();
@@ -117,7 +104,6 @@ public class GestaoController {
         gestao.removerMembro(membro, cargo);
     }
 
-    /** Troca o ocupante de um cargo (CH-21). */
     public void trocarMembro(Gestao gestao, Cargo cargo, Membro atual, Membro novo)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador().obrigatorio(novo, "Novo membro").validar();

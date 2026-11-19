@@ -19,12 +19,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.JComponent;
 
-/**
- * Miniatura de um arquivo na galeria: a própria foto (ou um quadro com o
- * símbolo de "play", para vídeos), com o nome e o tamanho abaixo.
- */
 class CartaoArquivo extends JComponent {
-
     static final int LARGURA = 200;
     static final int ALTURA_IMAGEM = 124;
 
@@ -96,7 +91,6 @@ class CartaoArquivo extends JComponent {
         g2.dispose();
     }
 
-    /** Desenha a imagem preenchendo a área, cortando as sobras (como "cover" em CSS). */
     private static void desenharCobrindo(Graphics2D g2, Image imagem, int largura, int altura) {
         int w = imagem.getWidth(null);
         int h = imagem.getHeight(null);

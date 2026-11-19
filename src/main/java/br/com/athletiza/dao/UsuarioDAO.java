@@ -7,12 +7,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Acesso aos dados dos usuários do sistema (RF01).
- */
 public class UsuarioDAO extends AbstractDAO<Usuario> {
-
-    /** Usuário com o membro ligado a ele (se houver). */
     private static final String SELECT = "SELECT u.*, m.id AS mb_id, m.nome AS mb_nome, m.matricula AS mb_matricula,"
             + " m.contato AS mb_contato, m.situacao AS mb_situacao"
             + " FROM usuario u LEFT JOIN membro m ON m.id = u.membro_id";
@@ -61,18 +56,15 @@ public class UsuarioDAO extends AbstractDAO<Usuario> {
         return consultar(SELECT + " ORDER BY u.nome");
     }
 
-    /** Busca pelo login, sem diferenciar maiúsculas de minúsculas. */
     public Optional<Usuario> buscarPorLogin(String login) throws PersistenciaException {
         return consultarUm(SELECT + " WHERE LOWER(u.login) = LOWER(?)", login);
     }
 
-    /** Indica se outro usuário (diferente de idIgnorado) já usa o login. */
     public boolean existeLogin(String login, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM usuario WHERE LOWER(login) = LOWER(?) AND id <> ?",
                 login, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /** Quantos administradores ativos existem, sem contar o usuário informado. */
     public int contarOutrosAdministradoresAtivos(Integer idIgnorado) throws PersistenciaException {
         return consultar("SELECT COUNT(*) FROM usuario WHERE administrador AND ativo AND id <> ?",
                 rs -> rs.getInt(1), idIgnorado == null ? -1 : idIgnorado).get(0);

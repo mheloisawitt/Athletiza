@@ -30,15 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Consulta das demandas da atlética, com filtro por situação, por responsável e
- * "Minhas demandas". As pendentes aparecem primeiro, por prioridade e prazo, e as
- * atrasadas ficam com o prazo em vermelho (RF45, RF48).
- *
- * O assessor só vê as demandas sob sua responsabilidade e só muda a situação delas (RN36).
- */
 public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
-
     private static final int COLUNA_PRAZO = 4;
 
     private final DemandaController controller = new DemandaController();
@@ -84,7 +76,7 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
     protected List<Demanda> buscarDados() throws AthletizaException {
         Optional<Membro> eu = controller.membroLogado();
         boolean assessor = Sessao.getAcesso().getPerfil() == Perfil.ASSESSOR;
-        // o assessor só acompanha as demandas que estão com ele; quem não é membro (administrador) não tem "minhas"
+
         minhas.setVisible(eu.isPresent() && !assessor);
         filtroResponsavel.setVisible(!assessor);
         Combos.atualizarItens(filtroResponsavel, new MembroController().listar());
@@ -97,7 +89,6 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
         return controller.pesquisar((SituacaoDemanda) filtroSituacao.getSelectedItem(), responsavel);
     }
 
-    /** Diretores só alteram demandas ligadas a um evento ou competição da sua área. */
     @Override
     protected boolean podeAlterar(Demanda demanda) {
         return Sessao.getAcesso().podeAlterar(demanda);
@@ -124,7 +115,6 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
         carregar();
     }
 
-    /** Responsáveis (inclusive assessores) e quem pode editar a demanda mudam só a situação (RN36, RF47). */
     private void mudarSituacao() {
         Optional<Demanda> selecionada = getSelecionado();
         if (selecionada.isEmpty()) {
@@ -154,9 +144,7 @@ public class PainelConsultaDemandas extends PainelConsulta<Demanda> {
         carregar();
     }
 
-    /** Prazo em dd/mm/aaaa; em vermelho e com "atrasada" quando a demanda pendente passou do prazo (RF48). */
     private class PrazoRenderer extends DefaultTableCellRenderer {
-
         @Override
         public Component getTableCellRendererComponent(JTable tab, Object valor, boolean selecionado,
                 boolean foco, int linha, int coluna) {

@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ModalidadeDAOTest {
-
     private final ModalidadeDAO dao = new ModalidadeDAO();
 
     @BeforeEach

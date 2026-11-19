@@ -3,19 +3,14 @@ package br.com.athletiza.model;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Cargo ou função na gestão (RF07). A "ordem" define o nível no organograma
- * (1 = topo) e o cargo superior define a quem ele responde (RF08).
- */
 public class Cargo extends Entidade implements Comparable<Cargo> {
-
     private static final Comparator<Cargo> ORDEM_NATURAL = Comparator.comparingInt(Cargo::getOrdem)
             .thenComparing(Cargo::getNome, Textos.COMPARADOR);
 
     private String nome;
     private int ordem;
     private Cargo cargoSuperior;
-    /** Setor do cargo (null = o cargo não dá acesso ao sistema). */
+
     private Setor setor;
 
     public Cargo() {
@@ -59,11 +54,6 @@ public class Cargo extends Entidade implements Comparable<Cargo> {
         this.setor = setor;
     }
 
-    /**
-     * Cargo que assessora outro do mesmo setor (ex.: Coordenador de Modalidade, subordinado
-     * ao Diretor de Esportes). O cargo de um setor que não responde a ninguém do mesmo setor
-     * é o diretor dele.
-     */
     public boolean isAssessoria() {
         return setor != null && cargoSuperior != null && cargoSuperior.getSetor() == setor;
     }

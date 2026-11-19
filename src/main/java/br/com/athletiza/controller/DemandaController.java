@@ -18,29 +18,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-/**
- * Regras das demandas da atlética: o que precisa ser feito, por quem e,
- * opcionalmente, para qual evento ou competição.
- *
- * Permissões (RN36, RN39, RN40):
- * - incluir e editar: quem pode alterar a demanda pelo perfil (presidência, administrador
- *   ou diretor da área do evento ou competição relacionada);
- * - mudar só a situação: também os responsáveis pela demanda (inclusive assessores);
- * - cancelar ou excluir: só quem registrou a demanda, a presidência e o administrador.
- */
 public class DemandaController {
-
     static final String SO_SOLICITANTE_CANCELA =
             "Só quem registrou a demanda, a presidência ou o administrador podem cancelá-la ou excluí-la.";
 
     private final DemandaDAO dao = new DemandaDAO();
 
-    /**
-     * Demandas na ordem natural (pendentes primeiro, por prioridade e prazo), com filtros opcionais.
-     *
-     * @param situacao    null = todas as situações
-     * @param responsavel null = todos os responsáveis
-     */
     public List<Demanda> pesquisar(SituacaoDemanda situacao, Membro responsavel) throws PersistenciaException {
         return dao.listarTodos().stream()
                 .filter(d -> situacao == null || d.getSituacao() == situacao)
@@ -49,7 +32,6 @@ public class DemandaController {
                 .toList();
     }
 
-    /** Membro ligado ao usuário logado (vazio para o administrador sem membro), para "Minhas demandas". */
     public Optional<Membro> membroLogado() {
         Usuario usuario = Sessao.getUsuarioLogado();
         return Optional.ofNullable(usuario == null ? null : usuario.getMembro());
@@ -80,7 +62,7 @@ public class DemandaController {
             dao.inserir(demanda);
             return;
         }
-        // cancelar pelo cadastro segue a mesma regra do botão "Mudar situação" (RN40)
+
         Demanda salva = anterior.orElse(demanda);
         if (demanda.getSituacao() == SituacaoDemanda.CANCELADA && salva.getSituacao() != SituacaoDemanda.CANCELADA
                 && !podeCancelar(salva)) {
@@ -89,10 +71,6 @@ public class DemandaController {
         dao.atualizar(demanda);
     }
 
-    /**
-     * Cancelar ou excluir (RN40): quem registrou a demanda, a presidência ou o administrador.
-     * Demandas antigas, sem solicitante registrado, só pela presidência e pelo administrador.
-     */
     public boolean podeCancelar(Demanda demanda) {
         if (Sessao.getAcesso().isAcessoTotal()) {
             return true;
@@ -102,16 +80,10 @@ public class DemandaController {
                 && Objects.equals(demanda.getSolicitante().getId(), usuario.getId());
     }
 
-    /** Mudar a situação (RN36): quem pode editar a demanda ou um dos seus responsáveis. */
     public boolean podeMudarSituacao(Demanda demanda) {
         return Sessao.getAcesso().podeAlterar(demanda) || membroLogado().map(demanda::isResponsavel).orElse(false);
     }
 
-    /**
-     * Grava só a nova situação da demanda (ex.: o assessor responsável marca como concluída).
-     *
-     * @throws RegraNegocioException se o usuário não pode mudar a situação, ou tenta cancelar sem permissão
-     */
     public void mudarSituacao(Demanda demanda, SituacaoDemanda nova) throws RegraNegocioException, PersistenciaException {
         if (nova == null || nova == demanda.getSituacao()) {
             return;
@@ -133,7 +105,6 @@ public class DemandaController {
         dao.excluir(demanda.getId());
     }
 
-    /** Eventos e competições que podem ser relacionados a uma demanda, em ordem de data. */
     public List<Atividade> listarRelacionaveis() throws PersistenciaException {
         return Stream.<Atividade>concat(
                 new EventoController().pesquisar(null, null, null).stream(),

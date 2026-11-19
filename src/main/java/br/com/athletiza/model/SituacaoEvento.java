@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Situação de um evento organizado pela atlética.
- */
 public enum SituacaoEvento {
-
     PLANEJADO("Planejado"),
     CONFIRMADO("Confirmado"),
     REALIZADO("Realizado"),

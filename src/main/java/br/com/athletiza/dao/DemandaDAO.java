@@ -18,13 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Acesso aos dados das demandas e de seus responsáveis.
- * A demanda e seus responsáveis são gravados na mesma transação.
- */
 public class DemandaDAO extends AbstractDAO<Demanda> {
-
-    /** Demanda com o título e a data do evento ou da competição relacionada (se houver). */
     private static final String SELECT = "SELECT d.*, e.titulo AS evento_titulo, e.tipo_evento AS evento_tipo,"
             + " e.data AS evento_data, c.titulo AS competicao_titulo, c.data AS competicao_data,"
             + " u.nome AS solicitante_nome"
@@ -72,10 +66,6 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
         });
     }
 
-    /**
-     * Grava só a nova situação (usado pelo botão "Mudar situação", que também é liberado
-     * ao responsável pela demanda, mesmo sem permissão para editar o resto).
-     */
     public void atualizarSituacao(int id, SituacaoDemanda situacao) throws PersistenciaException {
         executarAtualizacao("UPDATE demanda SET situacao = ? WHERE id = ?", situacao, id);
     }
@@ -91,7 +81,6 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
         return demanda;
     }
 
-    /** Todas as demandas, já com seus responsáveis (duas consultas, sem uma por demanda). */
     @Override
     public List<Demanda> listarTodos() throws PersistenciaException {
         List<Demanda> demandas = consultar(SELECT + " ORDER BY d.id");
@@ -139,7 +128,6 @@ public class DemandaDAO extends AbstractDAO<Demanda> {
         return demanda;
     }
 
-    /** Monta o evento ou a competição relacionada só com o que a tela precisa (id, título e data). */
     private static Atividade lerRelacionada(ResultSet rs) throws SQLException {
         Integer eventoId = lerInteiro(rs, "evento_id");
         if (eventoId != null) {

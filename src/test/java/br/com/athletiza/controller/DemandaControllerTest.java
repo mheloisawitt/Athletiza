@@ -27,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DemandaControllerTest {
-
     private static final LocalDate PRAZO = LocalDate.of(2026, 12, 10);
 
     private final DemandaController controller = new DemandaController();
@@ -59,7 +58,6 @@ class DemandaControllerTest {
         entrarComo("juliana");
         Demanda onibus = buscar("Reservar ônibus para os atletas");
 
-        // a diretora de Esportes é responsável e pode editar, mas a demanda foi registrada pela presidente
         assertFalse(controller.podeCancelar(onibus));
         assertThrows(RegraNegocioException.class, () -> controller.excluir(onibus));
         assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(onibus, SituacaoDemanda.CANCELADA));
@@ -90,7 +88,6 @@ class DemandaControllerTest {
         assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(salva, SituacaoDemanda.CANCELADA));
         assertEquals(List.of("Comprar bolas"), titulos(controller.pesquisar(null, controller.membroLogado().orElseThrow())));
 
-        // o diretor de Eventos não é responsável e a demanda não é da área dele
         entrarComo("rafael");
         assertFalse(controller.podeMudarSituacao(salva));
         assertThrows(RegraNegocioException.class, () -> controller.mudarSituacao(salva, SituacaoDemanda.CONCLUIDA));
@@ -121,7 +118,6 @@ class DemandaControllerTest {
         Demanda invalida = new Demanda(" ", null, null);
         invalida.setSituacao(null);
 
-        // demanda, prioridade, situação, prazo e responsável (RN38)
         ValidacaoException erro = assertThrows(ValidacaoException.class, () -> controller.salvar(invalida));
         assertEquals(5, erro.getErros().size(), erro.getMessage());
     }

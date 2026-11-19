@@ -8,7 +8,6 @@ import javax.swing.JComboBox;
 import org.junit.jupiter.api.Test;
 
 class CombosTest {
-
     @Test
     void criaComboComOpcaoTodosMesmoComListaImutavel() {
         JComboBox<String> combo = Combos.comOpcaoTodos(List.of("A", "B"), "Todos");

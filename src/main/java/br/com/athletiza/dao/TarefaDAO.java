@@ -9,13 +9,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Tarefas de eventos e de competições (RF19). Cada tarefa pertence a um evento
- * ou a uma competição (colunas evento_id e competicao_id da tabela tarefa).
- */
 public class TarefaDAO extends DAOBase {
-
-    /** A quem a tarefa pertence: define a coluna usada nas consultas. */
     public enum Dono {
         EVENTO("evento_id"), COMPETICAO("competicao_id");
 
@@ -35,12 +29,10 @@ public class TarefaDAO extends DAOBase {
         return "a tarefa";
     }
 
-    /** Tarefas de um evento ou competição, por prazo (as sem prazo por último). */
     public List<Tarefa> listar(Dono dono, int idDono) throws PersistenciaException {
         return consultar(SELECT + " WHERE t." + dono.coluna + " = ? ORDER BY t.prazo IS NULL, t.prazo", TarefaDAO::mapear, idDono);
     }
 
-    /** Tarefas de todos os eventos ou de todas as competições, agrupadas pelo id do dono. */
     public Map<Integer, List<Tarefa>> listarPorDono(Dono dono) throws PersistenciaException {
         Map<Integer, List<Tarefa>> porDono = new java.util.HashMap<>();
         consultar(SELECT + " WHERE t." + dono.coluna + " IS NOT NULL ORDER BY t.prazo IS NULL, t.prazo", rs -> {

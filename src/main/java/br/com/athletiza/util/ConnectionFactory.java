@@ -14,16 +14,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Cria as conexões com o banco de dados (CH-05).
- *
- * Os parâmetros ficam fora do código, no arquivo db.properties, procurado:
- * 1) na pasta onde o sistema é executado (raiz do projeto no NetBeans);
- * 2) no classpath (src/main/resources).
- * Use o db.properties.example como modelo.
- */
 public final class ConnectionFactory {
-
     private static final Logger LOG = Logger.getLogger(ConnectionFactory.class.getName());
     private static final String ARQUIVO = "db.properties";
 
@@ -32,7 +23,6 @@ public final class ConnectionFactory {
     private ConnectionFactory() {
     }
 
-    /** Permite definir a configuração diretamente (usado nos testes). */
     public static synchronized void configurar(Properties propriedades) {
         configuracao = propriedades;
     }
@@ -49,7 +39,6 @@ public final class ConnectionFactory {
         }
     }
 
-    /** Usado na abertura do sistema para avisar logo se o banco não estiver acessível. */
     public static void testarConexao() throws PersistenciaException {
         try (Connection conexao = getConnection()) {
             if (!conexao.isValid(5)) {

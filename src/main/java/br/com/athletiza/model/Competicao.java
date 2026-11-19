@@ -11,14 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Campeonato ou competição em que a atlética participa (RF14 a RF16).
- *
- * As inscrições ficam em um Map: modalidade -> atletas inscritos nela.
- * Os atletas de cada modalidade ficam em um Set, impedindo inscrição repetida (CH-31).
- */
 public class Competicao extends Atividade {
-
     private LocalDate dataFim;
     private SituacaoCompeticao situacao = SituacaoCompeticao.PLANEJADA;
     private final Map<Modalidade, Set<Atleta>> inscricoes = new LinkedHashMap<>();
@@ -38,7 +31,6 @@ public class Competicao extends Atividade {
         return TipoAtividade.COMPETICAO;
     }
 
-    /** Competições podem durar vários dias e aparecem em todos eles no calendário. */
     @Override
     public boolean ocorreEm(LocalDate dia) {
         if (getData() == null || dia == null) {
@@ -76,13 +68,6 @@ public class Competicao extends Atividade {
         return Collections.unmodifiableSet(inscricoes.keySet());
     }
 
-    /**
-     * Inscreve um atleta em uma modalidade da competição.
-     *
-     * @return false se o atleta já estava inscrito nessa modalidade
-     * @throws RegraNegocioException se a modalidade não foi adicionada à competição
-     *         ou se o atleta não pratica essa modalidade
-     */
     public boolean inscreverAtleta(Modalidade modalidade, Atleta atleta) throws RegraNegocioException {
         Set<Atleta> atletas = inscricoes.get(modalidade);
         if (atletas == null) {
@@ -94,21 +79,15 @@ public class Competicao extends Atividade {
         return atletas.add(atleta);
     }
 
-    /**
-     * Restaura uma inscrição já gravada no banco, sem repetir as validações
-     * (o atleta pode ter deixado a modalidade depois de inscrito). Uso dos DAOs.
-     */
     public void restaurarInscricao(Modalidade modalidade, Atleta atleta) {
         adicionarModalidade(modalidade);
         inscricoes.get(modalidade).add(atleta);
     }
 
-    /** Total de inscrições somando todas as modalidades. */
     public int getTotalInscricoes() {
         return inscricoes.values().stream().mapToInt(Set::size).sum();
     }
 
-    /** Tarefas da organização da competição (RF19), como inscrições e transporte. */
     public void adicionarTarefa(Tarefa tarefa) {
         tarefas.add(tarefa);
     }
@@ -121,7 +100,6 @@ public class Competicao extends Atividade {
         return tarefas.stream().filter(t -> t.isAtrasada(hoje)).sorted().toList();
     }
 
-    /** Melhor colocação obtida, para exibir na consulta (ex.: "1º - Futsal (F)"). */
     public String getMelhorResultado() {
         return resultados.stream()
                 .filter(r -> r.getColocacao() != null)

@@ -15,11 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de gestão (CH-20). Períodos sobrepostos são recusados.
- */
 public class PainelCadastroGestao extends PainelFormulario {
-
     private final Gestao gestao;
     private final GestaoController controller = new GestaoController();
     private final JTextField nome = new JTextField();
@@ -60,7 +56,6 @@ public class PainelCadastroGestao extends PainelFormulario {
         controller.salvar(gestao);
     }
 
-    /** Avisa quais gestões passam para "Encerrada" ao salvar esta como "Em andamento" (RN08). */
     @Override
     protected boolean confirmarAntesDeSalvar() throws AthletizaException {
         if (situacao.getSelectedItem() != SituacaoGestao.EM_ANDAMENTO) {

@@ -15,17 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Acesso aos dados dos atletas e de seus vínculos com modalidades (CH-24).
- * O atleta e suas modalidades são gravados na mesma transação.
- */
 public class AtletaDAO extends AbstractDAO<Atleta> {
-
     private static final String SELECT_VINCULOS = "SELECT am.atleta_id, am.situacao, m.id AS modalidade_id,"
             + " m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM atleta_modalidade am JOIN modalidade m ON m.id = am.modalidade_id";
 
-    /** Vínculo lido do banco: a qual atleta pertence, qual modalidade e em que situação. */
     private record Vinculo(int atletaId, Modalidade modalidade, SituacaoAtleta situacao) {
     }
 
@@ -80,7 +74,6 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
         return atleta;
     }
 
-    /** Todos os atletas, já com suas modalidades (duas consultas, sem uma por atleta). */
     @Override
     public List<Atleta> listarTodos() throws PersistenciaException {
         List<Atleta> atletas = super.listarTodos();
@@ -95,16 +88,11 @@ public class AtletaDAO extends AbstractDAO<Atleta> {
         return atletas;
     }
 
-    /** Indica se outro atleta (diferente de idIgnorado) já usa a matrícula. */
     public boolean existeMatricula(String matricula, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM atleta WHERE matricula = ? AND id <> ?",
                 matricula, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /**
-     * Descreve os registros que impedem a exclusão do atleta (CH-45),
-     * por exemplo "2 presença(s) em treinos". Lista vazia: pode excluir.
-     */
     public List<String> listarVinculos(int id) throws PersistenciaException {
         List<String> vinculos = new ArrayList<>();
         int presencas = contar("SELECT COUNT(*) FROM presenca_treino WHERE atleta_id = ?", id);

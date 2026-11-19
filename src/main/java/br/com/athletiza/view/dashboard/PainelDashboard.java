@@ -39,15 +39,7 @@ import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
-/**
- * Dashboard: números gerais e um gráfico para cada pergunta da diretoria
- * (modalidades com mais atletas, mais presenças e mais treinos; atletas que
- * menos participam; setores com mais demandas). Cada cartão mostra a resposta
- * em destaque e o gráfico com as primeiras posições.
- */
 public class PainelDashboard extends JPanel implements Recarregavel {
-
-    /** Período considerado para treinos, amistosos e presenças. */
     enum Periodo {
         TRINTA_DIAS("Últimos 30 dias", 30), NOVENTA_DIAS("Últimos 90 dias", 90),
         ESTE_ANO("Este ano", -1), TUDO("Todo o período", 0);
@@ -91,14 +83,12 @@ public class PainelDashboard extends JPanel implements Recarregavel {
     private final Cartao cartaoDemandas = new Cartao("Quais setores estão com o maior número de demandas?",
             GraficoBarras.composto(Cores.AMARELO, "Em aberto", Cores.VERMELHO, "Atrasadas", ITENS_POR_GRAFICO));
 
-    /** Quantos dias à frente o cartão "Próximas atividades" considera e quantas mostra no máximo. */
     private static final int DIAS_PROXIMAS = 14;
     private static final int MAXIMO_PROXIMAS = 6;
 
     private final CalendarioController calendario = new CalendarioController();
     private final ListaAtividades listaProximas = new ListaAtividades();
 
-    /** @param irPara abre um módulo do menu (usado ao clicar nos números do topo, RF44) */
     public PainelDashboard(Consumer<Modulo> irPara) {
         super(new BorderLayout(0, 20));
         numeroAtletas.aoClicar(Modulo.ATLETAS, irPara);
@@ -216,7 +206,6 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         return corpo;
     }
 
-    /** Próximas atividades dos próximos dias (RF42), no mesmo estilo dos outros cartões. */
     private JComponent criarCartaoProximas() {
         JPanel cartao = new JPanel(new BorderLayout(0, 12));
         cartao.putClientProperty(FlatClientProperties.STYLE, "arc:16; background:" + Cores.hex(Cores.FUNDO_CARTAO));
@@ -242,9 +231,7 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         corpo.add(cartao, c);
     }
 
-    /** Conteúdo rolável que acompanha a largura da tela (só rola na vertical). */
     private static class Corpo extends JPanel implements Scrollable {
-
         Corpo() {
             super(new GridBagLayout());
             setOpaque(false);
@@ -276,9 +263,7 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         }
     }
 
-    /** Número geral do topo da tela (ex.: "Atletas ativos: 7"). */
     private static class Numero extends JPanel {
-
         private final JLabel valor = new JLabel("-");
         private final JLabel detalhe = new JLabel(" ");
 
@@ -307,7 +292,6 @@ public class PainelDashboard extends JPanel implements Recarregavel {
             valor.setForeground(cor);
         }
 
-        /** Clicar no número abre o módulo correspondente, se o perfil tiver acesso a ele (RF44). */
         void aoClicar(Modulo modulo, Consumer<Modulo> irPara) {
             if (irPara == null || !Sessao.getAcesso().veModulo(modulo)) {
                 return;
@@ -323,9 +307,7 @@ public class PainelDashboard extends JPanel implements Recarregavel {
         }
     }
 
-    /** Cartão com a pergunta, a resposta em destaque e o gráfico. */
     private static class Cartao extends JPanel {
-
         private final JLabel resposta = new JLabel(" ");
         private final JLabel complemento = new JLabel(" ");
         private final GraficoBarras grafico;
@@ -355,10 +337,6 @@ public class PainelDashboard extends JPanel implements Recarregavel {
             add(grafico, BorderLayout.CENTER);
         }
 
-        /**
-         * Mostra os indicadores. A resposta é o primeiro colocado; havendo empate
-         * no primeiro lugar, todos os empatados aparecem.
-         */
         void mostrar(List<Indicador> itens, Function<Indicador, String> descrever, String mensagemVazio) {
             if (itens.isEmpty() || itens.get(0).valor() == 0) {
                 semDados(mensagemVazio);
@@ -373,7 +351,6 @@ public class PainelDashboard extends JPanel implements Recarregavel {
             exibirGrafico(itens);
         }
 
-        /** Atletas que menos participam: a resposta é quem tem a menor frequência. */
         void mostrarAtletas(List<Frequencia> frequencias) {
             if (frequencias.isEmpty()) {
                 semDados("Nenhuma lista de presença registrada no período.");
@@ -411,7 +388,6 @@ public class PainelDashboard extends JPanel implements Recarregavel {
             repaint();
         }
 
-        /** "A", "A e B" ou "A, B e mais 2". */
         private static String nomes(List<String> nomes) {
             if (nomes.size() == 1) {
                 return nomes.get(0);

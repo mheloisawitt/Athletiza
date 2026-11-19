@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class GestaoControllerTest {
-
     private final GestaoController controller = new GestaoController();
     private final CargoController cargos = new CargoController();
     private final MembroController membros = new MembroController();
@@ -77,7 +76,6 @@ class GestaoControllerTest {
         assertEquals(SituacaoGestao.EM_ANDAMENTO, gestoes.get(4).getSituacao());
         assertEquals(1, gestoes.stream().filter(g -> g.getSituacao() == SituacaoGestao.EM_ANDAMENTO).count());
 
-        // uma gestão mais antiga não pode voltar a ficar "Em andamento"
         Gestao antiga = gestoes.get(2);
         antiga.setSituacao(SituacaoGestao.EM_ANDAMENTO);
         RegraNegocioException erro = assertThrows(RegraNegocioException.class, () -> controller.salvar(antiga));

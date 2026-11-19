@@ -23,16 +23,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-/**
- * Resultados da competição por modalidade, da equipe ou de um atleta (CH-32).
- * As opções de modalidade e atleta consideram as inscrições já salvas.
- */
 class PainelResultados extends PainelConsulta<Resultado> {
-
-    /** Fornece a competição com as inscrições salvas no banco. */
     @FunctionalInterface
     interface FonteCompeticao {
-
         Competicao obter() throws PersistenciaException;
     }
 
@@ -61,7 +54,6 @@ class PainelResultados extends PainelConsulta<Resultado> {
         editar(new Resultado());
     }
 
-    /** Diálogo de lançamento; reabre enquanto houver erro, para o usuário corrigir. */
     @Override
     protected void editar(Resultado resultado) {
         try {

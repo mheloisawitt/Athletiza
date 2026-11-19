@@ -18,26 +18,17 @@ import java.util.function.Supplier;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 
-/**
- * Ícones de linha do menu lateral, desenhados com Graphics2D (sem arquivos de imagem).
- * Cada desenho usa uma grade de 24 x 24 e é reduzido para o tamanho do ícone.
- * A cor acompanha o texto do item: verde quando selecionado e cinza claro nos demais.
- */
 public enum IconeMenu implements Icon {
-
-    /** Casa: página inicial com o calendário. */
     INICIO(() -> List.of(
             caminho(3, 11, 12, 3, 21, 11),
             caminho(5, 10, 5, 20, 10, 20, 10, 14, 14, 14, 14, 20, 19, 20, 19, 10))),
 
-    /** Gráfico de barras: o dashboard com os indicadores. */
     DASHBOARD(() -> List.of(
             caminho(3, 3, 3, 21, 21, 21),
             new RoundRectangle2D.Double(6.5, 12, 3, 6, 1, 1),
             new RoundRectangle2D.Double(11.5, 7, 3, 11, 1, 1),
             new RoundRectangle2D.Double(16.5, 10, 3, 8, 1, 1))),
 
-    /** Organograma: a gestão e seus cargos. */
     GESTAO(() -> List.of(
             circulo(12, 6, 3),
             circulo(5, 18, 2.5),
@@ -45,7 +36,6 @@ public enum IconeMenu implements Icon {
             new Line2D.Double(12, 9, 12, 12.5),
             caminho(5, 15.5, 5, 12.5, 19, 12.5, 19, 15.5))),
 
-    /** Duas pessoas: os atletas. */
     ATLETAS(() -> {
         Path2D corpo = new Path2D.Double();
         corpo.moveTo(2.5, 20);
@@ -58,7 +48,6 @@ public enum IconeMenu implements Icon {
                 new Arc2D.Double(12.5, 4, 7, 7, -90, 180, Arc2D.OPEN), ombro);
     }),
 
-    /** Troféu: as competições. */
     COMPETICOES(() -> {
         Path2D taca = new Path2D.Double();
         taca.moveTo(7, 3.5);
@@ -80,7 +69,6 @@ public enum IconeMenu implements Icon {
                 new Line2D.Double(12, 14, 12, 18), new Line2D.Double(8, 20.5, 16, 20.5));
     }),
 
-    /** Cronômetro: os treinos e seus horários. */
     TREINOS(() -> List.of(
             circulo(12, 13.5, 7.5),
             new Line2D.Double(12, 13.5, 12, 9.5),
@@ -89,7 +77,6 @@ public enum IconeMenu implements Icon {
             new Line2D.Double(12, 2.5, 12, 6),
             new Line2D.Double(18, 7, 19.8, 5.2))),
 
-    /** Calendário com estrela: os eventos da atlética. */
     EVENTOS(() -> List.of(
             new RoundRectangle2D.Double(3, 4.5, 18, 16.5, 4, 4),
             new Line2D.Double(3, 9.5, 21, 9.5),
@@ -97,7 +84,6 @@ public enum IconeMenu implements Icon {
             new Line2D.Double(16, 2.5, 16, 6.5),
             estrela(12, 15.3, 3.6, 1.6))),
 
-    /** Prancheta com marcação: as demandas e quem cuida delas. */
     DEMANDAS(() -> List.of(
             new RoundRectangle2D.Double(4.5, 4, 15, 17.5, 3, 3),
             new RoundRectangle2D.Double(9, 2.5, 6, 3.5, 1.5, 1.5),
@@ -106,14 +92,12 @@ public enum IconeMenu implements Icon {
             caminho(8, 17, 9.5, 18.5, 12, 16),
             new Line2D.Double(13.5, 17.5, 16.5, 17.5))),
 
-    /** Câmera: a galeria de fotos e vídeos. */
     REGISTROS(() -> List.of(
             new RoundRectangle2D.Double(2.5, 7, 19, 13, 4, 4),
             caminho(8, 7, 9.5, 4.5, 14.5, 4.5, 16, 7),
             circulo(12, 13.5, 3.5),
             circulo(18, 10, 0.4))),
 
-    /** Pessoa com escudo: usuários e permissões de acesso. */
     USUARIOS(() -> {
         Path2D corpo = new Path2D.Double();
         corpo.moveTo(2.5, 21);
@@ -139,7 +123,6 @@ public enum IconeMenu implements Icon {
         this.desenho = desenho;
     }
 
-    /** Ícone do item do menu com esse nome, ou null se o item não tiver ícone. */
     public static IconeMenu doItem(String nome) {
         return switch (nome) {
             case "Início" -> INICIO;
@@ -187,7 +170,6 @@ public enum IconeMenu implements Icon {
         return new Ellipse2D.Double(cx - raio, cy - raio, raio * 2, raio * 2);
     }
 
-    /** Linha que passa pelos pontos (x1, y1, x2, y2, ...). */
     private static Shape caminho(double... pontos) {
         Path2D linha = new Path2D.Double();
         linha.moveTo(pontos[0], pontos[1]);

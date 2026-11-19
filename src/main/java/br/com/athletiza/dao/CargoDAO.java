@@ -12,11 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * Acesso aos dados dos cargos da gestão (CH-18).
- */
 public class CargoDAO extends AbstractDAO<Cargo> {
-
     @Override
     protected String getTabela() {
         return "cargo";
@@ -45,7 +41,6 @@ public class CargoDAO extends AbstractDAO<Cargo> {
                 cargo.getNome(), cargo.getOrdem(), cargo.getSetor(), idDoSuperior(cargo), cargo.getId());
     }
 
-    /** Todos os cargos, cada um ligado ao objeto do seu cargo superior. */
     @Override
     public List<Cargo> listarTodos() throws PersistenciaException {
         Map<Integer, Integer> superiores = new HashMap<>();
@@ -68,7 +63,6 @@ public class CargoDAO extends AbstractDAO<Cargo> {
         return listarTodos().stream().filter(c -> c.getId() == id).findFirst();
     }
 
-    /** Cargos que o membro ocupa nas gestões em andamento (com o cargo superior, para saber se é assessoria). */
     public List<Cargo> listarDoMembroNaGestaoEmAndamento(int membroId) throws PersistenciaException {
         Set<Integer> ids = new HashSet<>(consultar("SELECT gmc.cargo_id FROM gestao_membro_cargo gmc"
                 + " JOIN gestao g ON g.id = gmc.gestao_id WHERE gmc.membro_id = ? AND g.situacao = 'EM_ANDAMENTO'",
@@ -76,7 +70,6 @@ public class CargoDAO extends AbstractDAO<Cargo> {
         return listarTodos().stream().filter(c -> ids.contains(c.getId())).toList();
     }
 
-    /** Quantas vezes o cargo está ocupado, somando todas as gestões. */
     public int contarOcupacoes(int id) throws PersistenciaException {
         return consultar("SELECT COUNT(*) FROM gestao_membro_cargo WHERE cargo_id = ?", rs -> rs.getInt(1), id).get(0);
     }

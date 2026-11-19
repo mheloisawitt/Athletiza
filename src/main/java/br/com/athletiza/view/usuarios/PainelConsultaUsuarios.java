@@ -14,14 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Consulta dos usuários do sistema (RF01). Disponível apenas para administradores (CH-13).
- */
 public class PainelConsultaUsuarios extends PainelConsulta<Usuario> {
-
     private final UsuarioController controller = new UsuarioController();
     private final Navegador navegador;
-    /** Acesso de cada usuário, calculado pelo cargo na gestão em andamento a cada carregamento. */
+
     private final Map<Usuario, String> acessos;
 
     public PainelConsultaUsuarios(Navegador navegador) {

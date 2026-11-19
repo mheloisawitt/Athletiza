@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Situação da participação da atlética em uma competição.
- */
 public enum SituacaoCompeticao {
-
     PLANEJADA("Planejada"),
     CONFIRMADA("Confirmada"),
     ENCERRADA("Encerrada"),

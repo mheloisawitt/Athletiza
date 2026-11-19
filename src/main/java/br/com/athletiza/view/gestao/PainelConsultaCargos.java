@@ -10,11 +10,7 @@ import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import java.util.List;
 
-/**
- * Consulta dos cargos da gestão em ordem hierárquica (CH-18, RF07).
- */
 public class PainelConsultaCargos extends PainelConsulta<Cargo> {
-
     private final CargoController controller = new CargoController();
     private final Navegador navegador;
 
@@ -30,7 +26,6 @@ public class PainelConsultaCargos extends PainelConsulta<Cargo> {
         exibirVoltar(navegador::voltar);
     }
 
-    /** Perfil que o cargo dá a quem o ocupa na gestão em andamento. */
     private static String descreverAcesso(Cargo cargo) {
         return Acesso.pelosCargos(List.of(cargo)).map(Acesso::getDescricao).orElse("Sem acesso ao sistema");
     }

@@ -1,11 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Resultado obtido em uma competição, por modalidade (RF16).
- * Quando o atleta é nulo, o resultado é da equipe.
- */
 public class Resultado extends Entidade {
-
     private Modalidade modalidade;
     private Atleta atleta;
     private Integer colocacao;

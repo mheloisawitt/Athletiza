@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TreinoControllerTest {
-
     private final TreinoController controller = new TreinoController();
     private final ModalidadeController modalidades = new ModalidadeController();
 

@@ -46,16 +46,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
-/**
- * Tela inicial: calendário do mês ou da semana com as atividades de cada dia
- * (CH-15, RF10), compromissos (CH-16), alertas (RF24) e a lista dos próximos eventos (CH-17).
- *
- * Abre sempre no mês atual. Clique em um dia mostra as atividades dele;
- * clique duplo cria um compromisso naquele dia. Treinos, competições e
- * eventos podem ser abertos a partir da lista lateral (RF09).
- */
 public class PainelCalendario extends JPanel implements Recarregavel {
-
     private static final Locale PORTUGUES = Locale.forLanguageTag("pt-BR");
     private static final DateTimeFormatter FORMATO_MES = DateTimeFormatter.ofPattern("MMMM uuuu", PORTUGUES);
     private static final DateTimeFormatter FORMATO_DIA = DateTimeFormatter.ofPattern("dd/MM", PORTUGUES);
@@ -63,7 +54,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
     private static final DateTimeFormatter FORMATO_DIA_MES_CURTO = DateTimeFormatter.ofPattern("d 'de' MMMM", PORTUGUES);
     private static final String[] DIAS_DA_SEMANA = {"Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"};
 
-    /** Opções do período de "Próximos eventos". */
     private enum Periodo {
         SETE(7), QUINZE(15), TRINTA(30);
 
@@ -79,7 +69,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         }
     }
 
-    /** Visão do calendário (RF10). A lista do dia fica sempre na lateral. */
     private enum Modo {
         MES, SEMANA
     }
@@ -101,7 +90,7 @@ public class PainelCalendario extends JPanel implements Recarregavel {
 
     private YearMonth mesAtual = YearMonth.now();
     private LocalDate diaSelecionado;
-    /** Atividades do mês ou da semana exibida, por dia. */
+
     private Map<LocalDate, List<Atividade>> atividadesDoMes = Map.of();
 
     public PainelCalendario(Navegador navegador) {
@@ -283,7 +272,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         return botao;
     }
 
-    /** Mês ou semana anterior (-1) ou seguinte (+1), conforme a visão atual. */
     private void avancar(int sentido) {
         if (modo == Modo.MES) {
             mesAtual = mesAtual.plusMonths(sentido);
@@ -294,7 +282,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         carregar();
     }
 
-    /** Posiciona o mês e a semana exibidos no dia informado. */
     private void irPara(LocalDate dia) {
         mesAtual = YearMonth.from(dia);
         inicioSemana = segundaFeiraDe(dia);
@@ -309,7 +296,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
                 : !dia.isBefore(inicioSemana) && !dia.isAfter(inicioSemana.plusDays(6));
     }
 
-    /** Seleciona um dia (mostrando suas atividades) ou, com null, volta para os próximos eventos. */
     private void selecionarDia(LocalDate dia) {
         if (dia != null && !estaVisivel(dia)) {
             irPara(dia);
@@ -399,10 +385,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         }
     }
 
-    /**
-     * Abre treino, competição ou evento na tela de edição do seu módulo (RF09).
-     * Ao salvar ou cancelar, o "Voltar" retorna ao calendário já atualizado.
-     */
     private void abrir(Atividade atividade) {
         if (!Sessao.getAcesso().podeAlterar(atividade)) {
             Mensagens.aviso(this, "Seu perfil não permite editar esta atividade: ela é de outra área.");
@@ -422,7 +404,6 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         }
     }
 
-    /** Clique duplo na visão semanal: compromissos abrem o diálogo; o resto, a tela do módulo. */
     private void abrirOuEditar(Atividade atividade) {
         if (!podeAbrirAtividades()) {
             return;
@@ -436,12 +417,10 @@ public class PainelCalendario extends JPanel implements Recarregavel {
         }
     }
 
-    /** Compromissos (reuniões, agenda da gestão) são da presidência. */
     private static boolean podeAlterarCompromissos() {
         return Sessao.getAcesso().isAcessoTotal();
     }
 
-    /** Diretores abrem as atividades da sua área para editar; assessores só consultam. */
     private static boolean podeAbrirAtividades() {
         return Sessao.getAcesso().getPerfil() != Perfil.ASSESSOR;
     }

@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DashboardControllerTest {
-
     private static final LocalDate FIM_DO_ANO = LocalDate.of(2026, 12, 31);
 
     private final DashboardController controller = new DashboardController();
@@ -51,7 +50,6 @@ class DashboardControllerTest {
         assertEquals(75, dados.resumo().percentualPresenca());
         assertEquals(7, dados.resumo().atletasAtivos());
 
-        // Treinos futuros não contam: até 05/10 só os de 01/10 e 03/10 aconteceram
         assertEquals(2, controller.carregar(null, LocalDate.of(2026, 10, 5)).treinosPorModalidade().get(0).valor());
         assertTrue(controller.carregar(LocalDate.of(2026, 10, 2), FIM_DO_ANO).presencasPorModalidade().isEmpty());
     }
@@ -68,26 +66,23 @@ class DashboardControllerTest {
     @Test
     void agrupaDemandasAbertasPeloSetorDosResponsaveis() throws Exception {
         try (Connection con = ConnectionFactory.getConnection(); Statement st = con.createStatement()) {
-            // sem responsável e sem relação: sem setor; concluída: não conta
             st.execute("INSERT INTO demanda (titulo, situacao) VALUES ('Sem dono', 'ABERTA')");
             st.execute("INSERT INTO demanda (titulo, situacao) VALUES ('Já feita', 'CONCLUIDA')");
-            // sem responsável, ligada a uma competição: conta para Esportes
+
             st.execute("INSERT INTO demanda (titulo, situacao, prazo, competicao_id)"
                     + " SELECT 'Inscrições', 'ABERTA', '2026-10-01', id FROM competicao WHERE titulo = 'Torneio Interno'");
         }
 
         List<Indicador> setores = controller.demandasPorSetor(LocalDate.of(2026, 10, 22));
 
-        // "Reservar ônibus" (Juliana, Esportes, prazo 25/10) + "Inscrições" (pela competição, atrasada)
         assertEquals(new Indicador("Esportes", 2, 1, "2 em aberto, 1 atrasada(s)"), setores.get(0));
-        // "Arrecadar alimentos" tem responsáveis de Eventos e da Presidência: conta nos dois (atrasada desde 20/10)
+
         assertTrue(setores.contains(new Indicador("Eventos", 1, 1, "1 em aberto, 1 atrasada(s)")));
         assertTrue(setores.contains(new Indicador("Presidência", 1, 1, "1 em aberto, 1 atrasada(s)")));
         assertTrue(setores.contains(new Indicador("Financeiro", 1, 0, "1 em aberto, 0 atrasada(s)")));
         assertTrue(setores.contains(new Indicador("Sem setor definido", 1, 0, "1 em aberto, 0 atrasada(s)")));
         assertEquals(5, setores.size());
 
-        // No topo, cada demanda conta uma vez só
         DadosDashboard dados = controller.carregar(null, LocalDate.of(2026, 10, 22));
         assertEquals(5, dados.resumo().demandasAbertas());
         assertEquals(2, dados.resumo().demandasAtrasadas());

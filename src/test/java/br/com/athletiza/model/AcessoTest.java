@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AcessoTest {
-
     private final Cargo presidente = cargo("Presidente", Setor.PRESIDENCIA, null);
     private final Cargo vice = cargo("Vice-presidente", Setor.PRESIDENCIA, presidente);
     private final Cargo diretorEsportes = cargo("Diretor de Esportes", Setor.ESPORTES, vice);
@@ -30,7 +29,7 @@ class AcessoTest {
         assertEquals("Assessor · Esportes", acesso(coordenador).getDescricao());
         assertTrue(Acesso.pelosCargos(List.of(semSetor)).isEmpty());
         assertTrue(Acesso.pelosCargos(List.of()).isEmpty());
-        // com mais de um cargo, vale o maior perfil
+
         assertEquals(Perfil.DIRETOR, Acesso.pelosCargos(List.of(coordenador, diretorEventos)).orElseThrow().getPerfil());
     }
 

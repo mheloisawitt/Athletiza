@@ -14,7 +14,6 @@ import javax.swing.JToggleButton;
 import org.junit.jupiter.api.Test;
 
 class IconeMenuTest {
-
     private static final List<String> ITENS = List.of(
             "Início", "Dashboard", "Gestão", "Atletas", "Competições", "Treinos", "Eventos", "Demandas", "Registros", "Usuários");
 

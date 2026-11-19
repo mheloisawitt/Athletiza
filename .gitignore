@@ -1,14 +1,11 @@
-# Maven
 target/
 
-# NetBeans
 nbproject/private/
 nbbuild/
 dist/
 nbdist/
 .nb-gradle/
 
-# Outras IDEs
 .idea/
 *.iml
 .vscode/
@@ -16,18 +13,14 @@ nbdist/
 .project
 .classpath
 
-# Java
 *.class
 *.log
 hs_err_pid*
 
-# Configuração local do banco (cada integrante tem a sua; versionar só o .example)
 db.properties
 
-# Sistema operacional
 .DS_Store
 Thumbs.db
 
-# Fotos e vídeos da galeria de registros (ficam só no computador de cada um)
 midias/
 Athletiza-midias/

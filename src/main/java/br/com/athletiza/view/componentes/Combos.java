@@ -8,18 +8,10 @@ import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-/**
- * Criação de combos padronizados.
- */
 public final class Combos {
-
     private Combos() {
     }
 
-    /**
-     * Combo de filtro com uma primeira opção "todos" (valor null),
-     * por exemplo "Todas as modalidades".
-     */
     public static <T> JComboBox<T> comOpcaoTodos(List<T> itens, String rotuloTodos) {
         JComboBox<T> combo = new JComboBox<>();
         atualizarItens(combo, itens);
@@ -27,7 +19,6 @@ public final class Combos {
         return combo;
     }
 
-    /** Troca os itens de um combo criado por comOpcaoTodos, mantendo a seleção se ela ainda existir. */
     public static <T> void atualizarItens(JComboBox<T> combo, List<T> itens) {
         Object selecionado = combo.getSelectedItem();
         DefaultComboBoxModel<T> modelo = new DefaultComboBoxModel<>();
@@ -37,7 +28,6 @@ public final class Combos {
         combo.setModel(modelo);
     }
 
-    /** Define o texto exibido para cada item (ex.: Genero::getNomeCompleto). */
     public static <T> void exibirComo(JComboBox<T> combo, Function<T, String> texto) {
         @SuppressWarnings("unchecked")
         ListCellRenderer<Object> padrao = (ListCellRenderer<Object>) (ListCellRenderer<?>) combo.getRenderer();

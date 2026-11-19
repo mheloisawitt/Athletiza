@@ -22,12 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-/**
- * Gerenciamento da gestão (CH-21): quem ocupa cada cargo. Permite adicionar,
- * trocar e remover membros, e abrir o organograma (CH-23).
- */
 public class PainelGerenciarGestao extends PainelConsulta<MembroCargo> {
-
     private static final Comparator<MembroCargo> POR_CARGO = Comparator
             .comparing(MembroCargo::cargo)
             .thenComparing(MembroCargo::membro, Comparator.comparing(Membro::getNome));
@@ -54,7 +49,6 @@ public class PainelGerenciarGestao extends PainelConsulta<MembroCargo> {
         larguraColuna(1, 60);
     }
 
-    /** Lê a composição de novo do banco, para refletir alterações feitas em outras telas. */
     @Override
     protected List<MembroCargo> buscarDados() throws AthletizaException {
         Gestao atualizada = new Gestao(gestao.getNome(), gestao.getDataInicio(), gestao.getDataFim());
@@ -84,7 +78,6 @@ public class PainelGerenciarGestao extends PainelConsulta<MembroCargo> {
         }
     }
 
-    /** "Trocar membro": escolhe quem passa a ocupar o cargo selecionado. */
     @Override
     protected void editar(MembroCargo ocupacao) {
         try {

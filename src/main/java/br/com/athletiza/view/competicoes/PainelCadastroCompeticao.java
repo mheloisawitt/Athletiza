@@ -12,11 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de competição (CH-30). Ao salvar, ela passa a aparecer no calendário.
- */
 public class PainelCadastroCompeticao extends PainelFormulario {
-
     private final Competicao competicao;
     private final CompeticaoController controller = new CompeticaoController();
     private final JTextField nome = new JTextField();

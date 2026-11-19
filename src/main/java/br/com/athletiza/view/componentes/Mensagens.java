@@ -7,12 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
-/**
- * Ponto único para exibir mensagens ao usuário (CH-46).
- * Erros técnicos vão para o log; o usuário vê apenas uma mensagem compreensível.
- */
 public final class Mensagens {
-
     private static final Logger LOG = Logger.getLogger(Mensagens.class.getName());
 
     private Mensagens() {
@@ -37,7 +32,6 @@ public final class Mensagens {
         JOptionPane.showMessageDialog(pai, mensagem, "Sucesso", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /** Pergunta Sim/Não. Retorna true se o usuário escolher Sim. */
     public static boolean confirmar(Component pai, String pergunta) {
         return JOptionPane.showConfirmDialog(pai, pergunta, "Confirmação",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;

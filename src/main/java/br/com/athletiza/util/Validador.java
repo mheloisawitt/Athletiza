@@ -10,22 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Validação dos dados informados nas telas (RN13).
- *
- * Acumula todos os erros e lança uma única ValidacaoException no final,
- * para o usuário ver tudo o que precisa corrigir de uma vez:
- *
- * <pre>
- * new Validador()
- *         .obrigatorio(nome, "Nome")
- *         .obrigatorio(dataInicio, "Data de início")
- *         .periodo(dataInicio, dataFim, "Data de início", "Data de fim")
- *         .validar();
- * </pre>
- */
 public class Validador {
-
     public static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/uuuu")
             .withResolverStyle(ResolverStyle.STRICT);
     public static final DateTimeFormatter FORMATO_HORARIO = DateTimeFormatter.ofPattern("HH:mm");
@@ -57,7 +42,6 @@ public class Validador {
         return this;
     }
 
-    /** Só números (ex.: matrícula). Campo vazio é ignorado; use obrigatorio() junto se necessário. */
     public Validador apenasNumeros(String valor, String campo) {
         if (valor != null && !valor.isBlank() && !NUMEROS.matcher(valor.trim()).matches()) {
             erros.add("O campo \"" + campo + "\" deve conter apenas números.");
@@ -65,7 +49,6 @@ public class Validador {
         return this;
     }
 
-    /** Aceita telefone com DDD ou e-mail. Campo vazio é ignorado. */
     public Validador contato(String valor, String campo) {
         if (valor != null && !valor.isBlank()) {
             String texto = valor.trim();
@@ -76,7 +59,6 @@ public class Validador {
         return this;
     }
 
-    /** A data final não pode ser anterior à inicial. Datas nulas são ignoradas. */
     public Validador periodo(LocalDate inicio, LocalDate fim, String campoInicio, String campoFim) {
         if (inicio != null && fim != null && fim.isBefore(inicio)) {
             erros.add("A \"" + campoFim + "\" não pode ser anterior à \"" + campoInicio + "\".");
@@ -84,7 +66,6 @@ public class Validador {
         return this;
     }
 
-    /** Adiciona um erro de uma regra específica da tela. */
     public Validador regra(boolean valido, String mensagem) {
         if (!valido) {
             erros.add(mensagem);
@@ -96,18 +77,12 @@ public class Validador {
         return !erros.isEmpty();
     }
 
-    /** Lança ValidacaoException com todos os erros encontrados, se houver. */
     public void validar() throws ValidacaoException {
         if (!erros.isEmpty()) {
             throw new ValidacaoException(erros);
         }
     }
 
-    /**
-     * Converte o texto digitado (dd/mm/aaaa) em data.
-     *
-     * @return null se o texto estiver vazio
-     */
     public static LocalDate converterData(String texto, String campo) throws ValidacaoException {
         if (texto == null || texto.isBlank()) {
             return null;
@@ -119,11 +94,6 @@ public class Validador {
         }
     }
 
-    /**
-     * Converte o texto digitado (hh:mm) em horário.
-     *
-     * @return null se o texto estiver vazio
-     */
     public static LocalTime converterHorario(String texto, String campo) throws ValidacaoException {
         if (texto == null || texto.isBlank()) {
             return null;

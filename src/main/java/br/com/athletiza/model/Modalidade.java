@@ -3,12 +3,7 @@ package br.com.athletiza.model;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Modalidade esportiva da atlética, por exemplo "Futsal (F)" (RF05).
- * Duas modalidades são iguais quando têm o mesmo nome e gênero.
- */
 public class Modalidade extends Entidade implements Comparable<Modalidade> {
-
     private static final Comparator<Modalidade> ORDEM_NATURAL = Comparator
             .comparing(Modalidade::getNome, Textos.COMPARADOR)
             .thenComparing(Modalidade::getGenero);
