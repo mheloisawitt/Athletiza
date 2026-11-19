@@ -1,14 +1,15 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Membro;
-import br.com.athletiza.model.Situacao;
+import br.com.athletiza.repositorio.MembroRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Membro;
+import br.com.athletiza.modelo.Situacao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MembroDAO extends AbstractDAO<Membro> {
+public class MembroDAO extends AbstractDAO<Membro> implements MembroRepositorio {
     @Override
     protected String getTabela() {
         return "membro";

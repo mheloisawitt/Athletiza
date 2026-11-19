@@ -1,9 +1,9 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Membro;
-import br.com.athletiza.model.SituacaoTarefa;
-import br.com.athletiza.model.Tarefa;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Membro;
+import br.com.athletiza.modelo.SituacaoTarefa;
+import br.com.athletiza.modelo.Tarefa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;

@@ -1,17 +1,18 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Cargo;
-import br.com.athletiza.model.Gestao;
-import br.com.athletiza.model.Membro;
-import br.com.athletiza.model.SituacaoGestao;
+import br.com.athletiza.repositorio.GestaoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Cargo;
+import br.com.athletiza.modelo.Gestao;
+import br.com.athletiza.modelo.Membro;
+import br.com.athletiza.modelo.SituacaoGestao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class GestaoDAO extends AbstractDAO<Gestao> {
+public class GestaoDAO extends AbstractDAO<Gestao> implements GestaoRepositorio {
     private final CargoDAO cargoDAO = new CargoDAO();
 
     @Override

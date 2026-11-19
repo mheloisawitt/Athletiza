@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Modalidade;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package br.com.athletiza.util;
 
-import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.excecao.PersistenciaException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;

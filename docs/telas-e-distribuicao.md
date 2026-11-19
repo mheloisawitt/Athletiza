@@ -4,7 +4,7 @@ Regra da disciplina: **pelo menos 2 telas não triviais e pelo menos 1 tela que 
 tela contada pode ter apenas 3 componentes. O projeto também traz diagramas de sequência
 e de colaboração, em [`diagramas/imagens`](diagramas/imagens).
 
-Caminhos relativos a `src/main/java/br/com/athletiza/view/`.
+Caminhos relativos a `src/main/java/br/com/athletiza/visao/`.
 
 ## Protótipos
 
@@ -23,7 +23,7 @@ Todas as telas abaixo leem ou gravam no banco, exceto onde indicado.
 
 | # | Tela | Classe | Tipo | Complexidade | O que tem | Protótipo |
 |---|---|---|---|---|---|---|
-| 1 | Login | `TelaLogin` | Janela | Média | Usuário, senha com botão de mostrar, lembrar de mim, SwingWorker, troca obrigatória de senha provisória | [imagem](prototipo/telas/01.png) · [troca de senha](prototipo/telas/01b-troca-obrigatoria.png) |
+| 1 | Login | `TelaLogin` | Janela | Média | Usuário, senha com botão de mostrar, lembrar de mim, troca obrigatória de senha provisória | [imagem](prototipo/telas/01.png) · [troca de senha](prototipo/telas/01b-troca-obrigatoria.png) |
 | 2 | Início (calendário) | `calendario/PainelCalendario` (+ `CelulaDia`, `PainelSemana`, `ListaAtividades`, `PainelAlertas`) | Painel | Alta | Visão por mês e por semana, cores por tipo, alertas, próximos eventos, abrir atividades | [imagem](prototipo/telas/02.png) · [semana](prototipo/telas/02b-semana.png) |
 | 3 | Compromisso | `calendario/DialogoCompromisso` | Diálogo | Média | Título, data, horário, local, observações | [imagem](prototipo/telas/03.png) |
 | 4 | Consulta de gestões | `gestao/PainelConsultaGestoes` | Consulta | Média | JTable, busca, ordenação por período, exclusão com confirmação da composição | [imagem](prototipo/telas/04.png) |

@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
 
-        <exec.mainClass>br.com.athletiza.Athletiza</exec.mainClass>
+        <exec.mainClass>br.com.athletiza.app.Athletiza</exec.mainClass>
     </properties>
 
     <dependencies>

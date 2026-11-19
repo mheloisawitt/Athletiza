@@ -64,7 +64,7 @@ o sistema exige a troca logo no primeiro acesso. Depois, troque quando quiser cl
 1. `Team > Git > Clone...` e informe `https://github.com/mheloisawitt/athletiza.git`
 2. Ao final do clone, aceite abrir o projeto (ou use `File > Open Project` e selecione a pasta clonada)
 3. Clique com o botão direito no projeto e escolha **Run** (ou F6). O arquivo `nbactions.xml` já indica a classe
-   principal (`br.com.athletiza.Athletiza`); se aparecer `Could not find or load main class ${packageClassName}`,
+   principal (`br.com.athletiza.app.Athletiza`); se aparecer `Could not find or load main class ${packageClassName}`,
    atualize o projeto (Pull) ou escolha a classe em *Properties > Run > Main Class*
 
 Pela linha de comando:
@@ -89,9 +89,9 @@ mvn test -Dteste.db.url=jdbc:mysql://localhost:3306/athletiza_teste -Dteste.db.u
 
 ```
 br.com.athletiza
-├── Athletiza.java   classe principal
-├── model            entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
-├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
+├── app              classe principal (Athletiza)
+├── modelo           entidades do domínio (Pessoa, Atleta, Gestao, Atividade, Treino...)
+├── visao            telas Swing (TelaLogin, TelaPrincipal, Tema)
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
 │   ├── dashboard    indicadores em três abas: barras, linhas, colunas, pizza/rosca e linha do tempo
@@ -102,11 +102,18 @@ br.com.athletiza
 │   ├── eventos      módulo Eventos (consulta, cadastro, responsáveis e tarefas)
 │   ├── usuarios     usuários do sistema e troca de senha
 │   └── registros    galeria de fotos e vídeos em pastas
-├── controller       ligação entre telas e regras de negócio (LoginController, AtletaController...)
-├── dao              acesso ao banco de dados (DAOBase, GenericDAO, AbstractDAO e um DAO por entidade)
+├── controlador      recebem a visão e o repositório, registram as ações dos botões e aplicam as regras
+├── repositorio      interfaces de acesso aos dados (Repositorio e uma por entidade)
+├── dao              implementações dos repositórios com JDBC e JPA (DAOBase, AbstractDAO e um DAO por entidade)
 ├── util             utilitários (ConnectionFactory, Validador, Senha, Sessao, Cores, ArmazenamentoMidia, Log)
-└── exception        exceções personalizadas (Validacao, RegraNegocio, Persistencia)
+└── excecao          exceções personalizadas (Validacao, RegraNegocio, Persistencia)
 ```
+
+Fluxo de cada tela: a `TelaPrincipal` (menu) cria a visão e o DAO e entrega os dois ao controlador
+(`new AtletaControlador(visao, new AtletaDAO(), new ModalidadeDAO())`). O controlador, no `initTela()`,
+registra as ações dos botões (`visao.adicionarAcaoBtnIncluir(e -> ...)`), busca os dados pelo repositório e
+chama `visao.apresentarDados(...)`, `visao.apresentarMensagem(...)` e `visao.apresentarTela()`. A visão só
+mostra os dados e devolve o que foi digitado pelos getters (`getNome()`, `getDataNascimento()`...).
 
 Principais classes do modelo:
 
@@ -122,7 +129,7 @@ Principais classes do modelo:
 | CH-04 | DER e scripts SQL | Concluído |
 | CH-05 | Conexão com o banco (JDBC) | Concluído |
 | CH-05 | Troca do PostgreSQL pelo MySQL 8.4 (scripts, driver, mensagens de erro e testes) | Concluído |
-| CH-06 | GenericDAO, AbstractDAO (JDBC) e `ModalidadeDAO` com JPA | Concluído |
+| CH-06 | Repositorio, AbstractDAO (JDBC) e `ModalidadeDAO` com JPA | Concluído |
 | CH-07 | Hierarquia de pessoas | Concluído |
 | CH-08 | Hierarquia de atividades do calendário | Concluído |
 | CH-09 | Demais entidades com List, Map e Set e diagrama de classes | Concluído |
@@ -140,17 +147,17 @@ Principais classes do modelo:
 | RF08 | Abrir treinos, competições e eventos a partir do calendário | Concluído |
 | Extra | Visão do calendário por semana | Concluído |
 | Extra | Alertas na tela inicial (tarefas atrasadas, presença pendente, competições próximas) | Concluído |
-| CH-24 | AtletaDAO (com transação), AtletaController e ModalidadeController | Concluído |
+| CH-24 | AtletaDAO (com transação), AtletaControlador e ModalidadeControlador | Concluído |
 | CH-25 | Consulta de atletas com filtros e ordenação por Comparator | Concluído |
 | CH-26 | Cadastro de atleta com várias modalidades e situação em cada uma | Concluído |
 | CH-27 | Consulta e cadastro de modalidades (exclusão bloqueada se houver vínculos) | Concluído |
-| CH-18 | GestaoDAO, CargoDAO, MembroDAO e controllers (sem períodos sobrepostos) | Concluído |
+| CH-18 | GestaoDAO, CargoDAO, MembroDAO e controladores (sem períodos sobrepostos) | Concluído |
 | CH-19 | Consulta de gestões ordenada por período | Concluído |
 | CH-20 | Cadastro de gestão | Concluído |
 | CH-21 | Gerenciar gestão: adicionar, trocar e remover membros dos cargos | Concluído |
 | CH-22 | Consulta e cadastro de membros (e de cargos) | Concluído |
 | CH-23 | Organograma da gestão desenhado com Graphics2D | Concluído |
-| CH-28 | CompeticaoDAO (inscrições em transação) e CompeticaoController | Concluído |
+| CH-28 | CompeticaoDAO (inscrições em transação) e CompeticaoControlador | Concluído |
 | CH-29 | Consulta de competições com filtros de situação e período | Concluído |
 | CH-30 | Cadastro de competição (aparece no calendário) | Concluído |
 | CH-31 | Gerenciar competição: modalidades e atletas inscritos | Concluído |
@@ -160,7 +167,7 @@ Principais classes do modelo:
 | CH-35 | Cadastro de treino e amistoso com verificação de conflito de horário | Concluído |
 | CH-36 | Lista de presença salva em lote | Concluído |
 | CH-37 | Frequência por atleta com percentual e histórico de presença do atleta (RF34) | Concluído |
-| CH-38 | EventoDAO e EventoController (responsáveis e tarefas) | Concluído |
+| CH-38 | EventoDAO e EventoControlador (responsáveis e tarefas) | Concluído |
 | CH-39 | Consulta de eventos com filtros de tipo e período e resumo de tarefas | Concluído |
 | CH-40 | Cadastro de evento (aparece no calendário) | Concluído |
 | CH-41 | Responsáveis e tarefas com alerta de atraso | Concluído |
@@ -172,7 +179,7 @@ Principais classes do modelo:
 | CH-49 | Roteiro de testes por módulo | Concluído |
 | CH-50 | Documentação: README, manual de uso e scripts SQL | Concluído |
 | Extra | Matriz de requisitos técnicos | Concluído |
-| CH-60 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
+| CH-60 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaControlador) | Concluído |
 | CH-61 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
 | Dashboard | Indicadores: modalidades com mais atletas, presenças e treinos; atletas que menos participam; setores com mais demandas | Concluído |
 | Dashboard | Abas Linha do tempo (próximos 30 dias, linhas e colunas por mês) e Distribuição (pizzas, roscas e pódios) | Concluído |
@@ -180,30 +187,42 @@ Principais classes do modelo:
 
 ## Como criar uma tela nova
 
-**Consulta** (lista com JTable): estenda `PainelConsulta<T>`, defina as colunas e implemente `buscarDados()`:
+**Consulta** (lista com JTable): a visão estende `PainelConsulta<T>` e só define as colunas:
 
 ```java
-public class PainelConsultaGestao extends PainelConsulta<Gestao> {
+public class PainelConsultaModalidades extends PainelConsulta<Modalidade> {
 
-    public PainelConsultaGestao() {
-        super("Gestões", new ModeloTabela<Gestao>()
-                .coluna("Gestão", String.class, Gestao::getNome)
-                .coluna("Período", String.class, Gestao::getPeriodo)
-                .coluna("Situação", SituacaoGestao.class, Gestao::getSituacao),
-                EnumSet.of(Acao.INCLUIR, Acao.GERENCIAR));
+    public PainelConsultaModalidades(Navegador navegador) {
+        super("Modalidades", new ModeloTabela<Modalidade>()
+                .coluna("Modalidade", String.class, Modalidade::getNome)
+                .coluna("Gênero", String.class, m -> m.getGenero().getNomeCompleto()), navegador);
     }
+}
+```
 
-    @Override
-    protected List<Gestao> buscarDados() throws AthletizaException {
-        return controller.listar();
-    }
+O controlador liga as ações e carrega os dados:
+
+```java
+public ModalidadeControlador(PainelConsultaModalidades visao, ModalidadeRepositorio repositorio) {
+    this.visao = visao;
+    this.repositorio = repositorio;
+    initTela();
+}
+
+public void initTela() {
+    visao.adicionarAcaoCarregar(() -> carregar());
+    visao.adicionarAcaoBtnIncluir(e -> abrirCadastro(new Modalidade()));
+    visao.adicionarAcaoBtnEditar(e -> editar());
+    visao.adicionarAcaoBtnExcluir(e -> excluirSelecionada());
+    visao.apresentarTela();
 }
 ```
 
 Busca, ordenação ao clicar no cabeçalho, etiquetas coloridas de situação e datas em dd/mm/aaaa já vêm prontas.
 
-**Cadastro** (formulário): estenda `PainelFormulario`, adicione os campos com `adicionarCampo(...)` e implemente `salvar()`.
-Os botões Salvar e Cancelar, as mensagens de erro e a volta para a consulta já vêm prontos.
+**Cadastro** (formulário): a visão estende `PainelFormulario`, adiciona os campos com `adicionarCampo(...)` e tem
+getters para cada campo. O controlador registra `cadastro.adicionarAcaoBtnSalvar(e -> ...)`, monta o objeto com os
+getters, valida, salva pelo repositório e chama `cadastro.apresentarMensagem(...)` e `cadastro.voltar()`.
 
 ## Convenção de branches e commits
 

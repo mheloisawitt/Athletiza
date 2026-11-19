@@ -1,7 +1,7 @@
 package br.com.athletiza.util;
 
-import br.com.athletiza.model.Acesso;
-import br.com.athletiza.model.Usuario;
+import br.com.athletiza.modelo.Acesso;
+import br.com.athletiza.modelo.Usuario;
 
 public final class Sessao {
     private static Usuario usuarioLogado;

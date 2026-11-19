@@ -1,6 +1,6 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.excecao.PersistenciaException;
 import br.com.athletiza.util.ConnectionFactory;
 import java.sql.Connection;
 import java.sql.Date;

@@ -1,13 +1,14 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Usuario;
+import br.com.athletiza.repositorio.UsuarioRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Usuario;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public class UsuarioDAO extends AbstractDAO<Usuario> {
+public class UsuarioDAO extends AbstractDAO<Usuario> implements UsuarioRepositorio {
     private static final String SELECT = "SELECT u.*, m.id AS mb_id, m.nome AS mb_nome, m.matricula AS mb_matricula,"
             + " m.contato AS mb_contato, m.situacao AS mb_situacao"
             + " FROM usuario u LEFT JOIN membro m ON m.id = u.membro_id";

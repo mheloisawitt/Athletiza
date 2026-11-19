@@ -1,7 +1,8 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.repositorio.ModalidadeRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Modalidade;
 import br.com.athletiza.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
@@ -9,7 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public class ModalidadeDAO extends DAOBase implements GenericDAO<Modalidade> {
+public class ModalidadeDAO extends DAOBase implements ModalidadeRepositorio {
 
     @Override
     protected String getNomeEntidade() {

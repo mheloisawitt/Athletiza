@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.excecao.ValidacaoException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 

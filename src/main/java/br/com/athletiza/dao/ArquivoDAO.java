@@ -1,14 +1,15 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Arquivo;
-import br.com.athletiza.model.Pasta;
-import br.com.athletiza.model.TipoArquivo;
+import br.com.athletiza.repositorio.ArquivoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Arquivo;
+import br.com.athletiza.modelo.Pasta;
+import br.com.athletiza.modelo.TipoArquivo;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ArquivoDAO extends AbstractDAO<Arquivo> {
+public class ArquivoDAO extends AbstractDAO<Arquivo> implements ArquivoRepositorio {
     @Override
     protected String getTabela() {
         return "arquivo";

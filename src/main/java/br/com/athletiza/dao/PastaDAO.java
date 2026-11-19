@@ -1,12 +1,13 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Pasta;
+import br.com.athletiza.repositorio.PastaRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Pasta;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class PastaDAO extends AbstractDAO<Pasta> {
+public class PastaDAO extends AbstractDAO<Pasta> implements PastaRepositorio {
     @Override
     protected String getTabela() {
         return "pasta";

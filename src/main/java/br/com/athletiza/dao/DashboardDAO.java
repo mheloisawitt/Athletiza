@@ -1,14 +1,15 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Indicador;
-import br.com.athletiza.model.Modalidade;
-import br.com.athletiza.model.PrioridadeDemanda;
-import br.com.athletiza.model.SituacaoAtleta;
-import br.com.athletiza.model.SituacaoDemanda;
-import br.com.athletiza.model.Setor;
-import br.com.athletiza.model.TipoEvento;
+import br.com.athletiza.repositorio.DashboardRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Indicador;
+import br.com.athletiza.modelo.Modalidade;
+import br.com.athletiza.modelo.PrioridadeDemanda;
+import br.com.athletiza.modelo.SituacaoAtleta;
+import br.com.athletiza.modelo.SituacaoDemanda;
+import br.com.athletiza.modelo.Setor;
+import br.com.athletiza.modelo.TipoEvento;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -17,10 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DashboardDAO extends DAOBase {
-    public record DemandaAberta(int id, LocalDate prazo, Setor setorDaAtividade) {
-    }
-
+public class DashboardDAO extends DAOBase implements DashboardRepositorio {
     @Override
     protected String getNomeEntidade() {
         return "os dados do dashboard";
@@ -117,9 +115,6 @@ public class DashboardDAO extends DAOBase {
         return setores;
     }
 
-    public record RegistroPresenca(LocalDate data, boolean presente) {
-    }
-
     public List<RegistroPresenca> registrosDePresenca(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         return consultar("SELECT t.data, p.presente FROM presenca_treino p JOIN treino t ON t.id = p.treino_id"
@@ -150,9 +145,6 @@ public class DashboardDAO extends DAOBase {
         return contarPorEnum("SELECT prioridade AS chave, COUNT(*) AS total FROM demanda"
                 + " WHERE situacao IN ('ABERTA', 'EM_ANDAMENTO') GROUP BY prioridade",
                 PrioridadeDemanda.class, "demanda", "demandas");
-    }
-
-    public record Podio(String modalidade, int colocacao) {
     }
 
     public List<Podio> podios(LocalDate inicio, LocalDate fim) throws PersistenciaException {
