@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.athletiza.BancoDeTeste;
+import br.com.athletiza.model.Comparativo;
 import br.com.athletiza.model.DadosDashboard;
 import br.com.athletiza.model.Indicador;
 import br.com.athletiza.util.ConnectionFactory;
@@ -95,10 +96,73 @@ class DashboardControllerTest {
         DadosDashboard dados = controller.carregar(null, LocalDate.of(2026, 11, 9));
 
         assertEquals("Futsal (F)", dados.atletasPorModalidade().get(0).nome());
-        assertEquals("Futsal (M)", dados.treinosPorModalidade().get(0).nome());
-        assertEquals(6, dados.treinosPorModalidade().get(0).valor());
+        assertEquals("Futsal (F)", dados.treinosPorModalidade().get(0).nome());
+        assertEquals(10, dados.treinosPorModalidade().get(0).valor());
         assertEquals("Esportes", dados.demandasPorSetor().get(0).nome());
         assertTrue(dados.menosFrequentes().get(0).getPercentual() < 50);
         assertTrue(dados.presencasPorModalidade().size() >= 4);
+    }
+
+    @Test
+    void linhaDoTempoAgrupaAtividadesEPresencaPorMes() throws Exception {
+        LocalDate hoje = LocalDate.of(2026, 10, 31);
+        DadosDashboard.LinhaDoTempo linha = controller.linhaDoTempo(LocalDate.of(2026, 9, 1), hoje);
+
+        Comparativo atividades = linha.atividadesPorMes();
+
+        assertEquals(List.of("out/26"), atividades.categorias());
+
+        assertEquals(List.of(4), atividades.serie(DashboardController.TREINOS).valores());
+        assertEquals(List.of(1), atividades.serie(DashboardController.AMISTOSOS).valores());
+        assertEquals(List.of(1), atividades.serie(DashboardController.COMPETICOES).valores());
+        assertEquals(List.of(3), atividades.serie(DashboardController.EVENTOS).valores());
+
+        assertEquals(List.of(75), linha.presencaPorMes().serie(DashboardController.PRESENCA).valores());
+        assertEquals(List.of(3), linha.presencasEFaltasPorMes().serie(DashboardController.PRESENCAS).valores());
+        assertEquals(List.of(1), linha.presencasEFaltasPorMes().serie(DashboardController.FALTAS).valores());
+
+        List<String> proximas = linha.proximas().stream().map(a -> a.getTitulo()).toList();
+        assertTrue(proximas.containsAll(List.of("Campeonato Regional", "Workshop")), proximas.toString());
+        assertTrue(linha.proximas().stream().noneMatch(a -> a.getData().isBefore(hoje)));
+    }
+
+    @Test
+    void mesesSemInicioComecamNaPrimeiraAtividadeELimitamA24() {
+        assertEquals("jan/26", DashboardController.rotulo(java.time.YearMonth.of(2026, 1)));
+        assertEquals(24, DashboardController.meses(java.time.YearMonth.of(2020, 1), java.time.YearMonth.of(2026, 10)).size());
+        assertEquals(3, DashboardController.meses(java.time.YearMonth.of(2026, 8), java.time.YearMonth.of(2026, 10)).size());
+    }
+
+    @Test
+    void distribuicaoContaSituacoesTiposEPodios() throws Exception {
+        BancoDeTeste.executar("03_dados_dashboard.sql");
+        LocalDate hoje = LocalDate.of(2026, 11, 9);
+
+        DadosDashboard.Distribuicao distribuicao = controller.distribuicao(LocalDate.of(2026, 1, 1), hoje);
+
+        assertTrue(distribuicao.atletasPorSituacao().contains(new Indicador("Lesionado", 1, "1 vínculo")));
+        assertEquals("Festa", distribuicao.eventosPorTipo().get(0).nome());
+        assertEquals(18, distribuicao.demandasPorSituacao().stream().mapToInt(Indicador::valor).sum());
+        assertEquals(17, distribuicao.demandasPorPrioridade().stream().mapToInt(Indicador::valor).sum());
+
+        Comparativo podios = distribuicao.podiosPorModalidade();
+        assertEquals("Futsal (F)", podios.categorias().get(0));
+        assertEquals(2, podios.serie(DashboardController.PRIMEIRO).valor(0));
+        assertEquals("Atletismo (F)", podios.categorias().get(1));
+        int volei = podios.categorias().indexOf("Vôlei (F)");
+        assertEquals(1, podios.serie(DashboardController.PRIMEIRO).valor(volei));
+        assertEquals(1, podios.serie(DashboardController.SEGUNDO).valor(volei));
+
+        assertTrue(controller.podiosPorModalidade(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 6, 30)).isVazio());
+    }
+
+    @Test
+    void mesSemListaDePresencaFicaSemValor() throws Exception {
+        BancoDeTeste.executar("03_dados_dashboard.sql");
+
+        Comparativo presenca = controller.linhaDoTempo(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 11, 9)).presencaPorMes();
+
+        assertEquals(List.of("jul/26", "ago/26", "set/26", "out/26", "nov/26"), presenca.categorias());
+        assertTrue(presenca.serie(DashboardController.PRESENCA).valores().stream().allMatch(v -> v != null && v > 0));
     }
 }

@@ -45,7 +45,8 @@ Documentação técnica:
    - [`01_estrutura.sql`](src/main/resources/sql/01_estrutura.sql): cria as tabelas (pode ser executado de novo para zerar o banco)
    - [`02_dados_exemplo.sql`](src/main/resources/sql/02_dados_exemplo.sql): dados de exemplo do protótipo
    - [`03_dados_dashboard.sql`](src/main/resources/sql/03_dados_dashboard.sql) (opcional, uma vez só): mais atletas,
-     treinos, presenças e demandas, para os gráficos do **Dashboard** terem o que mostrar
+     treinos (desde julho), presenças, eventos, resultados de competições e demandas, para os gráficos
+     do **Dashboard** terem o que mostrar
    - [`04_atualizacao_requisitos.sql`](src/main/resources/sql/04_atualizacao_requisitos.sql): **só para quem já tinha
      o banco criado** antes desta versão (acrescenta quem registrou cada demanda). Quem executa o `01_estrutura.sql`
      de novo não precisa dele
@@ -68,7 +69,9 @@ o sistema exige a troca logo no primeiro acesso. Depois, troque quando quiser cl
 
 1. `Team > Git > Clone...` e informe `https://github.com/mheloisawitt/athletiza.git`
 2. Ao final do clone, aceite abrir o projeto (ou use `File > Open Project` e selecione a pasta clonada)
-3. Clique com o botão direito no projeto e escolha **Run** (ou F6)
+3. Clique com o botão direito no projeto e escolha **Run** (ou F6). O arquivo `nbactions.xml` já indica a classe
+   principal (`br.com.athletiza.Athletiza`); se aparecer `Could not find or load main class ${packageClassName}`,
+   atualize o projeto (Pull) ou escolha a classe em *Properties > Run > Main Class*
 
 Pela linha de comando:
 
@@ -97,7 +100,7 @@ br.com.athletiza
 ├── view             telas Swing (TelaLogin, TelaPrincipal, Tema)
 │   ├── componentes  peças reutilizáveis (PainelConsulta, PainelFormulario, MenuLateral, Botoes...)
 │   ├── calendario   tela inicial (PainelCalendario, CelulaDia, ListaAtividades, DialogoCompromisso)
-│   ├── dashboard    indicadores com gráficos de barras (PainelDashboard, GraficoBarras)
+│   ├── dashboard    indicadores em três abas: barras, linhas, colunas, pizza/rosca e linha do tempo
 │   ├── atletas      módulo Atletas (consulta e cadastro de atletas e modalidades)
 │   ├── gestao       módulo Gestão (gestões, composição, organograma, cargos e membros)
 │   ├── competicoes  módulo Competições (consulta, cadastro, inscrições e resultados)
@@ -178,6 +181,7 @@ Principais classes do modelo:
 | CH-60 | Registros: pastas e arquivos (PastaDAO, ArquivoDAO, GaleriaController) | Concluído |
 | CH-61 | Tela de registros: galeria com miniaturas, envio e arrastar e soltar | Concluído |
 | Dashboard | Indicadores: modalidades com mais atletas, presenças e treinos; atletas que menos participam; setores com mais demandas | Concluído |
+| Dashboard | Abas Linha do tempo (próximos 30 dias, linhas e colunas por mês) e Distribuição (pizzas, roscas e pódios) | Concluído |
 | CH-51 a CH-68 | Pedidos da cliente na 3ª reunião (identidade visual, perfis, Demandas, Dashboard, paginação e demais ajustes) | Concluído |
 
 ## Como criar uma tela nova
