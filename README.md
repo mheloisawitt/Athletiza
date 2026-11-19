@@ -14,15 +14,10 @@ Em [`docs/requisitos`](docs/requisitos):
 - `Prototipos_Athletiza.pdf`: protótipo das 30 telas
 - `Atas_Reunioes_Athletiza.pdf`: atas das quatro reuniões com a cliente
 
-Em [`docs/banco/DER.md`](docs/banco/DER.md): diagrama do banco de dados e regras de integridade.
-
 Documentação técnica:
 
 - [`docs/manual.md`](docs/manual.md): manual de uso por módulo
-- [`docs/diagramas/classes.md`](docs/diagramas/classes.md): diagrama de classes (modelo, persistência e telas)
-- [`docs/diagramas/sequencia.md`](docs/diagramas/sequencia.md): 13 diagramas de sequência
-- [`docs/diagramas/colaboracao.md`](docs/diagramas/colaboracao.md): 4 diagramas de colaboração
-- [`docs/diagramas/imagens`](docs/diagramas/imagens): os mesmos diagramas em PNG
+- [`docs/diagramas/imagens`](docs/diagramas/imagens): diagramas de classes (modelo, persistência e telas), 13 de sequência e 4 de colaboração
 - [`docs/matriz-requisitos-tecnicos.md`](docs/matriz-requisitos-tecnicos.md): onde cada requisito técnico está no código
 - [`docs/telas-e-distribuicao.md`](docs/telas-e-distribuicao.md): lista das 31 telas e da complexidade de cada uma
 - [`docs/prototipo/prototipo-telas.html`](docs/prototipo/prototipo-telas.html): protótipo navegável das 31 telas (abrir no navegador), com uma imagem de cada tela em [`docs/prototipo/telas`](docs/prototipo/telas)
@@ -34,7 +29,6 @@ Documentação técnica:
 - Apache NetBeans (versão recente, já vem com Maven embutido)
 - Git
 - MySQL Community Server 8.4 LTS ou superior e, de preferência, o MySQL Workbench
-  ([passo a passo da instalação no Windows](docs/banco/instalar-mysql.md))
 
 ## Configurar o banco de dados
 

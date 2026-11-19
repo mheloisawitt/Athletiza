@@ -2,7 +2,7 @@
 
 Regra da disciplina: **pelo menos 2 telas não triviais e pelo menos 1 tela que usa o banco de dados**, e nenhuma
 tela contada pode ter apenas 3 componentes. O projeto também traz diagramas de sequência
-([`diagramas/sequencia.md`](diagramas/sequencia.md)) e de colaboração ([`diagramas/colaboracao.md`](diagramas/colaboracao.md)).
+e de colaboração, em [`diagramas/imagens`](diagramas/imagens).
 
 Caminhos relativos a `src/main/java/br/com/athletiza/view/`.
 
