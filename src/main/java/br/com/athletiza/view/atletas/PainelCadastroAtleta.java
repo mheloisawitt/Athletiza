@@ -29,12 +29,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Cadastro e edição de atleta (CH-26). As modalidades são escolhidas em uma
- * tabela com marcação e a situação do atleta em cada uma (RF04).
- */
 public class PainelCadastroAtleta extends PainelFormulario {
-
     private final Atleta atleta;
     private final AtletaController controller = new AtletaController();
     private final JTextField nome = new JTextField();
@@ -123,9 +118,7 @@ public class PainelCadastroAtleta extends PainelFormulario {
         return texto == null || texto.isBlank() ? null : texto.trim();
     }
 
-    /** Tabela de modalidades: [marcada] [modalidade] [situação do atleta nela]. */
     private static class ModeloModalidades extends AbstractTableModel {
-
         private static final String[] COLUNAS = {"", "Modalidade", "Situação na modalidade"};
 
         private final List<Modalidade> modalidades = new ArrayList<>();

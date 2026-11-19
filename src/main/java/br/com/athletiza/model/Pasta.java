@@ -3,11 +3,7 @@ package br.com.athletiza.model;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Pasta da galeria de registros (ex.: Festas, Ações Sociais). Ordem natural: pelo nome.
- */
 public class Pasta extends Entidade implements Comparable<Pasta> {
-
     private static final Comparator<Pasta> POR_NOME = Comparator.comparing(Pasta::getNome, Textos.COMPARADOR);
 
     private String nome;
@@ -28,7 +24,6 @@ public class Pasta extends Entidade implements Comparable<Pasta> {
         this.nome = nome;
     }
 
-    /** Quantidade de arquivos, preenchida pelo DAO na listagem. */
     public int getQuantidadeArquivos() {
         return quantidadeArquivos;
     }

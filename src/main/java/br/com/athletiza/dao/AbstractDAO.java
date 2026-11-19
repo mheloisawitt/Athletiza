@@ -7,19 +7,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Base dos DAOs de uma entidade (CH-06). Implementa as operações comuns
- * (excluir, buscarPorId, listarTodos); os métodos auxiliares de JDBC vêm de DAOBase.
- */
 public abstract class AbstractDAO<T extends Entidade> extends DAOBase implements GenericDAO<T> {
-
-    /** Nome da tabela no banco. */
     protected abstract String getTabela();
 
-    /** Converte a linha atual do ResultSet na entidade. */
     protected abstract T mapear(ResultSet rs) throws SQLException;
 
-    /** Ordenação usada em listarTodos(). */
     protected String getOrdenacaoPadrao() {
         return "id";
     }

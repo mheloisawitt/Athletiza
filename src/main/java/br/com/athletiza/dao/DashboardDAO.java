@@ -4,6 +4,9 @@ import br.com.athletiza.exception.PersistenciaException;
 import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Indicador;
 import br.com.athletiza.model.Modalidade;
+import br.com.athletiza.model.PrioridadeDemanda;
+import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.model.SituacaoDemanda;
 import br.com.athletiza.model.Setor;
 import br.com.athletiza.model.TipoEvento;
 import java.time.LocalDate;
@@ -14,16 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Consultas de totais que alimentam o dashboard. Os períodos vão de {@code inicio}
- * (nulo = desde o primeiro registro) até {@code fim}, inclusive.
- */
 public class DashboardDAO extends DAOBase {
-
-    /**
-     * Demanda em aberto (aberta ou em andamento), com o setor da atividade relacionada:
-     * o do tipo do evento, Esportes para competições, ou nulo se não houver relação.
-     */
     public record DemandaAberta(int id, LocalDate prazo, Setor setorDaAtividade) {
     }
 
@@ -32,7 +26,6 @@ public class DashboardDAO extends DAOBase {
         return "os dados do dashboard";
     }
 
-    /** Atletas ativos por modalidade (vínculos inativos e atletas inativos não contam). */
     public List<Indicador> atletasPorModalidade() throws PersistenciaException {
         return consultar("SELECT m.nome, m.genero, COUNT(*) AS atletas,"
                 + " SUM(CASE WHEN am.situacao <> 'ATIVO' THEN 1 ELSE 0 END) AS indisponiveis"
@@ -48,7 +41,6 @@ public class DashboardDAO extends DAOBase {
                 });
     }
 
-    /** Presenças registradas nos treinos e amistosos de cada modalidade. */
     public List<Indicador> presencasPorModalidade(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT m.nome, m.genero, COUNT(*) AS registros, COUNT(DISTINCT t.id) AS treinos,"
@@ -67,7 +59,6 @@ public class DashboardDAO extends DAOBase {
         }, parametros.toArray());
     }
 
-    /** Treinos e amistosos já realizados por modalidade; o parcial é a quantidade de amistosos. */
     public List<Indicador> treinosPorModalidade(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT m.nome, m.genero, COUNT(*) AS total,"
@@ -83,7 +74,6 @@ public class DashboardDAO extends DAOBase {
         }, parametros.toArray());
     }
 
-    /** Percentual geral de presença nos treinos do período (0 se não houver lista de presença). */
     public int percentualPresenca(LocalDate inicio, LocalDate fim) throws PersistenciaException {
         List<Object> parametros = new ArrayList<>();
         String sql = "SELECT COUNT(*) AS registros, SUM(CASE WHEN p.presente THEN 1 ELSE 0 END) AS presencas"
@@ -95,7 +85,6 @@ public class DashboardDAO extends DAOBase {
         return consultar("SELECT COUNT(*) FROM atleta WHERE situacao = 'ATIVO'", rs -> rs.getInt(1)).get(0);
     }
 
-    /** Demandas abertas ou em andamento. */
     public List<DemandaAberta> demandasAbertas() throws PersistenciaException {
         return consultar("SELECT d.id, d.prazo, d.competicao_id, e.tipo_evento FROM demanda d"
                 + " LEFT JOIN evento e ON e.id = d.evento_id"
@@ -107,7 +96,6 @@ public class DashboardDAO extends DAOBase {
                 });
     }
 
-    /** Membros responsáveis por cada demanda (id da demanda -> ids dos membros). */
     public Map<Integer, List<Integer>> responsaveisDasDemandas() throws PersistenciaException {
         Map<Integer, List<Integer>> responsaveis = new HashMap<>();
         consultar("SELECT demanda_id, membro_id FROM demanda_responsavel", rs -> {
@@ -117,10 +105,6 @@ public class DashboardDAO extends DAOBase {
         return responsaveis;
     }
 
-    /**
-     * Setores de cada membro na gestão em andamento, pelos cargos que ocupa
-     * (cargos sem setor não entram).
-     */
     public Map<Integer, Set<Setor>> setoresDosMembros() throws PersistenciaException {
         Map<Integer, Set<Setor>> setores = new HashMap<>();
         consultar("SELECT gmc.membro_id, c.setor FROM gestao_membro_cargo gmc"
@@ -133,7 +117,61 @@ public class DashboardDAO extends DAOBase {
         return setores;
     }
 
-    /** Monta o WHERE do período e acrescenta os parâmetros. */
+    public record RegistroPresenca(LocalDate data, boolean presente) {
+    }
+
+    public List<RegistroPresenca> registrosDePresenca(LocalDate inicio, LocalDate fim) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return consultar("SELECT t.data, p.presente FROM presenca_treino p JOIN treino t ON t.id = p.treino_id"
+                + periodo("t.data", inicio, fim, parametros),
+                rs -> new RegistroPresenca(lerData(rs, "data"), rs.getBoolean("presente")), parametros.toArray());
+    }
+
+    public List<Indicador> atletasPorSituacao() throws PersistenciaException {
+        return contarPorEnum("SELECT CASE WHEN a.situacao = 'INATIVO' THEN 'INATIVO' ELSE am.situacao END AS chave,"
+                + " COUNT(*) AS total FROM atleta_modalidade am JOIN atleta a ON a.id = am.atleta_id"
+                + " GROUP BY CASE WHEN a.situacao = 'INATIVO' THEN 'INATIVO' ELSE am.situacao END",
+                SituacaoAtleta.class, "vínculo", "vínculos");
+    }
+
+    public List<Indicador> eventosPorTipo(LocalDate inicio) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return contarPorEnum("SELECT tipo_evento AS chave, COUNT(*) AS total FROM evento"
+                + periodo("data", inicio, null, parametros) + " AND situacao <> 'CANCELADO' GROUP BY tipo_evento",
+                TipoEvento.class, "evento", "eventos", parametros.toArray());
+    }
+
+    public List<Indicador> demandasPorSituacao() throws PersistenciaException {
+        return contarPorEnum("SELECT situacao AS chave, COUNT(*) AS total FROM demanda GROUP BY situacao",
+                SituacaoDemanda.class, "demanda", "demandas");
+    }
+
+    public List<Indicador> demandasAbertasPorPrioridade() throws PersistenciaException {
+        return contarPorEnum("SELECT prioridade AS chave, COUNT(*) AS total FROM demanda"
+                + " WHERE situacao IN ('ABERTA', 'EM_ANDAMENTO') GROUP BY prioridade",
+                PrioridadeDemanda.class, "demanda", "demandas");
+    }
+
+    public record Podio(String modalidade, int colocacao) {
+    }
+
+    public List<Podio> podios(LocalDate inicio, LocalDate fim) throws PersistenciaException {
+        List<Object> parametros = new ArrayList<>();
+        return consultar("SELECT m.nome, m.genero, r.colocacao FROM resultado r"
+                + " JOIN competicao c ON c.id = r.competicao_id JOIN modalidade m ON m.id = r.modalidade_id"
+                + periodo("c.data", inicio, fim, parametros) + " AND r.colocacao BETWEEN 1 AND 3",
+                rs -> new Podio(nomeModalidade(rs.getString("nome"), rs.getString("genero")), rs.getInt("colocacao")),
+                parametros.toArray());
+    }
+
+    private <E extends Enum<E>> List<Indicador> contarPorEnum(String sql, Class<E> tipo, String singular, String plural,
+            Object... parametros) throws PersistenciaException {
+        return consultar(sql, rs -> {
+            int total = rs.getInt("total");
+            return new Indicador(lerEnum(rs, "chave", tipo).toString(), total, plural(total, singular, plural));
+        }, parametros);
+    }
+
     private static String periodo(String coluna, LocalDate inicio, LocalDate fim, List<Object> parametros) {
         StringBuilder where = new StringBuilder(" WHERE 1 = 1");
         if (inicio != null) {

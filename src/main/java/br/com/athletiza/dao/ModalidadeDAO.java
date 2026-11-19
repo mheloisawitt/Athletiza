@@ -1,21 +1,15 @@
 package br.com.athletiza.dao;
 
 import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Genero;
 import br.com.athletiza.model.Modalidade;
-import java.sql.ResultSet;
+import br.com.athletiza.util.JPAUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * Acesso aos dados das modalidades. Também serve de exemplo de DAO concreto
- * para os demais módulos (CH-06).
- */
-public class ModalidadeDAO extends AbstractDAO<Modalidade> {
-
-    @Override
-    protected String getTabela() {
-        return "modalidade";
-    }
+public class ModalidadeDAO extends DAOBase implements GenericDAO<Modalidade> {
 
     @Override
     protected String getNomeEntidade() {
@@ -23,34 +17,98 @@ public class ModalidadeDAO extends AbstractDAO<Modalidade> {
     }
 
     @Override
-    protected String getOrdenacaoPadrao() {
-        return "nome, genero";
-    }
-
-    @Override
     public void inserir(Modalidade modalidade) throws PersistenciaException {
-        int id = executarInsercao("INSERT INTO modalidade (nome, genero) VALUES (?, ?)",
-                modalidade.getNome(), modalidade.getGenero());
-        modalidade.setId(id);
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(modalidade);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            desfazer(em);
+            throw traduzir(e, "incluir");
+        } finally {
+            em.close();
+        }
     }
 
     @Override
     public void atualizar(Modalidade modalidade) throws PersistenciaException {
-        executarAtualizacao("UPDATE modalidade SET nome = ?, genero = ? WHERE id = ?",
-                modalidade.getNome(), modalidade.getGenero(), modalidade.getId());
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(modalidade);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            desfazer(em);
+            throw traduzir(e, "salvar");
+        } finally {
+            em.close();
+        }
     }
 
-    /** Indica se a modalidade possui atletas, treinos ou competições vinculados (CH-27). */
+    @Override
+    public void excluir(int id) throws PersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Modalidade modalidade = em.find(Modalidade.class, id);
+            if (modalidade != null) {
+                em.remove(modalidade);
+            }
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            desfazer(em);
+            throw traduzir(e, "excluir");
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public Optional<Modalidade> buscarPorId(int id) throws PersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return Optional.ofNullable(em.find(Modalidade.class, id));
+        } catch (PersistenceException e) {
+            throw traduzir(e, "consultar");
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Modalidade> listarTodos() throws PersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT m FROM Modalidade m ORDER BY m.nome, m.genero", Modalidade.class)
+                    .getResultList();
+        } catch (PersistenceException e) {
+            throw traduzir(e, "consultar");
+        } finally {
+            em.close();
+        }
+    }
+
     public boolean possuiVinculos(int id) throws PersistenciaException {
         return existe("SELECT (SELECT COUNT(*) FROM atleta_modalidade WHERE modalidade_id = ?)"
                 + " + (SELECT COUNT(*) FROM treino WHERE modalidade_id = ?)"
                 + " + (SELECT COUNT(*) FROM competicao_modalidade WHERE modalidade_id = ?)", id, id, id);
     }
 
-    @Override
-    protected Modalidade mapear(ResultSet rs) throws SQLException {
-        Modalidade modalidade = new Modalidade(rs.getString("nome"), lerEnum(rs, "genero", Genero.class));
-        modalidade.setId(rs.getInt("id"));
-        return modalidade;
+    private void desfazer(EntityManager em) {
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
+        }
+    }
+
+    private PersistenciaException traduzir(PersistenceException e, String operacao) {
+        Throwable causa = e;
+        while (causa != null) {
+            if (causa instanceof SQLException erroSql) {
+                return traduzir(erroSql, operacao);
+            }
+            causa = causa.getCause();
+        }
+        return new PersistenciaException("Erro ao " + operacao + " " + getNomeEntidade() + ". Tente novamente.", e);
     }
 }

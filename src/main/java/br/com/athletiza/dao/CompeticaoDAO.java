@@ -9,6 +9,7 @@ import br.com.athletiza.model.Resultado;
 import br.com.athletiza.model.SituacaoCompeticao;
 import br.com.athletiza.model.Tarefa;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -19,12 +20,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Acesso aos dados das competições, das inscrições (competição -> modalidade -> atletas)
- * e dos resultados (CH-28, CH-31, CH-32).
- */
 public class CompeticaoDAO extends AbstractDAO<Competicao> {
-
     private static final String SELECT_RESULTADOS = "SELECT r.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM resultado r JOIN modalidade m ON m.id = r.modalidade_id";
 
@@ -63,7 +59,6 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
                 competicao.getLocal(), competicao.getSituacao(), competicao.getObservacoes(), competicao.getId());
     }
 
-    /** Todas as competições, cada uma com seus resultados (para a coluna de resultado da consulta). */
     @Override
     public List<Competicao> listarTodos() throws PersistenciaException {
         List<Competicao> competicoes = super.listarTodos();
@@ -79,7 +74,6 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         return competicoes;
     }
 
-    /** Preenche as modalidades inscritas e os atletas de cada uma. */
     public void carregarInscricoes(Competicao competicao) throws PersistenciaException {
         Map<Integer, Atleta> atletas = atletasPorId();
         Map<Integer, Modalidade> modalidades = new HashMap<>();
@@ -97,10 +91,6 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
         }, competicao.getId());
     }
 
-    /**
-     * Grava as inscrições da competição em uma transação. Modalidades retiradas
-     * levam junto (em cascata) seus atletas e resultados.
-     */
     public void salvarInscricoes(Competicao competicao) throws PersistenciaException {
         emTransacao("salvar", con -> {
             Set<Integer> gravadas = new HashSet<>(consultarIds(con, competicao.getId()));
@@ -168,7 +158,7 @@ public class CompeticaoDAO extends AbstractDAO<Competicao> {
     }
 
     private static List<Integer> consultarIds(Connection con, int competicaoId) throws SQLException {
-        try (var ps = con.prepareStatement("SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
+        try (PreparedStatement ps = con.prepareStatement("SELECT modalidade_id FROM competicao_modalidade WHERE competicao_id = ?")) {
             ps.setInt(1, competicaoId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Integer> ids = new java.util.ArrayList<>();

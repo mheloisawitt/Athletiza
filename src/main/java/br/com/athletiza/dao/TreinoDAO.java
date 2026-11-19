@@ -20,19 +20,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Acesso aos dados de treinos e amistosos (mesma tabela, coluna "tipo")
- * e da presença dos atletas (CH-33).
- */
 public class TreinoDAO extends AbstractDAO<Treino> {
-
     private static final String SELECT = "SELECT t.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero,"
             + " r.id AS membro_id, r.nome AS membro_nome, r.matricula AS membro_matricula,"
             + " r.contato AS membro_contato, r.situacao AS membro_situacao"
             + " FROM treino t JOIN modalidade m ON m.id = t.modalidade_id"
             + " LEFT JOIN membro r ON r.id = t.responsavel_id";
 
-    /** Presentes e total de registros de presença de um treino. */
     public record ResumoPresenca(int presentes, int registrados) {
     }
 
@@ -81,7 +75,6 @@ public class TreinoDAO extends AbstractDAO<Treino> {
         return listar(null, null, null);
     }
 
-    /** Treinos e amistosos com filtros opcionais (null = sem filtro), em ordem de data. */
     public List<Treino> listar(Modalidade modalidade, LocalDate inicio, LocalDate fim) throws PersistenciaException {
         StringBuilder sql = new StringBuilder(SELECT).append(" WHERE 1 = 1");
         List<Object> parametros = new ArrayList<>();
@@ -101,13 +94,11 @@ public class TreinoDAO extends AbstractDAO<Treino> {
         return consultar(sql.toString(), parametros.toArray());
     }
 
-    /** Treinos no mesmo dia e local, para verificar conflito de horário (CH-35). */
     public List<Treino> listarNoMesmoDiaELocal(Treino treino) throws PersistenciaException {
         return consultar(SELECT + " WHERE t.data = ? AND LOWER(t.local) = LOWER(?) AND t.id <> ?",
                 treino.getData(), treino.getLocal(), treino.isNova() ? -1 : treino.getId());
     }
 
-    /** Resumo da presença de cada treino (id do treino -> presentes / registrados). */
     public Map<Integer, ResumoPresenca> resumirPresencas() throws PersistenciaException {
         Map<Integer, ResumoPresenca> resumo = new HashMap<>();
         consultar("SELECT treino_id, SUM(CASE WHEN presente THEN 1 ELSE 0 END) AS presentes, COUNT(*) AS registrados"
@@ -126,7 +117,6 @@ public class TreinoDAO extends AbstractDAO<Treino> {
         }, treino.getId());
     }
 
-    /** Grava a lista de presença inteira de uma vez (CH-36). */
     public void salvarPresencas(Treino treino) throws PersistenciaException {
         emTransacao("salvar", con -> {
             atualizar(con, "DELETE FROM presenca_treino WHERE treino_id = ?", treino.getId());
@@ -138,10 +128,6 @@ public class TreinoDAO extends AbstractDAO<Treino> {
         });
     }
 
-    /**
-     * Frequência por atleta nos treinos com presença registrada (CH-37).
-     * Filtros nulos são ignorados.
-     */
     public List<Frequencia> frequencia(Modalidade modalidade, LocalDate inicio, LocalDate fim) throws PersistenciaException {
         StringBuilder sql = new StringBuilder("SELECT p.atleta_id, COUNT(*) AS treinos,"
                 + " SUM(CASE WHEN p.presente THEN 1 ELSE 0 END) AS presencas"
@@ -165,10 +151,6 @@ public class TreinoDAO extends AbstractDAO<Treino> {
                 rs.getInt("treinos"), rs.getInt("presencas")), parametros.toArray());
     }
 
-    /**
-     * Treinos em que o atleta teve presença registrada, do mais recente para o mais antigo (RF13).
-     * Filtros nulos são ignorados.
-     */
     public List<PresencaEmTreino> historicoDoAtleta(Atleta atleta, Modalidade modalidade, LocalDate inicio)
             throws PersistenciaException {
         StringBuilder sql = new StringBuilder(SELECT.replace("SELECT t.*,", "SELECT t.*, p.presente,"))

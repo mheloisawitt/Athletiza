@@ -11,11 +11,7 @@ import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import java.util.List;
 
-/**
- * Consulta das modalidades esportivas (CH-27), aberta a partir da consulta de atletas.
- */
 public class PainelConsultaModalidades extends PainelConsulta<Modalidade> {
-
     private final ModalidadeController controller = new ModalidadeController();
     private final Navegador navegador;
 

@@ -24,15 +24,11 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de demanda. A relação com um evento ou competição é
- * opcional, e a demanda pode ter um ou mais membros responsáveis.
- */
 public class PainelCadastroDemanda extends PainelFormulario {
-
     private final Demanda demanda;
     private final DemandaController controller = new DemandaController();
     private final JTextField titulo = new JTextField();
@@ -57,23 +53,29 @@ public class PainelCadastroDemanda extends PainelFormulario {
         adicionarCampo("Demanda", titulo, true);
         adicionarCampo("Situação", situacao, true);
         adicionarCampo("Prioridade", prioridade, true);
-        adicionarCampo("Prazo", prazo, false);
+        adicionarCampo("Prazo", prazo, true);
         adicionarCampoLinhaInteira("Relacionada a evento ou competição", relacionada, false);
-        adicionarCampoLinhaInteira("Responsáveis (membros da gestão em andamento)", responsaveis, false);
+        adicionarCampoLinhaInteira("Responsáveis (membros da gestão em andamento)", responsaveis, true);
         adicionarCampoLinhaInteira("Descrição", areaTexto(descricao), false);
+        if (!demanda.isNova()) {
+            JLabel rotuloSolicitante = new JLabel(demanda.getNomeSolicitante().isEmpty()
+                    ? "Não registrado" : demanda.getNomeSolicitante());
+            adicionarCampo("Solicitante", rotuloSolicitante, false);
+        }
+        if (!controller.podeCancelar(demanda) && demanda.getSituacao() != SituacaoDemanda.CANCELADA) {
+            situacao.removeItem(SituacaoDemanda.CANCELADA);
+        }
 
         carregarOpcoes();
         preencher();
     }
 
-    /** Eventos e competições para relacionar e membros da gestão em andamento (mais os já responsáveis). */
     private void carregarOpcoes() {
         try {
             Acesso acesso = Sessao.getAcesso();
             Combos.atualizarItens(relacionada, controller.listarRelacionaveis().stream()
                     .filter(acesso::podeAlterar).toList());
             if (!acesso.isAcessoTotal()) {
-                // diretores só registram demandas ligadas a um evento ou competição da sua área
                 ((DefaultComboBoxModel<Atividade>) relacionada.getModel()).removeElementAt(0);
             }
             List<Membro> membros = new ArrayList<>(new MembroController().listarDaGestaoEmAndamento());
@@ -97,7 +99,6 @@ public class PainelCadastroDemanda extends PainelFormulario {
         descricao.setText(demanda.getDescricao());
     }
 
-    /** A opção do combo que corresponde ao evento ou competição da demanda (mesmo tipo e mesmo id). */
     private Atividade opcaoRelacionada(Atividade atual) {
         if (atual == null) {
             return null;

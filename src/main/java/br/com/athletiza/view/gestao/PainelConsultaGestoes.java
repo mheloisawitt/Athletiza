@@ -13,12 +13,7 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 
-/**
- * Consulta das gestões da atlética, ordenadas por período (CH-19).
- * "Gerenciar" abre os cargos e membros da gestão selecionada.
- */
 public class PainelConsultaGestoes extends PainelConsulta<Gestao> {
-
     private final GestaoController controller = new GestaoController();
     private final Navegador navegador;
 
@@ -55,7 +50,6 @@ public class PainelConsultaGestoes extends PainelConsulta<Gestao> {
         navegador.abrir(new PainelGerenciarGestao(gestao, navegador));
     }
 
-    /** Se a gestão tem membros em cargos, avisa que eles também serão removidos (CH-18). */
     @Override
     protected void excluir(Gestao gestao) {
         try {

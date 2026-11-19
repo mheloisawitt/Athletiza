@@ -14,14 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-/**
- * Lista com uma caixa de marcação por item, para escolher vários de uma vez
- * (ex.: os responsáveis por uma demanda).
- *
- * @param <T> tipo dos itens
- */
 public class ListaMarcavel<T> extends JScrollPane {
-
     private final Map<T, JCheckBox> caixas = new LinkedHashMap<>();
     private final JPanel painel = new JPanel();
     private final String textoVazio;
@@ -37,7 +30,6 @@ public class ListaMarcavel<T> extends JScrollPane {
         setPreferredSize(new Dimension(0, 150));
     }
 
-    /** Troca os itens exibidos, mantendo marcados os que já estavam. */
     public void setItens(List<T> itens, Function<T, String> texto) {
         Collection<T> marcados = getMarcados();
         caixas.clear();
@@ -61,7 +53,6 @@ public class ListaMarcavel<T> extends JScrollPane {
         caixas.forEach((item, caixa) -> caixa.setSelected(marcados.contains(item)));
     }
 
-    /** Itens marcados, na ordem em que aparecem na lista. */
     public List<T> getMarcados() {
         return caixas.entrySet().stream().filter(e -> e.getValue().isSelected()).map(Map.Entry::getKey).toList();
     }

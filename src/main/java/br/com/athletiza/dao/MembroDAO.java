@@ -8,11 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Acesso aos dados dos membros da atlética (CH-22).
- */
 public class MembroDAO extends AbstractDAO<Membro> {
-
     @Override
     protected String getTabela() {
         return "membro";
@@ -41,20 +37,17 @@ public class MembroDAO extends AbstractDAO<Membro> {
                 membro.getNome(), membro.getMatricula(), membro.getContato(), membro.getSituacao(), membro.getId());
     }
 
-    /** Membros ativos que ocupam ao menos um cargo em uma gestão em andamento, em ordem alfabética. */
     public List<Membro> listarDaGestaoEmAndamento() throws PersistenciaException {
         return consultar("SELECT m.* FROM membro m WHERE m.situacao = 'ATIVO' AND EXISTS ("
                 + "SELECT 1 FROM gestao_membro_cargo gmc JOIN gestao g ON g.id = gmc.gestao_id"
                 + " WHERE gmc.membro_id = m.id AND g.situacao = 'EM_ANDAMENTO') ORDER BY m.nome");
     }
 
-    /** Indica se outro membro (diferente de idIgnorado) já usa a matrícula. */
     public boolean existeMatricula(String matricula, Integer idIgnorado) throws PersistenciaException {
         return existe("SELECT COUNT(*) FROM membro WHERE matricula = ? AND id <> ?",
                 matricula, idIgnorado == null ? -1 : idIgnorado);
     }
 
-    /** Descreve o que impede a exclusão do membro (CH-45). Lista vazia: pode excluir. */
     public List<String> listarVinculos(int id) throws PersistenciaException {
         List<String> vinculos = new ArrayList<>();
         adicionarSeHouver(vinculos, "cargo(s) em gestões",
@@ -83,7 +76,6 @@ public class MembroDAO extends AbstractDAO<Membro> {
         return mapearMembro(rs, "");
     }
 
-    /** Lê um membro de colunas com prefixo (ex.: "membro_nome"), para consultas com JOIN. */
     static Membro mapearMembro(ResultSet rs, String prefixo) throws SQLException {
         Membro membro = new Membro(rs.getString(prefixo + "nome"), rs.getString(prefixo + "matricula"),
                 rs.getString(prefixo + "contato"));

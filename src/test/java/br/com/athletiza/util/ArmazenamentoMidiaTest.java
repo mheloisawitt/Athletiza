@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 class ArmazenamentoMidiaTest {
-
     @Test
     void nomeSeguroRemoveAcentosEspacosECaracteresEspeciais() {
         assertEquals("festa-atletica-2025.jpg", ArmazenamentoMidia.nomeSeguro("Festa Atlética 2025.JPG"));

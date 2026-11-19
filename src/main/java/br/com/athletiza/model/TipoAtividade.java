@@ -1,11 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Tipos de atividade exibidos no calendário. Cada tipo tem uma cor
- * para diferenciar as atividades visualmente (CH-15).
- */
 public enum TipoAtividade {
-
     TREINO("Treino", "#8A2BE2"),
     AMISTOSO("Amistoso", "#B266FF"),
     COMPETICAO("Competição", "#00FF6A"),

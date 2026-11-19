@@ -13,12 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-/**
- * Alertas da tela inicial (RF24): tarefas atrasadas (vermelho), treinos sem lista
- * de presença (amarelo) e competições na próxima semana (verde). Some quando não há alertas.
- */
 class PainelAlertas extends JPanel {
-
     private static final int MAXIMO_VISIVEL = 4;
 
     PainelAlertas() {

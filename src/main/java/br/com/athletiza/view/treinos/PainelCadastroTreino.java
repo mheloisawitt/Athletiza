@@ -20,12 +20,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de treino ou amistoso (CH-35). O amistoso tem os campos
- * extras de adversário e resultado. Ao salvar, aparece no calendário.
- */
 public class PainelCadastroTreino extends PainelFormulario {
-
     private final Treino treino;
     private final TreinoController controller = new TreinoController();
     private final JComboBox<Modalidade> modalidade = new JComboBox<>();

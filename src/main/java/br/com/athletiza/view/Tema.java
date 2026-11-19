@@ -9,12 +9,7 @@ import java.awt.Insets;
 import java.util.Map;
 import javax.swing.UIManager;
 
-/**
- * Aparência padrão do sistema (CH-03): tema escuro do FlatLaf com as cores do protótipo.
- * Deve ser chamado uma vez, antes de abrir a primeira tela.
- */
 public final class Tema {
-
     private Tema() {
     }
 

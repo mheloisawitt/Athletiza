@@ -8,14 +8,9 @@ import br.com.athletiza.model.Cargo;
 import br.com.athletiza.util.Validador;
 import java.util.List;
 
-/**
- * Cadastro dos cargos da gestão e da hierarquia entre eles (CH-18, RF07).
- */
 public class CargoController {
-
     private final CargoDAO dao = new CargoDAO();
 
-    /** Cargos em ordem hierárquica (nível e nome). */
     public List<Cargo> listar() throws PersistenciaException {
         return dao.listarTodos().stream().sorted().toList();
     }

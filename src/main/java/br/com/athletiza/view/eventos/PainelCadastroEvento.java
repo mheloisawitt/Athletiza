@@ -14,15 +14,11 @@ import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de evento (CH-40). Ao salvar, aparece no calendário.
- */
 public class PainelCadastroEvento extends PainelFormulario {
-
     private final Evento evento;
     private final EventoController controller = new EventoController();
     private final JTextField nome = new JTextField();
-    /** Só os tipos de evento da área do usuário (a presidência vê todos). */
+
     private final JComboBox<TipoEvento> tipo = new JComboBox<>(
             Sessao.getAcesso().tiposDeEvento().toArray(TipoEvento[]::new));
     private final JTextField data = new JTextField();

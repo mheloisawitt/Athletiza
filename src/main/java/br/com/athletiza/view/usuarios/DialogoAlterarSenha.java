@@ -13,12 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
-/**
- * Troca da senha do usuário logado. Reabre enquanto houver erro, para o usuário corrigir.
- * No primeiro acesso com senha provisória, a troca é obrigatória (abrirObrigatorio).
- */
 public final class DialogoAlterarSenha {
-
     private DialogoAlterarSenha() {
     }
 
@@ -26,11 +21,6 @@ public final class DialogoAlterarSenha {
         exibir(pai, usuario, "Alterar minha senha", null);
     }
 
-    /**
-     * Troca obrigatória no primeiro acesso com senha provisória.
-     *
-     * @return true se a senha foi trocada; false se o usuário desistiu
-     */
     public static boolean abrirObrigatorio(Component pai, Usuario usuario) {
         return exibir(pai, usuario, "Defina uma nova senha",
                 "<html><b>Sua senha é provisória.</b><br>Por segurança, defina uma nova senha para continuar.</html>");

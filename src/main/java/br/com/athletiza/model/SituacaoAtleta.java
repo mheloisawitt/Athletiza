@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Situação do atleta em uma modalidade específica (RF04).
- */
 public enum SituacaoAtleta {
-
     ATIVO("Ativo"),
     LESIONADO("Lesionado"),
     AFASTADO("Afastado"),

@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Tipos de evento organizados pela atlética (RF17).
- */
 public enum TipoEvento {
-
     FESTA("Festa", Setor.EVENTOS),
     ACAO_SOCIAL("Social", Setor.SOCIAL),
     ACAO_AMBIENTAL("Ambiental", Setor.AMBIENTAL),
@@ -23,7 +19,6 @@ public enum TipoEvento {
         return descricao;
     }
 
-    /** Setor responsável por esse tipo de evento: o diretor dele pode incluir e editar esses eventos. */
     public Setor getSetor() {
         return setor;
     }

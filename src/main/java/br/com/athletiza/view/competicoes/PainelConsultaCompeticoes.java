@@ -17,13 +17,7 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.swing.JComboBox;
 
-/**
- * Consulta das competições, ordenadas por data (CH-29). "Gerenciar" abre as
- * inscrições e os resultados da competição selecionada.
- */
 public class PainelConsultaCompeticoes extends PainelConsulta<Competicao> {
-
-    /** Filtro de período da consulta. */
     private enum Periodo {
         TODAS("Todas as datas"), PROXIMAS("Próximas e em andamento"), ANTERIORES("Já iniciadas");
 
@@ -90,7 +84,6 @@ public class PainelConsultaCompeticoes extends PainelConsulta<Competicao> {
         navegador.abrir(new PainelGerenciarCompeticao(competicao, navegador));
     }
 
-    /** Avisa que inscrições e resultados também serão apagados (CH-29). */
     @Override
     protected void excluir(Competicao competicao) {
         try {

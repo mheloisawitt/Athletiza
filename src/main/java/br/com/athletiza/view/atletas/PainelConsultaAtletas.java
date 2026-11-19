@@ -19,13 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 
-/**
- * Consulta de atletas (CH-25): filtro por modalidade e situação, busca por texto
- * e ordenação escolhida pelo usuário (Comparators de Atleta).
- */
 public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
-
-    /** Opções de ordenação, cada uma ligada a um Comparator de Atleta (CH-11). */
     private enum Ordem {
         NOME("Ordenar por nome", Atleta.POR_NOME),
         MATRICULA("Ordenar por matrícula", Atleta.POR_MATRICULA),
@@ -111,7 +105,6 @@ public class PainelConsultaAtletas extends PainelConsulta<Atleta> {
         carregar();
     }
 
-    /** As modalidades podem ter mudado no cadastro de modalidades; mantém a seleção atual. */
     private void atualizarOpcoesDeModalidade() throws AthletizaException {
         atualizandoFiltros = true;
         try {

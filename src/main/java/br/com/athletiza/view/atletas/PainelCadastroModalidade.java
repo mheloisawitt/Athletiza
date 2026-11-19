@@ -11,11 +11,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de modalidade (CH-27).
- */
 public class PainelCadastroModalidade extends PainelFormulario {
-
     private final Modalidade modalidade;
     private final ModalidadeController controller = new ModalidadeController();
     private final JTextField nome = new JTextField();

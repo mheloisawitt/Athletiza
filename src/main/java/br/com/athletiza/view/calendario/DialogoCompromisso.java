@@ -16,12 +16,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-/**
- * Diálogo de inclusão e edição de compromissos a partir do calendário (CH-16).
- * Reaproveita o PainelFormulario; "voltar" fecha o diálogo.
- */
 class DialogoCompromisso extends JDialog implements Navegador {
-
     private boolean salvou;
 
     private DialogoCompromisso(Component pai, Compromisso compromisso, CalendarioController controller) {
@@ -32,11 +27,6 @@ class DialogoCompromisso extends JDialog implements Navegador {
         setLocationRelativeTo(pai);
     }
 
-    /**
-     * Abre o diálogo e espera ele ser fechado.
-     *
-     * @return true se o compromisso foi salvo
-     */
     static boolean abrir(Component pai, Compromisso compromisso, CalendarioController controller) {
         DialogoCompromisso dialogo = new DialogoCompromisso(pai, compromisso, controller);
         dialogo.setVisible(true);
@@ -55,7 +45,6 @@ class DialogoCompromisso extends JDialog implements Navegador {
     }
 
     private class Formulario extends PainelFormulario {
-
         private final Compromisso compromisso;
         private final CalendarioController controller;
         private final JTextField titulo = new JTextField();

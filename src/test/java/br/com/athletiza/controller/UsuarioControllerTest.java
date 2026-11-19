@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UsuarioControllerTest {
-
     private final UsuarioController controller = new UsuarioController();
     private final LoginController login = new LoginController();
 
@@ -46,7 +45,6 @@ class UsuarioControllerTest {
         ValidacaoException erro = assertThrows(ValidacaoException.class,
                 () -> controller.salvar(invalido, "123".toCharArray(), "124".toCharArray()));
 
-        // nome, formato do login, membro (não é administrador), tamanho e confirmação da senha
         assertEquals(5, erro.getErros().size(), erro.getMessage());
     }
 

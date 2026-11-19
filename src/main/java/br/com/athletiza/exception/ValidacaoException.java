@@ -4,14 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Lançada quando dados informados pelo usuário são inválidos
- * (campo obrigatório vazio, data inválida, formato incorreto...).
- *
- * Guarda todos os erros encontrados para que a tela mostre de uma vez.
- */
 public class ValidacaoException extends AthletizaException {
-
     private final List<String> erros;
 
     public ValidacaoException(String erro) {

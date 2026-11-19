@@ -1,8 +1,8 @@
-# Telas do sistema e distribuição entre os integrantes (CH-47)
+# Telas do sistema (CH-47)
 
-Regra da disciplina: **cada integrante fica com pelo menos 2 telas não triviais e pelo menos 1 tela que usa o banco
-de dados**, e nenhuma tela contada pode ter apenas 3 componentes. Cada integrante também apresenta
-**pelo menos 2 diagramas de sequência** ([`diagramas/sequencia.md`](diagramas/sequencia.md)).
+Regra da disciplina: **pelo menos 2 telas não triviais e pelo menos 1 tela que usa o banco de dados**, e nenhuma
+tela contada pode ter apenas 3 componentes. O projeto também traz diagramas de sequência
+([`diagramas/sequencia.md`](diagramas/sequencia.md)) e de colaboração ([`diagramas/colaboracao.md`](diagramas/colaboracao.md)).
 
 Caminhos relativos a `src/main/java/br/com/athletiza/view/`.
 
@@ -12,7 +12,7 @@ Caminhos relativos a `src/main/java/br/com/athletiza/view/`.
   sistema e com os dados de exemplo. Abra no navegador (clique duplo no arquivo). A faixa roxa no topo mostra o número
   da tela, o nome e a classe Java. **Mapa de telas** e as setas ‹ › passam por todas as telas, na ordem desta lista.
   Para abrir direto numa tela, acrescente `#t` e o número ao endereço (ex.: `prototipo-telas.html#t18`).
-- [`prototipo/telas`](prototipo/telas): uma imagem PNG de cada tela do protótipo (`01.png` a `31.png`), prontas para os slides.
+- [`prototipo/telas`](prototipo/telas): uma imagem PNG de cada tela do protótipo (`01.png` a `31.png`).
 - [`requisitos/prototipo_telas.webp`](requisitos/prototipo_telas.webp): protótipo original entregue com os requisitos.
 
 ## 1. Todas as telas
@@ -59,25 +59,21 @@ Infraestrutura compartilhada (não conta como tela de ninguém, mas qualquer um 
 `TelaPrincipal` (menu e CardLayout), `componentes/PainelConsulta`, `PainelFormulario`, `ModeloTabela`,
 `Renderizadores`, `MenuLateral`, `Botoes`, `Combos`, `Mensagens`, `Tema`.
 
-## 2. Sugestão de distribuição em pacotes
+## 2. Telas por módulo
 
-Cada pacote reúne telas de um mesmo módulo, já cumpre a regra (2 ou mais telas não triviais, com banco) e vem com
-2 ou mais diagramas de sequência prontos. Se o grupo tiver menos integrantes que pacotes, juntem dois pacotes;
-se tiver mais, dividam os pacotes maiores (ex.: o 5).
+| Módulo | Telas (#) | Diagramas de sequência |
+|---|---|---|
+| **Acesso e calendário** | Login (1), Início (2), Compromisso (3) | 1 Login, 2 Exibir calendário, 3 Incluir compromisso |
+| **Gestão** | Gestões (4, 5), Gerenciar gestão (6), Organograma (7), Cargos (8, 9), Membros (10, 11) | 4 Cadastrar gestão, 5 Adicionar membro a cargo |
+| **Atletas** | Atletas (12, 13), Modalidades (14, 15) | 6 Incluir atleta, 7 Excluir atleta com vínculos |
+| **Competições** | Competições (16, 17), Gerenciar competição (18), Resultados (19) | 8 Gerenciar competição, 9 Lançar resultado |
+| **Treinos** | Treinos (20), Cadastro de treino (21), Presença (22), Frequência (23), Histórico (24) | 10 Cadastrar treino, 11 Registrar presença |
+| **Eventos, registros e usuários** | Eventos (25, 26), Responsáveis e tarefas (27), Registros (28), Usuários (29, 30, 31) | 12 Concluir tarefa, 13 Adicionar arquivos |
 
-| Pacote | Telas (#) | Diagramas de sequência | Integrante |
-|---|---|---|---|
-| **1. Acesso e calendário** | Login (1), Início (2), Compromisso (3) | 1 Login, 2 Exibir calendário, 3 Incluir compromisso | |
-| **2. Gestão** | Gestões (4, 5), Gerenciar gestão (6), Organograma (7), Cargos (8, 9), Membros (10, 11) | 4 Cadastrar gestão, 5 Adicionar membro a cargo | |
-| **3. Atletas** | Atletas (12, 13), Modalidades (14, 15) | 6 Incluir atleta, 7 Excluir atleta com vínculos | |
-| **4. Competições** | Competições (16, 17), Gerenciar competição (18), Resultados (19) | 8 Gerenciar competição, 9 Lançar resultado | |
-| **5. Treinos** | Treinos (20), Cadastro de treino (21), Presença (22), Frequência (23), Histórico (24) | 10 Cadastrar treino, 11 Registrar presença | |
-| **6. Eventos, registros e usuários** | Eventos (25, 26), Responsáveis e tarefas (27), Registros (28), Usuários (29, 30, 31) | 12 Concluir tarefa, 13 Adicionar arquivos | |
+## 3. Conferência antes da entrega
 
-## 3. Conferência antes da apresentação
-
-- [ ] Cada integrante tem 2 ou mais telas de complexidade Média ou Alta
-- [ ] Cada integrante tem pelo menos 1 tela que usa o banco de dados
-- [ ] Cada integrante tem 2 ou mais diagramas de sequência das suas telas
-- [ ] Cada integrante sabe mostrar no código onde suas telas usam os requisitos técnicos
+- [ ] 2 ou mais telas de complexidade Média ou Alta
+- [ ] Pelo menos 1 tela que usa o banco de dados
+- [ ] Diagramas de classes, de sequência e de colaboração coerentes com o código
+- [ ] Saber mostrar no código onde as telas usam os requisitos técnicos
       (ver [`matriz-requisitos-tecnicos.md`](matriz-requisitos-tecnicos.md))

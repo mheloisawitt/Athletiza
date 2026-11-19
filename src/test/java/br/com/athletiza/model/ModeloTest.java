@@ -15,7 +15,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ModeloTest {
-
     private final Modalidade futsalF = new Modalidade("Futsal", Genero.FEMININO);
     private final Modalidade voleiF = new Modalidade("Vôlei", Genero.FEMININO);
 

@@ -10,12 +10,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-/**
- * Gestão da atlética em um período, com seus cargos e membros (RF06 a RF08).
- * Ordem natural: pela data de início (CH-11).
- */
 public class Gestao extends Entidade implements Comparable<Gestao> {
-
     public static final Comparator<Gestao> POR_PERIODO = Comparator.comparing(Gestao::getDataInicio,
             Comparator.nullsLast(Comparator.naturalOrder()));
 
@@ -77,7 +72,6 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         this.situacao = situacao;
     }
 
-    /** Período no formato "2025 - 2026", como na tela de consulta. */
     public String getPeriodo() {
         if (dataInicio == null || dataFim == null) {
             return "";
@@ -85,7 +79,6 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         return dataInicio.getYear() + " - " + dataFim.getYear();
     }
 
-    /** Indica se os períodos das duas gestões se cruzam (CH-18). */
     public boolean sobrepoe(Gestao outra) {
         if (dataInicio == null || dataFim == null || outra.dataInicio == null || outra.dataFim == null) {
             return false;
@@ -93,11 +86,6 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         return !dataInicio.isAfter(outra.dataFim) && !outra.dataInicio.isAfter(dataFim);
     }
 
-    /**
-     * Associa um membro a um cargo.
-     *
-     * @return false se esse membro já ocupa esse cargo nesta gestão
-     */
     public boolean adicionarMembro(Membro membro, Cargo cargo) {
         return composicao.add(new MembroCargo(membro, cargo));
     }
@@ -110,7 +98,6 @@ public class Gestao extends Entidade implements Comparable<Gestao> {
         return Collections.unmodifiableSet(composicao);
     }
 
-    /** Organograma: cargos em ordem hierárquica com os membros de cada um (RF08). */
     public Map<Cargo, List<Membro>> getOrganograma() {
         return composicao.stream().collect(Collectors.groupingBy(MembroCargo::cargo, TreeMap::new,
                 Collectors.mapping(MembroCargo::membro, Collectors.toList())));

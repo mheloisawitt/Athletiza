@@ -1,10 +1,6 @@
 package br.com.athletiza.model;
 
-/**
- * Presença de um atleta em um treino.
- */
 public enum Presenca {
-
     PRESENTE("Presente"),
     AUSENTE("Ausente");
 

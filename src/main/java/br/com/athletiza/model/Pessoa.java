@@ -2,15 +2,7 @@ package br.com.athletiza.model;
 
 import java.util.Objects;
 
-/**
- * Pessoa ligada à atlética. Classe abstrata: só existem pessoas concretas
- * (Membro, Atleta, Usuario).
- *
- * Duas pessoas do mesmo tipo são iguais quando têm a mesma matrícula,
- * o que permite usá-las em Set e como chave de Map.
- */
 public abstract class Pessoa extends Entidade {
-
     private String nome;
     private String matricula;
     private String contato;

@@ -17,15 +17,10 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Formas de exibir valores nas células das tabelas.
- */
 public final class Renderizadores {
-
     private Renderizadores() {
     }
 
-    /** Registra os renderizadores padrão (datas, horários e situações) em uma tabela. */
     public static void aplicarPadroes(JTable tabela) {
         tabela.setDefaultRenderer(Object.class, new Texto());
         tabela.setDefaultRenderer(String.class, new Texto());
@@ -36,7 +31,6 @@ public final class Renderizadores {
         alinharCabecalho(tabela);
     }
 
-    /** Títulos alinhados como o conteúdo: à esquerda, e centralizados nas colunas de situação e marcação. */
     private static void alinharCabecalho(JTable tabela) {
         TableCellRenderer padrao = tabela.getTableHeader().getDefaultRenderer();
         tabela.getTableHeader().setDefaultRenderer((tab, valor, selecionado, foco, linha, coluna) -> {
@@ -50,9 +44,7 @@ public final class Renderizadores {
         });
     }
 
-    /** Texto com margem interna; datas em dd/mm/aaaa e horários em hh:mm. */
     static class Texto extends DefaultTableCellRenderer {
-
         @Override
         public Component getTableCellRendererComponent(JTable tabela, Object valor, boolean selecionado,
                 boolean foco, int linha, int coluna) {
@@ -62,7 +54,6 @@ public final class Renderizadores {
         }
     }
 
-    /** Texto exibido para um valor: datas em dd/mm/aaaa, horários em hh:mm. */
     static String formatar(Object valor) {
         if (valor == null) {
             return "";
@@ -76,12 +67,7 @@ public final class Renderizadores {
         return valor.toString();
     }
 
-    /**
-     * Situação exibida como etiqueta colorida, como no protótipo
-     * ("Em andamento" em verde, "Planejada" em amarelo, "Encerrada" em cinza).
-     */
     static class Situacao extends DefaultTableCellRenderer {
-
         private Color corEtiqueta;
 
         Situacao() {

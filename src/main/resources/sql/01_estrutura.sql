@@ -1,15 +1,3 @@
--- Athletiza - estrutura do banco de dados (MySQL 8)
--- Execute depois do 00_criar_banco.sql. O USE abaixo seleciona o banco athletiza.
--- Pode ser executado novamente: apaga e recria todas as tabelas (os dados são perdidos).
---
--- As tabelas são apagadas das dependentes para as principais, para não violar as chaves estrangeiras.
---
--- Regras de exclusão (RN16):
---   RESTRICT -> impede excluir um registro que ainda é usado em outro lugar
---   CASCADE  -> apaga junto as linhas que só existem por causa do registro principal
---               (ex.: presenças de um treino, tarefas de um evento)
-
--- Lê este arquivo como UTF-8 (acentos corretos também pelo terminal; o Workbench já usa UTF-8).
 /*!40101 SET NAMES utf8mb4 */;
 
 USE athletiza;
@@ -37,8 +25,6 @@ DROP TABLE IF EXISTS modalidade;
 DROP TABLE IF EXISTS usuario;
 DROP TABLE IF EXISTS membro;
 
--- ===================== Pessoas =====================
-
 CREATE TABLE membro (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome        VARCHAR(100) NOT NULL,
@@ -47,8 +33,6 @@ CREATE TABLE membro (
     situacao    VARCHAR(20)  NOT NULL DEFAULT 'ATIVO' CHECK (situacao IN ('ATIVO', 'INATIVO'))
 );
 
--- Usuários do sistema. O administrador tem acesso total; os demais são ligados a um membro e
--- o que podem fazer vem do setor do cargo dele na gestão em andamento (Presidência, Diretor, Assessor).
 CREATE TABLE usuario (
     id            INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome          VARCHAR(100) NOT NULL,
@@ -59,7 +43,7 @@ CREATE TABLE usuario (
     administrador BOOLEAN      NOT NULL DEFAULT FALSE,
     membro_id     INTEGER,
     ativo         BOOLEAN      NOT NULL DEFAULT TRUE,
-    -- senha provisória (inicial ou definida por um administrador): troca obrigatória no próximo acesso
+
     deve_trocar_senha BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT
 );
@@ -91,8 +75,6 @@ CREATE TABLE atleta_modalidade (
     FOREIGN KEY (modalidade_id) REFERENCES modalidade (id) ON DELETE RESTRICT
 );
 
--- ===================== Gestão =====================
-
 CREATE TABLE gestao (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome        VARCHAR(100) NOT NULL UNIQUE,
@@ -103,9 +85,6 @@ CREATE TABLE gestao (
     CHECK (data_fim >= data_inicio)
 );
 
--- setor: define o acesso de quem ocupa o cargo. PRESIDENCIA = presidência; nos demais setores, o cargo
--- que não responde a ninguém do mesmo setor é o diretor e os subordinados a ele são assessores.
--- Sem setor, o cargo não dá acesso ao sistema.
 CREATE TABLE cargo (
     id                INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome              VARCHAR(60) NOT NULL UNIQUE,
@@ -126,8 +105,6 @@ CREATE TABLE gestao_membro_cargo (
     FOREIGN KEY (membro_id) REFERENCES membro (id) ON DELETE RESTRICT,
     FOREIGN KEY (cargo_id) REFERENCES cargo (id) ON DELETE RESTRICT
 );
-
--- ===================== Treinos =====================
 
 CREATE TABLE treino (
     id             INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -153,8 +130,6 @@ CREATE TABLE presenca_treino (
     FOREIGN KEY (treino_id) REFERENCES treino (id) ON DELETE CASCADE,
     FOREIGN KEY (atleta_id) REFERENCES atleta (id) ON DELETE RESTRICT
 );
-
--- ===================== Competições =====================
 
 CREATE TABLE competicao (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -198,8 +173,6 @@ CREATE TABLE resultado (
         REFERENCES competicao_modalidade (competicao_id, modalidade_id) ON DELETE CASCADE,
     FOREIGN KEY (atleta_id) REFERENCES atleta (id) ON DELETE RESTRICT
 );
-
--- ===================== Eventos e calendário =====================
 
 CREATE TABLE evento (
     id          INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -245,9 +218,6 @@ CREATE TABLE compromisso (
     observacoes VARCHAR(500)
 );
 
--- ===================== Registros (galeria de fotos e vídeos) =====================
--- O arquivo em si fica no disco (pasta de mídias); aqui ficam apenas as informações dele.
-
 CREATE TABLE pasta (
     id        INTEGER AUTO_INCREMENT PRIMARY KEY,
     nome      VARCHAR(60) NOT NULL UNIQUE,
@@ -267,14 +237,6 @@ CREATE TABLE arquivo (
     FOREIGN KEY (pasta_id) REFERENCES pasta (id) ON DELETE RESTRICT
 );
 
--- ===================== Demandas =====================
--- O que precisa ser feito pela atlética. A relação com um evento ou com uma
--- competição é opcional (no máximo um dos dois, garantido pelo sistema: o MySQL não aceita CHECK
--- em coluna de chave estrangeira com ON DELETE SET NULL); se o evento ou a competição for excluído,
--- a demanda continua existindo, apenas sem a relação.
--- Os responsáveis devem ser membros com cargo na gestão em andamento. A regra é conferida pelo
--- sistema ao salvar (DemandaController), pois uma chave estrangeira não consegue verificar a gestão.
-
 CREATE TABLE demanda (
     id            INTEGER AUTO_INCREMENT PRIMARY KEY,
     titulo        VARCHAR(100) NOT NULL,
@@ -285,8 +247,11 @@ CREATE TABLE demanda (
     prazo         DATE,
     evento_id     INTEGER,
     competicao_id INTEGER,
+
+    solicitante_id INTEGER,
     FOREIGN KEY (evento_id) REFERENCES evento (id) ON DELETE SET NULL,
-    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL
+    FOREIGN KEY (competicao_id) REFERENCES competicao (id) ON DELETE SET NULL,
+    FOREIGN KEY (solicitante_id) REFERENCES usuario (id) ON DELETE SET NULL
 );
 
 CREATE TABLE demanda_responsavel (

@@ -15,14 +15,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.ToolTipManager;
 
-/**
- * Gráfico de barras horizontais desenhado com Graphics2D: uma linha por item,
- * com o nome à esquerda, a barra e o valor à direita. A parte "parcial" do
- * valor (ex.: amistosos, demandas atrasadas) aparece com outra cor.
- * Passar o mouse sobre uma linha mostra o detalhe do item.
- */
 class GraficoBarras extends JComponent {
-
     private static final int ALTURA_LINHA = 30;
     private static final int ALTURA_BARRA = 12;
     private static final int LARGURA_NOME = 150;
@@ -34,7 +27,7 @@ class GraficoBarras extends JComponent {
     private final String legendaValor;
     private final String legendaParcial;
     private final int maximoItens;
-    /** Em modo percentual a escala vai até 100 e a cor da barra indica se a frequência é boa ou ruim. */
+
     private final boolean percentual;
     private List<Indicador> itens = List.of();
 
@@ -50,18 +43,15 @@ class GraficoBarras extends JComponent {
         ToolTipManager.sharedInstance().registerComponent(this);
     }
 
-    /** Barras de uma cor só. */
     static GraficoBarras simples(Color cor, int maximoItens) {
         return new GraficoBarras(cor, null, null, null, maximoItens, false);
     }
 
-    /** Barras com duas cores: o valor total e, destacada no fim da barra, a parte parcial. */
     static GraficoBarras composto(Color corValor, String legendaValor, Color corParcial, String legendaParcial,
             int maximoItens) {
         return new GraficoBarras(corValor, corParcial, legendaValor, legendaParcial, maximoItens, false);
     }
 
-    /** Barras de 0 a 100%: verde a partir de 75%, amarelo a partir de 50% e vermelho abaixo. */
     static GraficoBarras percentual(int maximoItens) {
         return new GraficoBarras(Cores.VERDE, null, null, null, maximoItens, true);
     }

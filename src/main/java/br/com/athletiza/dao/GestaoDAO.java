@@ -11,11 +11,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Acesso aos dados das gestões e de sua composição: quem ocupa cada cargo (CH-18).
- */
 public class GestaoDAO extends AbstractDAO<Gestao> {
-
     private final CargoDAO cargoDAO = new CargoDAO();
 
     @Override
@@ -47,10 +43,6 @@ public class GestaoDAO extends AbstractDAO<Gestao> {
                 gestao.getId());
     }
 
-    /**
-     * Preenche a composição da gestão (membro x cargo). Os cargos vêm com o
-     * cargo superior, para o organograma.
-     */
     public void carregarComposicao(Gestao gestao) throws PersistenciaException {
         Map<Integer, Cargo> cargos = cargoDAO.listarTodos().stream()
                 .collect(Collectors.toMap(Cargo::getId, Function.identity()));
@@ -74,7 +66,6 @@ public class GestaoDAO extends AbstractDAO<Gestao> {
                 gestao.getId(), membro.getId(), cargo.getId());
     }
 
-    /** Troca quem ocupa um cargo, em uma única transação. */
     public void trocarMembro(Gestao gestao, Cargo cargo, Membro atual, Membro novo) throws PersistenciaException {
         emTransacao("salvar", con -> {
             atualizar(con, "DELETE FROM gestao_membro_cargo WHERE gestao_id = ? AND membro_id = ? AND cargo_id = ?",

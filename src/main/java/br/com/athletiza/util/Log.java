@@ -8,15 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-/**
- * Grava os erros técnicos em arquivo (CH-46): o usuário vê uma mensagem amigável
- * e os detalhes (stack trace) ficam no log, para quem for dar suporte.
- *
- * Pasta padrão: Documentos/Athletiza-logs, na pasta do usuário. Pode ser trocada
- * com a propriedade de sistema "athletiza.logs". São mantidos até 5 arquivos de 1 MB.
- */
 public final class Log {
-
     private static final String ARQUIVO = "athletiza-%g.log";
     private static FileHandler arquivo;
 
@@ -30,12 +22,10 @@ public final class Log {
                 : Path.of(System.getProperty("user.home"), "Documents", "Athletiza-logs");
     }
 
-    /** Arquivo de log atual (o mais recente). */
     public static Path getArquivoAtual() {
         return getPasta().resolve(ARQUIVO.replace("%g", "0"));
     }
 
-    /** Liga a gravação em arquivo. Chamado uma vez, ao abrir o sistema. */
     public static synchronized void configurar() {
         if (arquivo != null) {
             return;
@@ -57,7 +47,6 @@ public final class Log {
         }
     }
 
-    /** Desliga a gravação em arquivo (usado nos testes). */
     static synchronized void encerrar() {
         if (arquivo != null) {
             Logger.getLogger("").removeHandler(arquivo);

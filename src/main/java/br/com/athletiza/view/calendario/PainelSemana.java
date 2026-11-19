@@ -28,16 +28,10 @@ import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
-/**
- * Visão da semana no calendário (RF10): sete colunas, de segunda a domingo,
- * com todas as atividades de cada dia e seus horários.
- */
 class PainelSemana extends JPanel {
-
     private static final DateTimeFormatter FORMATO_CABECALHO =
             DateTimeFormatter.ofPattern("EEE dd/MM", Locale.forLanguageTag("pt-BR"));
 
-    /** As sete colunas dividem a largura disponível; só há rolagem vertical. */
     private final JPanel colunas = new ColunasLarguraFixa();
 
     PainelSemana() {
@@ -53,10 +47,6 @@ class PainelSemana extends JPanel {
         add(rolagem, BorderLayout.CENTER);
     }
 
-    /**
-     * @param aoSelecionarDia clique em um dia
-     * @param aoAbrir         clique duplo em uma atividade
-     */
     void atualizar(LocalDate inicio, Map<LocalDate, List<Atividade>> atividades, LocalDate selecionado,
             Consumer<LocalDate> aoSelecionarDia, Consumer<Atividade> aoAbrir) {
         colunas.removeAll();
@@ -119,7 +109,6 @@ class PainelSemana extends JPanel {
         return coluna;
     }
 
-    /** Atividade com horário, título e uma faixa na cor do seu tipo; o texto quebra em várias linhas. */
     private static JLabel criarItem(Atividade atividade) {
         Color cor = Color.decode(atividade.getCorHex());
         String horario = atividade.getHorario() == null ? "" : "<b>" + Validador.FORMATO_HORARIO.format(atividade.getHorario())
@@ -136,9 +125,7 @@ class PainelSemana extends JPanel {
         return item;
     }
 
-    /** Painel que acompanha a largura da área visível, para as colunas nunca saírem da tela. */
     private static class ColunasLarguraFixa extends JPanel implements Scrollable {
-
         ColunasLarguraFixa() {
             super(new GridLayout(1, 7));
         }

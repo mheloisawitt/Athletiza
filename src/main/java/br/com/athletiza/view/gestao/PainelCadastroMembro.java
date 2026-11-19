@@ -10,11 +10,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de membro (CH-22).
- */
 public class PainelCadastroMembro extends PainelFormulario {
-
     private final Membro membro;
     private final MembroController controller = new MembroController();
     private final JTextField nome = new JTextField();

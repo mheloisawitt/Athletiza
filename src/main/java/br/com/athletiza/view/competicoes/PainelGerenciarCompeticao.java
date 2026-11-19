@@ -42,16 +42,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Gerenciar competição (CH-31): à esquerda, as modalidades inscritas; à direita,
- * os atletas da modalidade selecionada. Nas outras abas, os resultados (CH-32)
- * e as tarefas da organização (RF19).
- *
- * As inscrições são montadas em memória (Map modalidade -> Set de atletas, em
- * Competicao) e gravadas de uma vez em "Salvar inscrições".
- */
 public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
-
     private final CompeticaoController controller = new CompeticaoController();
     private final Navegador navegador;
     private final Competicao original;
@@ -129,7 +120,6 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         }
     }
 
-    /** Cópia da competição com as inscrições como estão no banco. */
     private Competicao competicaoSalva() throws PersistenciaException {
         Competicao copia = new Competicao(original.getTitulo(), original.getData(), original.getDataFim(),
                 original.getHorario(), original.getLocal());
@@ -244,9 +234,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         }
     }
 
-    /** [inscrita] [modalidade] [nº de atletas inscritos]. */
     private class ModeloModalidades extends AbstractTableModel {
-
         private final List<Modalidade> modalidades = new ArrayList<>();
 
         void carregar(List<Modalidade> todas) {
@@ -321,9 +309,7 @@ public class PainelGerenciarCompeticao extends JPanel implements Recarregavel {
         }
     }
 
-    /** [inscrito] [nome] [matrícula] [situação na modalidade] dos atletas da modalidade selecionada. */
     private class ModeloAtletas extends AbstractTableModel {
-
         private final List<Atleta> atletas = new ArrayList<>();
         private Modalidade modalidade;
 

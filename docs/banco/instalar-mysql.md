@@ -1,6 +1,6 @@
 # Instalar o MySQL no Windows
 
-Passo a passo para cada integrante deixar o banco do Athletiza funcionando no próprio computador.
+Passo a passo para deixar o banco do Athletiza funcionando no computador.
 
 ## 1. MySQL Community Server 8.4 LTS
 

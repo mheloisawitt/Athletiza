@@ -15,7 +15,7 @@ gestão em andamento (o setor de cada cargo é definido em **Gestão → Cargos*
 | Administrador | Usuário marcado como administrador | Tudo, inclusive cadastrar usuários e liberar acessos |
 | Presidência | Presidente ou Vice-presidente | Inclui, edita e exclui em todos os módulos, menos usuários |
 | Diretor | Cargo que dirige um setor (ex.: Diretor de Esportes) | Consulta tudo, inclusive o calendário completo; inclui e edita só a área da sua diretoria |
-| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora |
+| Assessor | Cargo subordinado a um diretor do mesmo setor (ex.: Coordenador de Modalidade) | Só consulta, e só os módulos do setor que assessora. Em **Demandas**, vê as que estão sob sua responsabilidade e muda a situação delas |
 
 Área de cada diretoria: **Esportes** cuida de Atletas, Treinos, Competições e dos eventos do tipo
 Competição; **Eventos**, das festas e eventos "Outro"; **Ações sociais** e **Ações ambientais**, dos
@@ -29,7 +29,9 @@ Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (D
 ## Padrão das telas
 
 - **Consultas:** campo **Buscar** (filtra enquanto você digita), filtros ao lado, clique no título
-  de uma coluna para ordenar, clique duplo numa linha para editar.
+  de uma coluna para ordenar, clique duplo numa linha para editar. As tabelas mostram 15 registros por
+  página; use **‹** e **›** abaixo da tabela para trocar de página (a busca e a ordenação valem para todas
+  as páginas).
 - **Cadastros:** campos com `*` são obrigatórios. **Salvar** grava; **Cancelar** pede confirmação.
   Datas no formato `dd/mm/aaaa` e horários em `hh:mm`.
 - **Excluir** sempre pede confirmação. Se o registro tiver vínculos (ex.: atleta com presenças), o sistema
@@ -49,11 +51,17 @@ Usuários de exemplo (senha `athletiza`): `mariana` (Presidência), `juliana` (D
 
 ## Dashboard
 
-Responde às perguntas da diretoria com um gráfico para cada uma. Em cada cartão, a resposta aparece em
-destaque (havendo empate no primeiro lugar, todos os empatados aparecem) e o gráfico mostra as 6 primeiras
-posições. Passe o mouse sobre uma barra para ver os detalhes.
+No topo ficam os números gerais: atletas ativos, treinos e amistosos realizados, percentual de presença e
+demandas em aberto. O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período)
+vale para treinos, amistosos, presenças, eventos e pódios; atletas e demandas mostram sempre a situação atual.
+Passe o mouse sobre qualquer gráfico para ver os detalhes. O Dashboard aparece para administrador,
+presidência e diretores; assessores não o veem, porque ele mostra os dados de todos os setores.
 
-- **Topo:** atletas ativos, treinos e amistosos realizados, percentual de presença e demandas em aberto.
+**Aba Perguntas da diretoria** (barras horizontais, com a resposta em destaque e as 6 primeiras posições;
+havendo empate no primeiro lugar, todos os empatados aparecem):
+
+- **Quais são as próximas atividades?** Treinos, competições, eventos e compromissos dos próximos 14 dias
+  (até 6 itens).
 - **Qual modalidade tem mais atletas?** Atletas ativos em cada modalidade (vínculos inativos não contam).
 - **Qual modalidade tem mais atletas presentes nos treinos?** Total de presenças nas listas de presença.
   O detalhe mostra a média de presentes por treino e o percentual de presença.
@@ -65,15 +73,31 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
   Financeiro...). A parte vermelha da barra são as atrasadas. Uma demanda com responsáveis de setores
   diferentes conta em cada um deles (no número do topo, conta uma vez só). Sem responsável com setor, vale o
   setor do evento ou competição relacionado; sem nenhum dos dois, aparece em *Sem setor definido*.
-- O Dashboard aparece para administrador, presidência e diretores; assessores não o veem, porque ele
-  mostra os dados de todos os setores.
-- O filtro **Treinos e presenças** (últimos 30 dias, 90 dias, este ano ou todo o período) vale para os
-  treinos, amistosos e presenças. Atletas e demandas mostram sempre a situação atual.
-- Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
+
+**Aba Linha do tempo:**
+
+- **Próximos 30 dias:** linha do tempo com treinos, amistosos, competições, eventos e compromissos agendados,
+  nas cores do calendário. Atividades do mesmo dia ficam empilhadas.
+- **Atividades por mês:** gráfico de linhas com treinos, amistosos, competições e eventos realizados em cada mês
+  (a partir do primeiro mês com atividade no período; no máximo 24 meses).
+- **Presença nos treinos por mês:** linha com o percentual de presentes (meses sem lista de presença ficam em branco).
+- **Presenças e faltas por mês:** colunas empilhadas com as marcações das listas de presença.
+
+**Aba Distribuição:**
+
+- **Situação dos atletas nas modalidades** (pizza): ativos, lesionados, afastados e inativos.
+- **Eventos por tipo** (rosca, com o total no meio): festas, ações sociais e ambientais, competições e outros,
+  realizados e agendados a partir do início do período (os cancelados não entram).
+- **Demandas por situação** (rosca) e **Prioridade das demandas em aberto** (pizza).
+- **Pódios por modalidade** (colunas empilhadas): 1º, 2º e 3º lugares nas competições do período, da modalidade
+  com mais pódios para a com menos.
+
+Para ver o dashboard com mais dados, execute o script opcional `03_dados_dashboard.sql` (veja o README).
 
 ## Gestão
 
-- **Gestões:** períodos não podem se sobrepor. **Gerenciar** mostra quem ocupa cada cargo, com
+- **Gestões:** períodos não podem se sobrepor e só uma gestão fica **Em andamento** (a mais recente). Ao
+  salvar uma gestão como "Em andamento", o sistema avisa e passa a anterior para "Encerrada". **Gerenciar** mostra quem ocupa cada cargo, com
   **Adicionar membro**, **Trocar membro** e **Remover**. **Organograma** desenha a hierarquia.
 - **Cargos:** nível 1 é o topo; cada cargo pode ser subordinado a um cargo de nível menor.
 - **Membros:** pessoas que ocupam cargos, organizam eventos e cuidam de tarefas.
@@ -115,8 +139,14 @@ posições. Passe o mouse sobre uma barra para ver os detalhes.
 - **Relacionada a:** opcionalmente, ligue a demanda a um evento (festa, ação social, ação ambiental...) ou
   a uma competição. Deixe "Nenhum" para uma demanda avulsa.
 - **Responsáveis:** marque um ou mais membros da gestão em andamento (quem tem cargo nela, no módulo Gestão).
-  Filtre a consulta por situação ou por responsável.
-- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo.
+  Prazo e pelo menos um responsável são obrigatórios.
+- **Solicitante:** o sistema registra quem cadastrou a demanda e mostra na consulta.
+- Filtre a consulta por situação, por responsável ou marque **Minhas demandas** para ver só as que estão com você.
+- As demandas pendentes aparecem primeiro, das de maior prioridade e prazo mais próximo. As que passaram do
+  prazo sem serem concluídas mostram o prazo em vermelho, com "atrasada".
+- **Mudar situação:** os responsáveis pela demanda (inclusive assessores) e quem pode editá-la mudam só a
+  situação, sem abrir o cadastro.
+- **Cancelar ou excluir:** só quem registrou a demanda, a presidência e o administrador.
 
 ## Registros (fotos e vídeos)
 

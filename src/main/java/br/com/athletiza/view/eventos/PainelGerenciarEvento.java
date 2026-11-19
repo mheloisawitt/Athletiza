@@ -34,13 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-/**
- * Responsáveis e tarefas do evento (CH-41). À esquerda, os membros que organizam
- * o evento; à direita, as tarefas com responsável, prazo e situação. Tarefas
- * atrasadas aparecem em vermelho.
- */
 public class PainelGerenciarEvento extends JPanel implements Recarregavel {
-
     private final EventoController controller = new EventoController();
     private final Evento original;
     private final PainelResponsaveis responsaveis = new PainelResponsaveis();
@@ -66,7 +60,7 @@ public class PainelGerenciarEvento extends JPanel implements Recarregavel {
                 controller.excluirTarefa(tarefa);
             }
         });
-        // só o diretor da área do evento (ou a presidência) altera responsáveis e tarefas
+
         tarefas.definirPermissao(() -> Sessao.getAcesso().podeAlterar(original));
         responsaveis.definirPermissao(() -> Sessao.getAcesso().podeAlterar(original));
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
@@ -112,7 +106,6 @@ public class PainelGerenciarEvento extends JPanel implements Recarregavel {
         tarefas.carregar();
     }
 
-    /** Lê o evento novamente do banco, com responsáveis e tarefas. */
     private Evento eventoAtualizado() throws PersistenciaException {
         Evento evento = new Evento(original.getTitulo(), original.getTipoEvento(), original.getData(),
                 original.getHorario(), original.getLocal());
@@ -123,9 +116,7 @@ public class PainelGerenciarEvento extends JPanel implements Recarregavel {
         return evento;
     }
 
-    /** Membros responsáveis pela organização do evento. */
     private class PainelResponsaveis extends PainelConsulta<Membro> {
-
         private Evento evento;
 
         PainelResponsaveis() {

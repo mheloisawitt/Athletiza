@@ -32,12 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-/**
- * Organograma da gestão (CH-23, RF08): cada cargo ocupado é uma caixa com seus
- * membros, ligada ao cargo superior. Atualiza sempre que a tela é aberta.
- */
 public class PainelOrganograma extends JPanel implements Recarregavel {
-
     private final Gestao gestao;
     private final GestaoController controller = new GestaoController();
     private final Desenho desenho = new Desenho();
@@ -75,9 +70,7 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
         desenho.montar(atualizada.getOrganograma());
     }
 
-    /** Caixa de um cargo no desenho, com os cargos subordinados a ele. */
     private static final class No {
-
         final Cargo cargo;
         final List<Membro> membros;
         final List<No> filhos = new ArrayList<>();
@@ -95,9 +88,7 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
         }
     }
 
-    /** Área de desenho: calcula a posição de cada caixa (de cima para baixo) e desenha. */
     private static final class Desenho extends JComponent {
-
         private static final int LARGURA_CAIXA = 200;
         private static final int ESPACO_HORIZONTAL = 24;
         private static final int ESPACO_VERTICAL = 56;
@@ -112,7 +103,6 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
             Map<Cargo, No> nos = new HashMap<>();
             organograma.forEach((cargo, membros) -> nos.put(cargo, new No(cargo, membros)));
 
-            // Cada cargo fica abaixo do superior mais próximo que esteja ocupado nesta gestão
             for (Cargo cargo : organograma.keySet()) {
                 Cargo acima = cargo.getCargoSuperior();
                 while (acima != null && !nos.containsKey(acima)) {
@@ -155,7 +145,6 @@ public class PainelOrganograma extends JPanel implements Recarregavel {
             return no.larguraSubarvore;
         }
 
-        /** Centraliza a caixa sobre a faixa ocupada pelos seus subordinados. */
         private void posicionar(No no, int inicio, int nivel) {
             no.x = inicio + (no.larguraSubarvore - LARGURA_CAIXA) / 2;
             no.y = MARGEM;

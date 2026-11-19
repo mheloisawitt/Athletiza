@@ -15,18 +15,18 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
-        <!-- Classe principal usada pelo NetBeans (Run Project) e pelo jar -->
+
         <exec.mainClass>br.com.athletiza.Athletiza</exec.mainClass>
     </properties>
 
     <dependencies>
-        <!-- Driver JDBC do MySQL -->
+
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>9.7.0</version>
             <exclusions>
-                <!-- Só é usado pelo X DevAPI do MySQL, que o sistema não usa -->
+
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
                     <artifactId>protobuf-java</artifactId>
@@ -34,14 +34,18 @@
             </exclusions>
         </dependency>
 
-        <!-- Tema visual moderno para Swing (modo escuro do protótipo) -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.6.4.Final</version>
+        </dependency>
+
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.7.2</version>
         </dependency>
 
-        <!-- Testes: JUnit + banco H2 em memória (modo MySQL), não vão para o sistema final -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

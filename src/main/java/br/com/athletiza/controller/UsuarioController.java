@@ -12,13 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Cadastro de usuários do sistema e troca de senha (RF01, CH-13).
- * O sistema nunca fica sem um administrador ativo. Senhas definidas por um
- * administrador para outra pessoa são provisórias (troca obrigatória no próximo acesso).
- */
 public class UsuarioController {
-
     static final int TAMANHO_MINIMO_SENHA = 6;
     private static final Pattern LOGIN = Pattern.compile("^[a-zA-Z0-9._-]{3,50}$");
 
@@ -28,10 +22,6 @@ public class UsuarioController {
         return dao.listarTodos();
     }
 
-    /**
-     * Inclui ou altera um usuário. Na inclusão a senha é obrigatória; na alteração,
-     * só é trocada se for informada (redefinição feita pelo administrador).
-     */
     public void salvar(Usuario usuario, char[] senha, char[] confirmacao)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         boolean informouSenha = senha != null && senha.length > 0;
@@ -58,7 +48,7 @@ public class UsuarioController {
         }
         if (informouSenha) {
             usuario.setSenhaHash(Senha.gerarHash(senha));
-            // Senha definida para outra pessoa é provisória: ela troca no primeiro acesso
+
             usuario.setDeveTrocarSenha(!usuario.equals(Sessao.getUsuarioLogado()));
         }
         if (usuario.isNova()) {
@@ -68,7 +58,6 @@ public class UsuarioController {
         }
     }
 
-    /** Troca da própria senha: exige a senha atual. */
     public void alterarSenha(Usuario usuario, char[] senhaAtual, char[] nova, char[] confirmacao)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         Validador validador = new Validador()
@@ -91,7 +80,6 @@ public class UsuarioController {
         usuario.setDeveTrocarSenha(false);
     }
 
-    /** Exclui um usuário; não é possível excluir a si mesmo nem o último administrador. */
     public void excluir(Usuario usuario) throws RegraNegocioException, PersistenciaException {
         if (usuario.equals(Sessao.getUsuarioLogado())) {
             throw new RegraNegocioException("Você não pode excluir o seu próprio usuário.");

@@ -9,12 +9,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import javax.swing.Icon;
 
-/**
- * Seta para a esquerda do botão Voltar, desenhada com Graphics2D na mesma
- * grade de 24 x 24 e no mesmo traço dos ícones do menu lateral.
- */
 final class IconeVoltar implements Icon {
-
     private static final int TAMANHO = 16;
 
     private final Color cor;

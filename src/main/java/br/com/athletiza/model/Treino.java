@@ -7,14 +7,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Treino de uma modalidade, com responsável e lista de presença (RF11, RF12).
- */
 public class Treino extends Atividade {
-
     private Modalidade modalidade;
     private Membro responsavel;
-    /** Atleta -> presente (true) ou ausente (false). */
+
     private final Map<Atleta, Boolean> presencas = new LinkedHashMap<>();
 
     public Treino() {
@@ -30,7 +26,6 @@ public class Treino extends Atividade {
         return TipoAtividade.TREINO;
     }
 
-    /** No calendário aparece apenas "Treino" ou "Amistoso"; o detalhe fica na lista do dia. */
     @Override
     public String getRotuloCurto() {
         return getTipo().getDescricao();

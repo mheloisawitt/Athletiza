@@ -12,20 +12,9 @@ import br.com.athletiza.util.Validador;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Regras dos eventos organizados pela atlética, responsáveis e tarefas (CH-38 a CH-41).
- */
 public class EventoController {
-
     private final EventoDAO dao = new EventoDAO();
 
-    /**
-     * Eventos em ordem de data (ordem natural de Atividade), com filtros opcionais.
-     *
-     * @param tipo   apenas eventos desse tipo (null = todos)
-     * @param inicio apenas eventos a partir desta data (null = sem limite)
-     * @param fim    apenas eventos até esta data (null = sem limite)
-     */
     public List<Evento> pesquisar(TipoEvento tipo, LocalDate inicio, LocalDate fim) throws PersistenciaException {
         return dao.listarTodos().stream()
                 .filter(e -> tipo == null || e.getTipoEvento() == tipo)
@@ -53,7 +42,6 @@ public class EventoController {
         }
     }
 
-    /** Exclui o evento junto com responsáveis e tarefas. */
     public void excluir(Evento evento) throws PersistenciaException {
         dao.excluir(evento.getId());
     }
@@ -62,7 +50,6 @@ public class EventoController {
         dao.carregarDetalhes(evento);
     }
 
-    /** Associa um membro à organização do evento (CH-41). Um membro não pode ser associado duas vezes. */
     public void adicionarResponsavel(Evento evento, Membro membro)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador().obrigatorio(membro, "Membro").validar();
@@ -82,7 +69,6 @@ public class EventoController {
         evento.removerResponsavel(membro);
     }
 
-    /** Inclui ou altera uma tarefa do evento (CH-41). */
     public void salvarTarefa(Evento evento, Tarefa tarefa) throws ValidacaoException, PersistenciaException {
         new Validador()
                 .obrigatorio(tarefa.getDescricao(), "Descrição")

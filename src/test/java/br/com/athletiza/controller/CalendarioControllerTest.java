@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CalendarioControllerTest {
-
     private static final YearMonth OUTUBRO = YearMonth.of(2026, 10);
 
     private final CalendarioController controller = new CalendarioController();

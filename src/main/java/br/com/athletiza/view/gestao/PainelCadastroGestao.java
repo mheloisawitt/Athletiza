@@ -5,19 +5,17 @@ import br.com.athletiza.exception.AthletizaException;
 import br.com.athletiza.model.Gestao;
 import br.com.athletiza.model.SituacaoGestao;
 import br.com.athletiza.util.Validador;
+import br.com.athletiza.view.componentes.Mensagens;
 import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelFormulario;
 import com.formdev.flatlaf.FlatClientProperties;
 import java.time.LocalDate;
+import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
- * Cadastro e edição de gestão (CH-20). Períodos sobrepostos são recusados.
- */
 public class PainelCadastroGestao extends PainelFormulario {
-
     private final Gestao gestao;
     private final GestaoController controller = new GestaoController();
     private final JTextField nome = new JTextField();
@@ -56,6 +54,16 @@ public class PainelCadastroGestao extends PainelFormulario {
         gestao.setSituacao((SituacaoGestao) situacao.getSelectedItem());
         gestao.setDescricao(descricao.getText().isBlank() ? null : descricao.getText().trim());
         controller.salvar(gestao);
+    }
+
+    @Override
+    protected boolean confirmarAntesDeSalvar() throws AthletizaException {
+        if (situacao.getSelectedItem() != SituacaoGestao.EM_ANDAMENTO) {
+            return true;
+        }
+        List<String> nomes = controller.outrasEmAndamento(gestao).stream().map(Gestao::getNome).toList();
+        return nomes.isEmpty() || Mensagens.confirmar(this, "Só uma gestão fica \"Em andamento\". Ao salvar, "
+                + String.join(", ", nomes) + (nomes.size() == 1 ? " passa" : " passam") + " para \"Encerrada\". Continuar?");
     }
 
     @Override

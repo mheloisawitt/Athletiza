@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 
 class DAOBaseTest {
-
     @Test
     void reconheceOsCodigosDeErroDoMySql() {
         assertEquals(Violacao.UNICIDADE, DAOBase.violacao(new SQLException("Duplicate entry", "23000", 1062)));

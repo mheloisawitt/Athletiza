@@ -1,19 +1,25 @@
 package br.com.athletiza.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Modalidade esportiva da atlética, por exemplo "Futsal (F)" (RF05).
- * Duas modalidades são iguais quando têm o mesmo nome e gênero.
- */
+@Entity
+@Table(name = "modalidade")
 public class Modalidade extends Entidade implements Comparable<Modalidade> {
-
     private static final Comparator<Modalidade> ORDEM_NATURAL = Comparator
             .comparing(Modalidade::getNome, Textos.COMPARADOR)
             .thenComparing(Modalidade::getGenero);
 
+    @Column(nullable = false, length = 50)
     private String nome;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private Genero genero;
 
     public Modalidade() {

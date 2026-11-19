@@ -10,11 +10,7 @@ import br.com.athletiza.view.componentes.Navegador;
 import br.com.athletiza.view.componentes.PainelConsulta;
 import java.util.List;
 
-/**
- * Consulta dos membros da atlética (CH-22). A busca filtra por nome ou matrícula.
- */
 public class PainelConsultaMembros extends PainelConsulta<Membro> {
-
     private final MembroController controller = new MembroController();
     private final Navegador navegador;
 

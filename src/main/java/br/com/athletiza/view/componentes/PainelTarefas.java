@@ -24,16 +24,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Tarefas com responsável, prazo e situação (RF19), usadas em eventos e em competições.
- * As atrasadas aparecem em vermelho. De onde vêm e para onde vão as tarefas é
- * definido pela FonteTarefas recebida.
- */
 public class PainelTarefas extends PainelConsulta<Tarefa> {
-
-    /** Como listar, salvar e excluir as tarefas do evento ou da competição. */
     public interface FonteTarefas {
-
         List<Tarefa> listar() throws AthletizaException;
 
         void salvar(Tarefa tarefa) throws AthletizaException;
@@ -43,7 +35,6 @@ public class PainelTarefas extends PainelConsulta<Tarefa> {
 
     private final FonteTarefas fonte;
 
-    /** Resumo para as consultas, ex.: "1 de 3 concluídas · 1 atrasada(s)". */
     public static String resumir(List<Tarefa> tarefas) {
         if (tarefas.isEmpty()) {
             return "—";
@@ -87,7 +78,6 @@ public class PainelTarefas extends PainelConsulta<Tarefa> {
         editar(new Tarefa());
     }
 
-    /** Diálogo da tarefa; reabre enquanto houver erro. */
     @Override
     protected void editar(Tarefa tarefa) {
         try {
@@ -154,9 +144,7 @@ public class PainelTarefas extends PainelConsulta<Tarefa> {
         carregar();
     }
 
-    /** Prazo em vermelho, com o aviso "atrasada", quando a tarefa passou do prazo sem ser concluída. */
     private class RenderizadorPrazo extends DefaultTableCellRenderer {
-
         @Override
         public Component getTableCellRendererComponent(JTable tab, Object valor, boolean selecionado, boolean foco,
                 int linha, int coluna) {

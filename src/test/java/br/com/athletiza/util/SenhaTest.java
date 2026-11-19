@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class SenhaTest {
-
     @Test
     void confereSenhaCorretaERejeitaErrada() {
         String hash = Senha.gerarHash("segredo".toCharArray());

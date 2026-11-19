@@ -28,38 +28,38 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.event.RowSorterEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.table.TableStringConverter;
 
-/**
- * Painel base das telas de consulta (CH-03, CH-44): título, botões de ação,
- * campo de busca e JTable com ordenação ao clicar no cabeçalho.
- *
- * Cada tela de consulta estende esta classe e implementa apenas o que é
- * específico: de onde vêm os dados e o que fazer em cada botão.
- *
- * @param <T> tipo dos objetos listados
- */
 public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
-
-    /** Botões que a tela de consulta exibe. */
     public enum Acao {
         INCLUIR, EDITAR, EXCLUIR, GERENCIAR
     }
 
     protected final ModeloTabela<T> modelo;
     protected final JTable tabela;
+
+    public static final int LINHAS_POR_PAGINA = 15;
+
     private final TableRowSorter<ModeloTabela<T>> ordenador;
+
+    private final TableRowSorter<ModeloTabela<T>> ordemCompleta;
+    private int pagina;
+    private boolean sincronizando;
+    private final JLabel rotuloPaginacao = new JLabel();
+    private final JButton botaoAnterior = Botoes.contorno("‹", e -> irParaPagina(pagina - 1));
+    private final JButton botaoProxima = Botoes.contorno("›", e -> irParaPagina(pagina + 1));
     private final JTextField campoBusca = new JTextField(24);
     private final JPanel barraBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     private final JPanel barraFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     private final JPanel linhaTitulo = new JPanel(new BorderLayout());
     private final Map<Acao, JButton> botoesPadrao = new EnumMap<>(Acao.class);
     private final JLabel rotuloTitulo = new JLabel();
-    /** Se o usuário pode incluir, editar e excluir nesta tela. Padrão: só presidência e administrador. */
+
     private BooleanSupplier permissao = () -> Sessao.getAcesso().isAcessoTotal();
 
     protected PainelConsulta(String titulo, ModeloTabela<T> modelo, Set<Acao> acoes) {
@@ -67,10 +67,21 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         this.modelo = modelo;
         this.tabela = new JTable(modelo);
         this.ordenador = new TableRowSorter<>(modelo);
+        this.ordemCompleta = new TableRowSorter<>(modelo);
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         add(criarCabecalho(titulo, acoes), BorderLayout.NORTH);
-        add(criarTabela(), BorderLayout.CENTER);
+        JPanel centro = new JPanel(new BorderLayout(0, 10));
+        centro.setOpaque(false);
+        centro.add(criarTabela(), BorderLayout.CENTER);
+        centro.add(criarPaginacao(), BorderLayout.SOUTH);
+        add(centro, BorderLayout.CENTER);
+
+        modelo.addTableModelListener(e -> {
+            ordemCompleta.allRowsChanged();
+            aplicarPagina();
+        });
+        aplicarPagina();
         atualizarPermissoes();
     }
 
@@ -78,7 +89,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         this(titulo, modelo, EnumSet.of(Acao.INCLUIR, Acao.EDITAR, Acao.EXCLUIR));
     }
 
-    /** Busca os registros a exibir (normalmente pelo controller). */
     protected abstract List<T> buscarDados() throws AthletizaException;
 
     protected void incluir() {
@@ -93,34 +103,25 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     protected void gerenciar(T selecionado) {
     }
 
-    /** Clique duplo numa linha: por padrão, edita (se o perfil permitir). */
     protected void aoClicarDuasVezes(T selecionado) {
         if (podeAlterar(selecionado)) {
             editar(selecionado);
         }
     }
 
-    /**
-     * Define quem pode incluir, editar e excluir nesta tela (RN19), por exemplo
-     * {@code definirPermissao(() -> Sessao.getAcesso().podeAlterar(Modulo.ATLETAS))}.
-     * É conferido de novo a cada carregar().
-     */
     public void definirPermissao(BooleanSupplier permissao) {
         this.permissao = permissao;
         atualizarPermissoes();
     }
 
-    /** Se pode incluir registros. */
     protected boolean podeIncluir() {
         return permissao.getAsBoolean();
     }
 
-    /** Se pode editar e excluir o registro. As telas com regra por registro (ex.: eventos) sobrescrevem. */
     protected boolean podeAlterar(T registro) {
         return podeIncluir();
     }
 
-    /** Recarrega os dados da tabela. Chamado ao abrir a tela e após cada alteração. */
     @Override
     public void carregar() {
         atualizarPermissoes();
@@ -131,7 +132,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         }
     }
 
-    /** Objeto da linha selecionada, considerando ordenação e filtro. */
     protected Optional<T> getSelecionado() {
         int linhaVisivel = tabela.getSelectedRow();
         if (linhaVisivel < 0) {
@@ -140,18 +140,15 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         return Optional.of(modelo.getLinha(tabela.convertRowIndexToModel(linhaVisivel)));
     }
 
-    /** Adiciona um filtro extra (ex.: combo de modalidade) ao lado do campo de busca. */
     protected void adicionarFiltro(javax.swing.JComponent filtro) {
         barraFiltros.add(javax.swing.Box.createHorizontalStrut(8));
         barraFiltros.add(filtro);
     }
 
-    /** Adiciona um botão extra ao cabeçalho, à esquerda dos botões padrão. */
     protected void adicionarBotao(JButton botao) {
         barraBotoes.add(botao, 0);
     }
 
-    /** Mostra o botão Voltar antes do título (para consultas abertas a partir de outra tela). */
     protected void exibirVoltar(Runnable acao) {
         JButton voltar = Botoes.voltar(e -> acao.run());
         linhaTitulo.remove(rotuloTitulo);
@@ -163,14 +160,12 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         linhaTitulo.add(titulo, BorderLayout.WEST);
     }
 
-    /** Coloca um painel à esquerda da tabela (ex.: lista de modalidades na tela de treinos). */
     protected void adicionarPainelLateral(JComponent lateral) {
         lateral.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(0, 0, 0, 16), lateral.getBorder()));
         add(lateral, BorderLayout.WEST);
     }
 
-    /** Troca o texto de um botão padrão (ex.: "Excluir" vira "Remover"). */
     protected void renomearBotao(Acao acao, String texto) {
         JButton botao = botoesPadrao.get(acao);
         if (botao != null) {
@@ -178,17 +173,67 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         }
     }
 
-    /** Pergunta feita antes de excluir. Pode ser trocada pela subclasse. */
     protected String getPerguntaExclusao(T selecionado) {
         return "Deseja realmente excluir \"" + selecionado + "\"?";
     }
 
-    /** Desfaz a ordenação feita pelo clique no cabeçalho, mantendo a ordem em que os dados vieram. */
     protected void limparOrdenacaoDaTabela() {
         ordenador.setSortKeys(null);
     }
 
-    /** Ajusta a largura preferida de uma coluna. */
+    protected int getPagina() {
+        return pagina;
+    }
+
+    protected int getTotalPaginas() {
+        int total = ordemCompleta.getViewRowCount();
+        return Math.max(1, (total + LINHAS_POR_PAGINA - 1) / LINHAS_POR_PAGINA);
+    }
+
+    private JPanel criarPaginacao() {
+        rotuloPaginacao.setForeground(Cores.TEXTO_SECUNDARIO);
+        botaoAnterior.setToolTipText("Página anterior");
+        botaoProxima.setToolTipText("Próxima página");
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        botoes.setOpaque(false);
+        botoes.add(botaoAnterior);
+        botoes.add(botaoProxima);
+        JPanel barra = new JPanel(new BorderLayout());
+        barra.setOpaque(false);
+        barra.add(rotuloPaginacao, BorderLayout.WEST);
+        barra.add(botoes, BorderLayout.EAST);
+        return barra;
+    }
+
+    private void irParaPagina(int nova) {
+        pagina = nova;
+        aplicarPagina();
+    }
+
+    private void aplicarPagina() {
+        int total = ordemCompleta.getViewRowCount();
+        int paginas = getTotalPaginas();
+        pagina = Math.max(0, Math.min(pagina, paginas - 1));
+        int inicio = pagina * LINHAS_POR_PAGINA;
+        int fim = inicio + LINHAS_POR_PAGINA;
+        ordenador.setRowFilter(new RowFilter<ModeloTabela<T>, Integer>() {
+            @Override
+            public boolean include(Entry<? extends ModeloTabela<T>, ? extends Integer> linha) {
+                int indice = linha.getIdentifier();
+                if (indice >= ordemCompleta.getModelRowCount()) {
+                    return false;
+                }
+                int posicao = ordemCompleta.convertRowIndexToView(indice);
+                return posicao >= inicio && posicao < fim;
+            }
+        });
+        rotuloPaginacao.setText(total + " registro(s)" + (paginas > 1 ? " · página " + (pagina + 1) + " de " + paginas : ""));
+        botaoAnterior.setVisible(paginas > 1);
+        botaoProxima.setVisible(paginas > 1);
+        botaoAnterior.setEnabled(pagina > 0);
+        botaoProxima.setEnabled(pagina < paginas - 1);
+    }
+
     protected void larguraColuna(int coluna, int largura) {
         tabela.getColumnModel().getColumn(coluna).setPreferredWidth(largura);
     }
@@ -244,13 +289,28 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
     }
 
     private JScrollPane criarTabela() {
-        ordenador.setStringConverter(new TableStringConverter() {
+        TableStringConverter conversor = new TableStringConverter() {
             @Override
             public String toString(TableModel modeloTabela, int linha, int coluna) {
                 return Renderizadores.formatar(modeloTabela.getValueAt(linha, coluna));
             }
-        });
+        };
+        ordenador.setStringConverter(conversor);
+        ordemCompleta.setStringConverter(conversor);
         tabela.setRowSorter(ordenador);
+
+        ordenador.addRowSorterListener(e -> {
+            if (e.getType() == RowSorterEvent.Type.SORT_ORDER_CHANGED && !sincronizando) {
+                sincronizando = true;
+                try {
+                    ordemCompleta.setSortKeys(ordenador.getSortKeys());
+                    pagina = 0;
+                    aplicarPagina();
+                } finally {
+                    sincronizando = false;
+                }
+            }
+        });
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabela.setFillsViewportHeight(true);
         tabela.getTableHeader().setReorderingAllowed(false);
@@ -271,7 +331,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         return rolagem;
     }
 
-    /** Datas e horários nunca aparecem cortados, qualquer que seja o tamanho da janela. */
     private void garantirLarguraDeDatas() {
         for (int i = 0; i < modelo.getColumnCount(); i++) {
             Class<?> tipo = modelo.getColumnClass(i);
@@ -288,7 +347,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         barraBotoes.add(botao);
     }
 
-    /** Habilita Incluir, Editar e Excluir conforme o perfil do usuário (Gerenciar fica sempre disponível). */
     private void atualizarPermissoes() {
         boolean habilitado = podeIncluir();
         botoesPadrao.forEach((acao, botao) -> {
@@ -299,7 +357,6 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
         });
     }
 
-    /** Executa a ação só se o perfil permitir alterar o registro selecionado. */
     private java.util.function.Consumer<T> seAlteravel(java.util.function.Consumer<T> acao) {
         return selecionado -> {
             if (podeAlterar(selecionado)) {
@@ -322,6 +379,8 @@ public abstract class PainelConsulta<T> extends JPanel implements Recarregavel {
 
     private void filtrar() {
         String texto = campoBusca.getText().trim();
-        ordenador.setRowFilter(texto.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
+        ordemCompleta.setRowFilter(texto.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
+        pagina = 0;
+        aplicarPagina();
     }
 }

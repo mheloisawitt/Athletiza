@@ -21,22 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Regras de treinos, amistosos, presença e frequência (CH-33 a CH-37).
- */
 public class TreinoController {
-
-    /** Dois treinos no mesmo local com menos que este intervalo entre os horários são considerados em conflito. */
     static final Duration INTERVALO_MINIMO = Duration.ofHours(1);
 
     private final TreinoDAO dao = new TreinoDAO();
     private final AtletaDAO atletaDAO = new AtletaDAO();
 
-    /**
-     * Treinos e amistosos em ordem de data (ordem natural de Atividade).
-     *
-     * @param tipo TipoAtividade.TREINO, TipoAtividade.AMISTOSO ou null para ambos
-     */
     public List<Treino> pesquisar(Modalidade modalidade, LocalDate inicio, LocalDate fim, TipoAtividade tipo)
             throws PersistenciaException {
         return dao.listar(modalidade, inicio, fim).stream()
@@ -76,7 +66,6 @@ public class TreinoController {
         }
     }
 
-    /** Impede dois treinos no mesmo local com menos de 1 hora de diferença (CH-35). */
     private void verificarConflito(Treino treino) throws RegraNegocioException, PersistenciaException {
         if (treino.getLocal() == null || treino.getLocal().isBlank() || treino.getHorario() == null) {
             return;
@@ -91,7 +80,6 @@ public class TreinoController {
         }
     }
 
-    /** Exclui o treino junto com sua lista de presença. */
     public void excluir(Treino treino) throws PersistenciaException {
         dao.excluir(treino.getId());
     }
@@ -100,10 +88,6 @@ public class TreinoController {
         dao.carregarPresencas(treino);
     }
 
-    /**
-     * Atletas que aparecem na lista de presença: os ativos da modalidade
-     * e os que já tinham presença registrada no treino.
-     */
     public List<Atleta> atletasDaChamada(Treino treino) throws PersistenciaException {
         Set<Atleta> atletas = new LinkedHashSet<>();
         atletaDAO.listarTodos().stream()
@@ -114,7 +98,6 @@ public class TreinoController {
         return List.copyOf(atletas);
     }
 
-    /** Grava a lista de presença montada com Treino.registrarPresenca (CH-36). */
     public void salvarPresencas(Treino treino) throws RegraNegocioException, PersistenciaException {
         if (treino.getData() != null && treino.getData().isAfter(LocalDate.now())) {
             throw new RegraNegocioException("Só é possível registrar presença em treinos que já aconteceram.");
@@ -122,13 +105,11 @@ public class TreinoController {
         dao.salvarPresencas(treino);
     }
 
-    /** Em quais treinos o atleta esteve presente ou ausente, do mais recente ao mais antigo (RF13). */
     public List<PresencaEmTreino> historicoDoAtleta(Atleta atleta, Modalidade modalidade, LocalDate inicio)
             throws PersistenciaException {
         return dao.historicoDoAtleta(atleta, modalidade, inicio);
     }
 
-    /** Frequência por atleta no período, maior percentual primeiro (CH-37). */
     public List<Frequencia> frequencia(Modalidade modalidade, LocalDate inicio, LocalDate fim) throws PersistenciaException {
         return dao.frequencia(modalidade, inicio, fim).stream().sorted().toList();
     }

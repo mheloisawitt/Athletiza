@@ -10,7 +10,6 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 class ValidadorTest {
-
     @Test
     void acumulaTodosOsErros() {
         ValidacaoException erro = assertThrows(ValidacaoException.class, () -> new Validador()

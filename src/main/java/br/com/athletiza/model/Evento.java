@@ -8,11 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Evento organizado pela atlética: festa, ação social, ação ambiental... (RF17 a RF19).
- */
 public class Evento extends Atividade {
-
     private TipoEvento tipoEvento;
     private SituacaoEvento situacao = SituacaoEvento.PLANEJADO;
     private String descricao;
@@ -61,7 +57,6 @@ public class Evento extends Atividade {
         this.descricao = descricao;
     }
 
-    /** @return false se o membro já era responsável pelo evento */
     public boolean adicionarResponsavel(Membro membro) {
         return responsaveis.add(membro);
     }

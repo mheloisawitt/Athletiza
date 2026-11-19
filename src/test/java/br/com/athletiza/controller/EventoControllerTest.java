@@ -20,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class EventoControllerTest {
-
     private static final LocalDate HOJE = LocalDate.of(2026, 10, 7);
 
     private final EventoController controller = new EventoController();

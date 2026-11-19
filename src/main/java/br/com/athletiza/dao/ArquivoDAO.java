@@ -8,11 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Acesso às informações dos arquivos da galeria (o conteúdo fica no disco).
- */
 public class ArquivoDAO extends AbstractDAO<Arquivo> {
-
     @Override
     protected String getTabela() {
         return "arquivo";
@@ -31,7 +27,6 @@ public class ArquivoDAO extends AbstractDAO<Arquivo> {
                 arquivo.getTamanho(), arquivo.getEnviadoEm(), arquivo.getEnviadoPor(), arquivo.getDescricao()));
     }
 
-    /** Altera nome, pasta e descrição (o arquivo no disco não muda de lugar). */
     @Override
     public void atualizar(Arquivo arquivo) throws PersistenciaException {
         executarAtualizacao("UPDATE arquivo SET pasta_id = ?, nome = ?, descricao = ? WHERE id = ?",

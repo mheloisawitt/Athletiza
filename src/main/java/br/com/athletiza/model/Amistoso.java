@@ -3,11 +3,7 @@ package br.com.athletiza.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * Amistoso: um treino contra um adversário, com resultado (CH-35).
- */
 public class Amistoso extends Treino {
-
     private String adversario;
     private String resultado;
 

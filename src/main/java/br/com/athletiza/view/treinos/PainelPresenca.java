@@ -24,12 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Lista de presença do treino (CH-36): cada atleta da modalidade marcado como
- * presente ou ausente, salvo de uma vez. Pode ser editada depois.
- */
 public class PainelPresenca extends PainelFormulario {
-
     private final Treino treino;
     private final TreinoController controller = new TreinoController();
     private final ModeloChamada modelo = new ModeloChamada();
@@ -91,9 +86,7 @@ public class PainelPresenca extends PainelFormulario {
         contador.setText(modelo.totalPresentes() + " de " + modelo.atletas.size() + " presentes");
     }
 
-    /** [presente] [atleta] [matrícula] [situação na modalidade]. */
     private class ModeloChamada extends AbstractTableModel {
-
         private final List<Atleta> atletas = new ArrayList<>();
         private final List<Boolean> presentes = new ArrayList<>();
 

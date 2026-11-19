@@ -12,20 +12,9 @@ import br.com.athletiza.util.Validador;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Regras das competições: cadastro, inscrições e resultados (CH-28 a CH-32).
- */
 public class CompeticaoController {
-
     private final CompeticaoDAO dao = new CompeticaoDAO();
 
-    /**
-     * Competições ordenadas por data (ordem natural de Atividade), com filtros opcionais.
-     *
-     * @param situacao apenas competições nessa situação (null = todas)
-     * @param inicio   apenas competições que terminam a partir desta data (null = sem limite)
-     * @param fim      apenas competições que começam até esta data (null = sem limite)
-     */
     public List<Competicao> pesquisar(SituacaoCompeticao situacao, LocalDate inicio, LocalDate fim)
             throws PersistenciaException {
         return dao.listarTodos().stream()
@@ -53,7 +42,6 @@ public class CompeticaoController {
         }
     }
 
-    /** Exclui a competição junto com inscrições, resultados e tarefas (em cascata no banco). */
     public void excluir(Competicao competicao) throws PersistenciaException {
         dao.excluir(competicao.getId());
     }
@@ -62,7 +50,6 @@ public class CompeticaoController {
         dao.carregarInscricoes(competicao);
     }
 
-    /** Grava modalidades e atletas inscritos, montados na tela com os métodos de Competicao (CH-31). */
     public void salvarInscricoes(Competicao competicao) throws PersistenciaException {
         dao.salvarInscricoes(competicao);
     }
@@ -71,10 +58,6 @@ public class CompeticaoController {
         return dao.listarResultados(competicao);
     }
 
-    /**
-     * Registra ou altera um resultado (CH-32). A modalidade precisa estar inscrita e,
-     * se o resultado for individual, o atleta precisa estar inscrito nela.
-     */
     public void salvarResultado(Competicao competicao, Resultado resultado)
             throws ValidacaoException, RegraNegocioException, PersistenciaException {
         new Validador()
@@ -99,7 +82,6 @@ public class CompeticaoController {
         dao.salvarResultado(competicao, resultado);
     }
 
-    /** Tarefas da organização da competição, por prazo (RF19). */
     public List<Tarefa> listarTarefas(Competicao competicao) throws PersistenciaException {
         return dao.listarTarefas(competicao).stream().sorted().toList();
     }

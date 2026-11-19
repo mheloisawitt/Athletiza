@@ -14,12 +14,7 @@ import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.List;
 
-/**
- * Histórico de um atleta (RF13): em quais treinos esteve presente ou ausente,
- * com os mesmos filtros de modalidade e período da tela de frequência.
- */
 public class PainelHistoricoAtleta extends PainelConsulta<PresencaEmTreino> {
-
     private final TreinoController controller = new TreinoController();
     private final Atleta atleta;
     private final Modalidade modalidade;
@@ -48,6 +43,5 @@ public class PainelHistoricoAtleta extends PainelConsulta<PresencaEmTreino> {
 
     @Override
     protected void aoClicarDuasVezes(PresencaEmTreino selecionado) {
-        // Apenas consulta.
     }
 }
