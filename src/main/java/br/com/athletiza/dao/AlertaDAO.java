@@ -1,14 +1,15 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Alerta;
+import br.com.athletiza.repositorio.AlertaRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Alerta;
 import br.com.athletiza.util.Validador;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlertaDAO extends DAOBase {
+public class AlertaDAO extends DAOBase implements AlertaRepositorio {
     @Override
     protected String getNomeEntidade() {
         return "os alertas";

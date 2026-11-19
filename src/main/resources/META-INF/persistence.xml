@@ -5,7 +5,7 @@
              version="3.0">
     <persistence-unit name="athletiza" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <class>br.com.athletiza.model.Modalidade</class>
+        <class>br.com.athletiza.modelo.Modalidade</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="hibernate.hbm2ddl.auto" value="none"/>

@@ -1,23 +1,24 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Amistoso;
-import br.com.athletiza.model.Atividade;
-import br.com.athletiza.model.Competicao;
-import br.com.athletiza.model.Evento;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Modalidade;
-import br.com.athletiza.model.SituacaoCompeticao;
-import br.com.athletiza.model.SituacaoEvento;
-import br.com.athletiza.model.TipoEvento;
-import br.com.athletiza.model.Treino;
+import br.com.athletiza.repositorio.AtividadeRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Amistoso;
+import br.com.athletiza.modelo.Atividade;
+import br.com.athletiza.modelo.Competicao;
+import br.com.athletiza.modelo.Evento;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Modalidade;
+import br.com.athletiza.modelo.SituacaoCompeticao;
+import br.com.athletiza.modelo.SituacaoEvento;
+import br.com.athletiza.modelo.TipoEvento;
+import br.com.athletiza.modelo.Treino;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AtividadeDAO extends DAOBase {
+public class AtividadeDAO extends DAOBase implements AtividadeRepositorio {
     private final CompromissoDAO compromissoDAO = new CompromissoDAO();
 
     @Override

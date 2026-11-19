@@ -1,13 +1,14 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Atleta;
-import br.com.athletiza.model.Competicao;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Modalidade;
-import br.com.athletiza.model.Resultado;
-import br.com.athletiza.model.SituacaoCompeticao;
-import br.com.athletiza.model.Tarefa;
+import br.com.athletiza.repositorio.CompeticaoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Atleta;
+import br.com.athletiza.modelo.Competicao;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Modalidade;
+import br.com.athletiza.modelo.Resultado;
+import br.com.athletiza.modelo.SituacaoCompeticao;
+import br.com.athletiza.modelo.Tarefa;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +21,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class CompeticaoDAO extends AbstractDAO<Competicao> {
+public class CompeticaoDAO extends AbstractDAO<Competicao> implements CompeticaoRepositorio {
     private static final String SELECT_RESULTADOS = "SELECT r.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM resultado r JOIN modalidade m ON m.id = r.modalidade_id";
 

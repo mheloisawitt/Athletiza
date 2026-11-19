@@ -1,8 +1,9 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Cargo;
-import br.com.athletiza.model.Setor;
+import br.com.athletiza.repositorio.CargoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Cargo;
+import br.com.athletiza.modelo.Setor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class CargoDAO extends AbstractDAO<Cargo> {
+public class CargoDAO extends AbstractDAO<Cargo> implements CargoRepositorio {
     @Override
     protected String getTabela() {
         return "cargo";

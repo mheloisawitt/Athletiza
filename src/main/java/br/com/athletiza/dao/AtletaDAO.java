@@ -1,11 +1,12 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Atleta;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Modalidade;
-import br.com.athletiza.model.Situacao;
-import br.com.athletiza.model.SituacaoAtleta;
+import br.com.athletiza.repositorio.AtletaRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Atleta;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Modalidade;
+import br.com.athletiza.modelo.Situacao;
+import br.com.athletiza.modelo.SituacaoAtleta;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class AtletaDAO extends AbstractDAO<Atleta> {
+public class AtletaDAO extends AbstractDAO<Atleta> implements AtletaRepositorio {
     private static final String SELECT_VINCULOS = "SELECT am.atleta_id, am.situacao, m.id AS modalidade_id,"
             + " m.nome AS modalidade_nome, m.genero AS modalidade_genero"
             + " FROM atleta_modalidade am JOIN modalidade m ON m.id = am.modalidade_id";

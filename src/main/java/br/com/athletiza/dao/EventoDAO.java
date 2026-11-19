@@ -1,17 +1,18 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Evento;
-import br.com.athletiza.model.Membro;
-import br.com.athletiza.model.SituacaoEvento;
-import br.com.athletiza.model.Tarefa;
-import br.com.athletiza.model.TipoEvento;
+import br.com.athletiza.repositorio.EventoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Evento;
+import br.com.athletiza.modelo.Membro;
+import br.com.athletiza.modelo.SituacaoEvento;
+import br.com.athletiza.modelo.Tarefa;
+import br.com.athletiza.modelo.TipoEvento;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-public class EventoDAO extends AbstractDAO<Evento> {
+public class EventoDAO extends AbstractDAO<Evento> implements EventoRepositorio {
     private final TarefaDAO tarefaDAO = new TarefaDAO();
 
     @Override

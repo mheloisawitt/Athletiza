@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
 
-        <exec.mainClass>br.com.athletiza.Athletiza</exec.mainClass>
+        <exec.mainClass>br.com.athletiza.app.Athletiza</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -32,6 +32,12 @@
                     <artifactId>protobuf-java</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <dependency>

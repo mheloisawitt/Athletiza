@@ -1,6 +1,6 @@
 package br.com.athletiza.util;
 
-import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.excecao.PersistenciaException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

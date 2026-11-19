@@ -1,13 +1,14 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Entidade;
+import br.com.athletiza.repositorio.Repositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Entidade;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractDAO<T extends Entidade> extends DAOBase implements GenericDAO<T> {
+public abstract class AbstractDAO<T extends Entidade> extends DAOBase implements Repositorio<T> {
     protected abstract String getTabela();
 
     protected abstract T mapear(ResultSet rs) throws SQLException;

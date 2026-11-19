@@ -1,13 +1,14 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Compromisso;
+import br.com.athletiza.repositorio.CompromissoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Compromisso;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-public class CompromissoDAO extends AbstractDAO<Compromisso> {
+public class CompromissoDAO extends AbstractDAO<Compromisso> implements CompromissoRepositorio {
     @Override
     protected String getTabela() {
         return "compromisso";

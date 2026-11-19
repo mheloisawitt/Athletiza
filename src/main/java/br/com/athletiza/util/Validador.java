@@ -1,6 +1,6 @@
 package br.com.athletiza.util;
 
-import br.com.athletiza.exception.ValidacaoException;
+import br.com.athletiza.excecao.ValidacaoException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;

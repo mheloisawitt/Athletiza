@@ -1,15 +1,16 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Atividade;
-import br.com.athletiza.model.Competicao;
-import br.com.athletiza.model.Demanda;
-import br.com.athletiza.model.Evento;
-import br.com.athletiza.model.Membro;
-import br.com.athletiza.model.PrioridadeDemanda;
-import br.com.athletiza.model.SituacaoDemanda;
-import br.com.athletiza.model.TipoEvento;
-import br.com.athletiza.model.Usuario;
+import br.com.athletiza.repositorio.DemandaRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Atividade;
+import br.com.athletiza.modelo.Competicao;
+import br.com.athletiza.modelo.Demanda;
+import br.com.athletiza.modelo.Evento;
+import br.com.athletiza.modelo.Membro;
+import br.com.athletiza.modelo.PrioridadeDemanda;
+import br.com.athletiza.modelo.SituacaoDemanda;
+import br.com.athletiza.modelo.TipoEvento;
+import br.com.athletiza.modelo.Usuario;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class DemandaDAO extends AbstractDAO<Demanda> {
+public class DemandaDAO extends AbstractDAO<Demanda> implements DemandaRepositorio {
     private static final String SELECT = "SELECT d.*, e.titulo AS evento_titulo, e.tipo_evento AS evento_tipo,"
             + " e.data AS evento_data, c.titulo AS competicao_titulo, c.data AS competicao_data,"
             + " u.nome AS solicitante_nome"

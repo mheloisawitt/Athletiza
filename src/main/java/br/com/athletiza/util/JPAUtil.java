@@ -1,6 +1,6 @@
 package br.com.athletiza.util;
 
-import br.com.athletiza.exception.PersistenciaException;
+import br.com.athletiza.excecao.PersistenciaException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;

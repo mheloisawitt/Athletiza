@@ -1,14 +1,15 @@
 package br.com.athletiza.dao;
 
-import br.com.athletiza.exception.PersistenciaException;
-import br.com.athletiza.model.Amistoso;
-import br.com.athletiza.model.Atleta;
-import br.com.athletiza.model.Frequencia;
-import br.com.athletiza.model.Genero;
-import br.com.athletiza.model.Modalidade;
-import br.com.athletiza.model.Presenca;
-import br.com.athletiza.model.PresencaEmTreino;
-import br.com.athletiza.model.Treino;
+import br.com.athletiza.repositorio.TreinoRepositorio;
+import br.com.athletiza.excecao.PersistenciaException;
+import br.com.athletiza.modelo.Amistoso;
+import br.com.athletiza.modelo.Atleta;
+import br.com.athletiza.modelo.Frequencia;
+import br.com.athletiza.modelo.Genero;
+import br.com.athletiza.modelo.Modalidade;
+import br.com.athletiza.modelo.Presenca;
+import br.com.athletiza.modelo.PresencaEmTreino;
+import br.com.athletiza.modelo.Treino;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -20,15 +21,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class TreinoDAO extends AbstractDAO<Treino> {
+public class TreinoDAO extends AbstractDAO<Treino> implements TreinoRepositorio {
     private static final String SELECT = "SELECT t.*, m.nome AS modalidade_nome, m.genero AS modalidade_genero,"
             + " r.id AS membro_id, r.nome AS membro_nome, r.matricula AS membro_matricula,"
             + " r.contato AS membro_contato, r.situacao AS membro_situacao"
             + " FROM treino t JOIN modalidade m ON m.id = t.modalidade_id"
             + " LEFT JOIN membro r ON r.id = t.responsavel_id";
-
-    public record ResumoPresenca(int presentes, int registrados) {
-    }
 
     private final AtletaDAO atletaDAO = new AtletaDAO();
 

@@ -31,7 +31,7 @@ public final class BancoDeTeste {
                     }
                 }
             }
-        } catch (br.com.athletiza.exception.PersistenciaException e) {
+        } catch (br.com.athletiza.excecao.PersistenciaException e) {
             throw new SQLException(e.getMessage(), e);
         }
     }
@@ -43,7 +43,7 @@ public final class BancoDeTeste {
                     st.execute(comando);
                 }
             }
-        } catch (br.com.athletiza.exception.PersistenciaException e) {
+        } catch (br.com.athletiza.excecao.PersistenciaException e) {
             throw new SQLException(e.getMessage(), e);
         }
     }
